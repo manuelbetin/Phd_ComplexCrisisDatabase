@@ -25,7 +25,7 @@ packages <- c("dplyr",
 load.my.packages(packages)
 
 #--------------------
-download_pdfs=F
+download_pdfs=T
 
 #---------------
 clean_IMF_urls=function(file){
@@ -55,7 +55,7 @@ find_keyword_list=function(files){
   
 }
 
-name_links_dt="IMFECF_Requests_links_clean.RData"
+name_links_dt="IMF_urls_clean/IMFECF_Requests_links_clean.RData"
 url_links=rio::import(paste0("files/",name_links_dt))
 url_links=clean_IMF_urls(url_links)
 
@@ -67,7 +67,7 @@ url_links=clean_IMF_urls(url_links)
 
 urls_clean=url_links %>% filter(type_hierarchy=="Clean")
 if(download_pdfs==T){
-  download_pdf_from_url(urls_clean,"files/IMFECF Program requests")
+  pdf_from_url(urls_clean,"files/IMFECF Program requests2")
 }
 
 #-------------------
@@ -77,14 +77,15 @@ name_links_dt="IMFECF_ESAF_Requests_links.csv"
 name_output=str_replace(name_links_dt,".Rdata","")
 name_output=str_replace(name_output,"links","")
 name_output=str_replace_all(name_output,"_"," ")
-files=aggregate_corpus(paste0("files/",name_output))
+
+files=aggregate_corpus("files/IMFECF Program requests")
+
 
 #number of pages by documents
 pdf_page_count(files)
 
 #find occurence of word in document
-Eval_targeted_pages(files,c("Extended Credit Facility"),brute_freq = T)
-
+eval_pages(files,c("Corrections"),brute_freq = T)
 
 
 

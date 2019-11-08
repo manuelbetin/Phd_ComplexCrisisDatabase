@@ -108,7 +108,7 @@ dt=dt %>% mutate(year=2019,
                  variable="EO")
 
 ## idf ----------
-LoI_idf=invers_doc_frequency(dt)
+LoI_idf=idf(dt)
 output[["idf_table"]]=LoI_idf
 
 LoI_idf_dt=LoI_idf%>% mutate(Crisis=str_replace(Crisis,"_"," "))
@@ -156,7 +156,7 @@ output[["tf_idf_fig_avg"]]=ggplot(most_common_crisis_tf_idf)+
 
 # Cos sim Crisis -----------------------------
 
-LoI_cos_sim=matrix_cosinus_similarity(LoI_tf_idf)
+LoI_cos_sim=cosim_matrix(LoI_tf_idf)
 output[["cos_sim_table_crisis"]]=LoI_cos_sim
 rio::export(LoI_cos_sim,paste0(root_path,"/2.data/cos_sim_",lexicon,".RData"))
 LoI_cos_sim=data.frame(LoI_cos_sim)
