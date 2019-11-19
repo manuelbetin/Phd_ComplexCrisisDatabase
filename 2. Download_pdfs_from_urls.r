@@ -80,7 +80,6 @@ name_output=str_replace_all(name_output,"_"," ")
 
 files=aggregate_corpus("files/IMFECF Program requests")
 
-
 #number of pages by documents
 pdf_page_count(files)
 
