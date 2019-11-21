@@ -51,7 +51,7 @@ find_keyword_list=function(files){
   
 }
 
-name_links_dt="all_links.csv"
+name_links_dt="IMFSBA_Reviews_links.csv"#"all_links.csv"
 url_links=rio::import(paste0("files/IMF_urls_raw/",name_links_dt))
 url_links=clean_IMF_urls(url_links)
 
@@ -120,7 +120,7 @@ urls_clean=urls_clean %>% mutate(Review_number=ifelse(str_detect(title,"review")
 urls_clean=urls_clean %>% mutate(Review_number=ifelse(str_detect(title,"review") & str_detect(title,"midterm"),"review_midterm",Review_number),
                                  Review_number=ifelse(str_detect(title,"review") & str_detect(title,"review") & is.na(Review_number),"review",Review_number),
                                  type_doc=ifelse((!is.na(Review_number) & is.na(type_doc)) | str_detect(keywords,"reviews"),"review",type_doc),
-                                 type_doc=ifelse(!is.na(Review_number) & str_detect(title,"request"),"request and review",type_doc))
+                                 type_doc=ifelse(!is.na(Review_number) & str_detect(title,"request") & !str_detect(title,"waiver"),"request and review",type_doc))
 
 # find use of fund ressource -------
 
@@ -268,22 +268,17 @@ for(i in 1:length(type_doc)){
 
 # Descriptives ----
 
-urls_clean=urls_clean %>% mutate(year=lubridate::year(date))
-url_links=url_links %>% mutate(year=lubridate::year(date))
+name_links_dt="IMFECF_ESAF_Requests_links.csv"#"IMFECF_Requests_links.csv" #"IMFSBA_Reviews_links.csv"#"all_links.csv"
+url_links=rio::import(paste0("files/IMF_urls_raw/",name_links_dt))
+url_links=url_links %>% mutate(date=as.Date(date,format="%b %d %Y")) %>% mutate(year=lubridate::year(date))
 
-a=urls_clean %>% group_by(year) %>% summarize(n=n())
+a=url_links %>% group_by(year) %>% summarize(n=n())
 
 #library(ggplot2)
 ggplot(a)+
   geom_bar(stat="identity",aes(x=year,y=n))
 
 years_availables=lubridate::year((urls_clean %>% arrange(date))$date) %>% unique()
-
-urls_clean %>% group_by(type_doc) %>% summarize(n=n())
-
-a=urls_clean %>% filter(type_doc=="request")
-
-a=urls_clean %>% filter(str_detect(title,"argentina"))
 
 #Export ------
 
