@@ -17,6 +17,7 @@ packages <- c("dplyr",
               "stringr",
               "stringi",
               "tidyr",
+              "ggplot2",
               'crayon',
               "TextMiningCrisis") #make sure you have the library 
 
@@ -25,6 +26,7 @@ load.my.packages(packages)
 
 #-----------
 clean_IMF_urls=function(file){
+  #label the type of EBS: cleaned, correction or supplement
   EBS_files=url_links %>% filter(str_detect(hierarchy,"EBS"))
   EBS_files_cor=EBS_files %>% filter(str_detect(hierarchy,"Cor")) %>% mutate(type_hierarchy="Correction")
   EBS_files_sup=EBS_files %>% filter(str_detect(hierarchy,"Sup")) %>% mutate(type_hierarchy="Supplement")
@@ -35,11 +37,10 @@ clean_IMF_urls=function(file){
 }
 
 find_keyword_list=function(files){
+  #find the full set of keywords available in the metadata of the documents
   keywords=paste0(files$keywords,collapse=", ")
-  
   #keywords=clean_text(keywords)
   keywords=strsplit(keywords, ",")[[1]]
-  
   keywords=data.frame(keywords)
   colnames(keywords)="keywords"
   
@@ -51,7 +52,7 @@ find_keyword_list=function(files){
   
 }
 
-name_links_dt="IMFSBA_Reviews_links.csv"#"all_links.csv"
+name_links_dt="IMFSBA_Reviews_links.csv"#
 url_links=rio::import(paste0("files/IMF_urls_raw/",name_links_dt))
 url_links=clean_IMF_urls(url_links)
 
@@ -83,11 +84,14 @@ nonstandard_ctrynames=c(COD="zaire",SOM="somalia",YEM="yemen arab republic","yug
 nonstandard_ctrynames2=as.data.frame(nonstandard_ctrynames)
 nonstandard_ctrynames2$iso3c=names(nonstandard_ctrynames)
 names(nonstandard_ctrynames2)=c("iso3_new","iso3c")
+nonstandard_ctrynames2=nonstandard_ctrynames2 %>% mutate(iso3_new=as.character(iso3_new))
 
 urls_clean=urls_clean %>% mutate(iso3_error=ifelse(!iso3 %in% c(ctries,nonstandard_ctrynames),iso3,""),
-                                 iso3_new=ifelse(iso3 %in% c(ctries,nonstandard_ctrynames),iso3,""))
+                                 iso3_new=as.character(ifelse(iso3 %in% c(ctries,nonstandard_ctrynames),iso3,"")))
 
 urls_clean=urls_clean %>% left_join(nonstandard_ctrynames2,by=c("iso3_new"))
+
+#correct manually some cases and transform to iso3c
 urls_clean=urls_clean %>% mutate(iso3c=ifelse(is.na(iso3c),countrycode::countrycode(iso3_new,origin="country.name",destination="iso3c"),iso3c),
                                  iso3c=ifelse(str_detect(iso3,"mexico"),"MEX",iso3c),
                                  iso3c=ifelse(str_detect(iso3,"philippines"),"PHL",iso3c),
@@ -268,15 +272,34 @@ for(i in 1:length(type_doc)){
 
 # Descriptives ----
 
-name_links_dt="IMFECF_ESAF_Requests_links.csv"#"IMFECF_Requests_links.csv" #"IMFSBA_Reviews_links.csv"#"all_links.csv"
+name_links_dt='IMFECF_EA1950_Reviews_links.csv' #"IMFECF_SBA1950_Requests_links.csv"#"IMFECF_Requests_links.csv" #"IMFSBA_Reviews_links.csv"#"all_links.csv"
 url_links=rio::import(paste0("files/IMF_urls_raw/",name_links_dt))
+names(url_links)[1]="title2"
 url_links=url_links %>% mutate(date=as.Date(date,format="%b %d %Y")) %>% mutate(year=lubridate::year(date))
 
-a=url_links %>% group_by(year) %>% summarize(n=n())
+row_links_by_year=url_links %>% group_by(year) %>% summarize(n=n())
+ggplot(row_links_by_year)+
+  geom_bar(stat="identity",aes(x=year,y=n))+
+  theme_bw()
 
-#library(ggplot2)
-ggplot(a)+
-  geom_bar(stat="identity",aes(x=year,y=n))
+getwd()
+name_links_dt="IMFSBA_Reviews_links_clean.Rdata"#"IMFECF_Requests_links.csv" #"IMFSBA_Reviews_links.csv"#"all_links.csv"
+url_links=rio::import(paste0("files/IMF_urls_clean/",name_links_dt))
+url_links=url_links %>% mutate(date=as.Date(date,format="%b %d %Y")) %>% mutate(year=lubridate::year(date))
+#urls_clean=urls_clean  %>% mutate(date=as.Date(date,format="%b %d %Y")) %>% mutate(year=lubridate::year(date))
+head(url_links$type_hierarchy %>% unique())
+programs_by_year=IMF_programs  %>% mutate(year=lubridate::year(Period)) %>% group_by(year) %>% summarize(n=n())
+links_by_year=url_links %>% group_by(year) %>% filter(type_hierarchy %in% c("Clean","Supplements")) %>% summarize(n=n())
+ggplotly(ggplot()+
+           geom_bar(data=IMF_links_old_by_year,stat="identity",aes(x=year,y=n,fill="old_urls"),color="black",alpha=0.5)+
+           geom_bar(data=links_by_year,stat="identity",aes(x=year,y=n,fill="urls"),color="black")+
+           geom_point(data=programs_by_year,stat="identity",aes(x=year,y=n),color="black",size=2)+
+           labs(title="Requests")+
+           lims(y=c(0,45))+
+           theme_bw())
+
+
+names(url_links)
 
 years_availables=lubridate::year((urls_clean %>% arrange(date))$date) %>% unique()
 
