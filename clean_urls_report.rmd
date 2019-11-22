@@ -39,7 +39,7 @@ load.my.packages(packages)
 #-----------
 clean_IMF_urls=function(file){
   #label the type of EBS: cleaned, correction or supplement
-  EBS_files=url_links %>% filter(str_detect(hierarchy,"EBS"))
+  EBS_files=file %>% filter(str_detect(hierarchy,"EBS"))
   EBS_files_cor=EBS_files %>% filter(str_detect(hierarchy,"Cor")) %>% mutate(type_hierarchy="Correction")
   EBS_files_sup=EBS_files %>% filter(str_detect(hierarchy,"Sup")) %>% mutate(type_hierarchy="a_Supplement")
   EBS_files_clean=EBS_files %>% filter(!(str_detect(hierarchy,"Sup") | str_detect(hierarchy,"Cor"))) %>% mutate(type_hierarchy="b_Clean")
@@ -68,9 +68,74 @@ find_keyword_list=function(files){
 
 ```{r import data,warning=F}
 
-name_links_dt="all_links.csv"#"all_links.csv"
-url_links=rio::import(paste0("files/IMF_urls_raw/",name_links_dt))
-url_links=clean_IMF_urls(url_links)
+
+links_all="all_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+links_all=links_all %>% dplyr::select(-V1)
+links_all1=clean_IMF_urls(links_all)
+
+
+links_all="IMFEFF_bef1980_Reviews_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+names(links_all)[9]="title_1"
+links_all2=clean_IMF_urls(links_all)
+
+
+links_all="IMFSBA_bef1980_Requests_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+names(links_all)[9]="title_1"
+links_all3=clean_IMF_urls(links_all)
+
+
+links_all="IMFSBA_bef1980_Reviews_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+names(links_all)[9]="title_1"
+links_all4=clean_IMF_urls(links_all)
+
+links_all="IMFFCL_Requests_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+names(links_all)[9]="title_1"
+links_all5=clean_IMF_urls(links_all)
+
+links_all="IMFFCL_Reviews_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+names(links_all)[9]="title_1"
+links_all6=clean_IMF_urls(links_all)
+
+links_all="IMFSBA_aft2000_Requests_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+names(links_all)[9]="title_1"
+links_all7=clean_IMF_urls(links_all)
+
+links_all="IMFSBA_aft2000_Reviews_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+names(links_all)[9]="title_1"
+links_all8=clean_IMF_urls(links_all)
+
+links_all="IMFEFF_aft2000_Requests_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+names(links_all)[9]="title_1"
+links_all9=clean_IMF_urls(links_all)
+
+links_all="IMFEFF_bef1983_Requests_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+names(links_all)[9]="title_1"
+links_all10=clean_IMF_urls(links_all)
+
+links_all="IMFSBA_aft2003_Requests_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+names(links_all)[9]="title_1"
+links_all11=clean_IMF_urls(links_all)
+
+
+
+links_all="IMFSBA_aft2003_Requests_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+names(links_all)[9]="title_1"
+links_all12=clean_IMF_urls(links_all)
+
+url_links=rbind(links_all1,links_all2,links_all3,links_all4,links_all5,links_all6,links_all7,links_all8,links_all9,links_all10,links_all11,links_all12)
+url_links=url_links %>% mutate(year=lubridate::year(date))
 
 IMF_programs=rio::import("IMF_programs_dates.xlsx")
 IMF_links_old=rio::import("IMF_Requests_1960_2014_urls.xlsx")
@@ -85,8 +150,9 @@ myIMF_keywords=find_keyword_list(urls_clean) #find the list of keywords across t
 urls_clean=urls_clean %>% mutate(title=tolower(title))
 
 #urls_clean= urls_clean %>% filter(!(str_detect(hierarchy,"Cor") | str_detect(hierarchy,"Sup")))
-urls_clean= urls_clean %>% filter(!(str_detect(hierarchy,"Cor")))
+#urls_clean= urls_clean %>% filter(!(str_detect(hierarchy,"Cor")))
 
+urls_clean= urls_clean %>% filter((str_detect(hierarchy,"EBS")))
 
 datatable(urls_clean %>% group_by(type_hierarchy) %>% summarize(n=n()))
 
@@ -172,11 +238,15 @@ From the metadata in the title and keywords we extract the type of documents of 
 ```{r find requests}
 # find the requests ---------
 
-urls_clean=urls_clean %>% mutate(type_doc=ifelse(str_detect(title,"request")& !str_detect(title,"waiver"),"request",NA),
+urls_clean=urls_clean %>% mutate(type_doc=ifelse(str_detect(title,"request") & !str_detect(title,"waiver"),"request",NA),
                                  type_doc=ifelse(str_detect(title,'arrangement under the flexible credit line'),"request",type_doc),
                                  type_doc=ifelse(str_detect(keywords,'requests'),"request",type_doc),
+                                 type_doc=ifelse(str_detect(keywords,'Letters of Intent'),"request",type_doc),
                                  type_doc=ifelse(str_detect(keywords,'arrangement texts'),"request",type_doc),
-                                 type_doc=ifelse(str_detect(title,'letter on economic policy'),"request",type_doc))
+                                 type_doc=ifelse(str_detect(title,'letter on economic policy'),"request",type_doc),
+                                 type_doc=ifelse(year<=1983 & str_detect(title,'stand-by arrangement') & !str_detect(title,'review'),"request",type_doc),
+                                 type_doc=ifelse(year<=1983 & str_detect(title,'extended arrangement') & (!str_detect(title,'review') | !str_detect(title,'request for modification') | !str_detect(title,'waiver') ),"request",type_doc),
+                                 type_doc=ifelse(year<=1983 & str_detect(title,'extended fund facility') & (!str_detect(title,'review') | !str_detect(title,'request for modification')),"request",type_doc))
 
 ```
 
@@ -195,7 +265,7 @@ urls_clean=urls_clean %>% mutate(Review_number=ifelse(str_detect(title,"review")
 
 urls_clean=urls_clean %>% mutate(Review_number=ifelse(str_detect(title,"review") & str_detect(title,"midterm"),"review_midterm",Review_number),
                                  Review_number=ifelse(str_detect(title,"review") & str_detect(title,"review") & is.na(Review_number),"review",Review_number),
-                                 type_doc=ifelse((!is.na(Review_number) & is.na(type_doc)) | str_detect(keywords,"reviews"),"review",type_doc),
+                                 type_doc=ifelse((!is.na(Review_number) & is.na(type_doc)) | (str_detect(keywords,"reviews") | str_detect(title,"review")),"review",type_doc),
                                  type_doc=ifelse(!is.na(Review_number) & str_detect(title,"request") & !str_detect(title,"waiver"),"request and review",type_doc))
 
 
@@ -204,7 +274,7 @@ urls_clean=urls_clean %>% mutate(Review_number=ifelse(str_detect(title,"review")
 ```{r find use of fund}
 # find use of fund ressource -------
 
-urls_clean=urls_clean %>% mutate(type_doc=ifelse(! is.na(type_doc) & str_detect(title,"use of fund resources"),"Use fund",type_doc))
+urls_clean=urls_clean %>% mutate(type_doc=ifelse(is.na(type_doc) & str_detect(title,"use of fund resources"),"Use fund",type_doc))
 
 ```
 
@@ -218,7 +288,7 @@ urls_clean=urls_clean %>% mutate(type_doc=ifelse(str_detect(title,"cancellation"
 ```{r extensions}
 # find extensions -------
 
-urls_clean=urls_clean %>% mutate(type_doc=ifelse(! is.na(type_doc) & (str_detect(title,"prolongation") | str_detect(title,"extension") | str_detect(title,"lengthening")),"extension",type_doc))
+urls_clean=urls_clean %>% mutate(type_doc=ifelse(! is.na(type_doc) & (str_detect(title,"prolongation") | str_detect(title,"extension") | str_detect(title,"lengthening")| str_detect(title,"augmentation")),"extension",type_doc))
 
 ```
 
@@ -228,12 +298,20 @@ urls_clean=urls_clean %>% mutate(type_doc=ifelse(! is.na(type_doc) & (str_detect
 urls_clean=urls_clean %>% mutate(type_doc=ifelse(str_detect(title,"compensatory"),"compensatory",type_doc))
 
 urls_clean=urls_clean %>% mutate(type_doc=ifelse(is.na(type_doc) & str_detect(title,"performance criteria"),"performance criteria",type_doc))
-urls_clean=urls_clean %>% mutate(performance_criteria=ifelse(str_detect(title,"performance criteria") | str_detect(title,"performance criterion"),"performance criteria",NA))
+urls_clean=urls_clean %>% mutate(performance_criteria=ifelse(str_detect(title,"performance criteria") | str_detect(keywords,"performance criterion"),"performance criteria",NA))
 urls_clean=urls_clean %>% mutate(waiver=ifelse(str_detect(title,"waiver"),"waiver",NA))
+urls_clean=urls_clean %>% mutate(modification=ifelse(str_detect(title,"request for modification"),"modification",NA))
+
 urls_clean=urls_clean %>% mutate(type_doc=ifelse(str_detect(title,"waiver") & str_detect(title,"performance criteria") & is.na(type_doc),"performance criteria and waiver",type_doc),
                                  type_doc=ifelse(str_detect(title,"waiver") & is.na(type_doc),"waiver",type_doc))
 
 
+```
+
+
+```{r purchase transaction}
+
+urls_clean=urls_clean %>% mutate(type_doc=ifelse(!is.na(type_doc) & (str_detect(title,"purchase transaction")),"purchase transac",type_doc))
 
 ```
 
@@ -285,20 +363,20 @@ From the title and the keywords we extract the type of program and found 16 type
 ```{r find type of program}
 # type of program --------
 
-urls_clean=urls_clean %>% mutate(type_program=ifelse(str_detect(keywords,"Extended fund facility"),"EFF",
+urls_clean=urls_clean %>% mutate(type_program=ifelse(str_detect(keywords,"Extended fund facility") | str_detect(title,"extended fund facility"),"EFF",
                                                             ifelse(str_detect(keywords,"ESAF arrangement"),"ESAF",
                                                                    ifelse(str_detect(keywords,"Systemic Transformation Facility"),"STF",
                                                                           ifelse(str_detect(keywords,"Poverty Reduction and Growth Facility"),"PRGF",
                                                                                  ifelse(str_detect(keywords,"Flexible credit line"),"FCL",
                                                                                         ifelse(str_detect(keywords,"Precautionary and Liquidity Line") | str_detect(keywords,"Precautionary Credit Line") ,"PLL",
                                                                                                ifelse(str_detect(keywords,"SAF arrangement"),"SAF",
-                                                                                                      ifelse(str_detect(keywords,"Stand-by arrangement") | str_detect(keywords,"Stand-By Arrangements"),"SBA",
-                                                                                                             ifelse(str_detect(keywords,"Extended arrangement"),"EA","Other"))))))))))
+                                                                                                      ifelse(str_detect(keywords,"Stand-by arrangement") | str_detect(keywords,"Stand-By Arrangement") | str_detect(title,"stand-by arrangement"),"SBA",
+                                                                                                             ifelse(str_detect(keywords,"Extended arrangement") | str_detect(keywords,"extended arrangement") | str_detect(title,"extended arrangement"),"EA","Other"))))))))))
 
 
-urls_clean=urls_clean %>% mutate(type_program=ifelse(type_program=="Other" & str_detect(keywords,"Purchases under compensatory financing"),"CF",
-                                                     ifelse(type_program=="Other" & str_detect(keywords,"Buffer Stock Financing Facility"),"BSFF",
-                                                            ifelse(type_program=="Other" & str_detect(keywords,"Buffer Stock Financing Facilityg"),"BSFF"))))
+# urls_clean=urls_clean %>% mutate(type_program=ifelse(type_program=="Other" & str_detect(keywords,"Purchases under compensatory financing"),"CF",
+#                                                      ifelse(type_program=="Other" & str_detect(keywords,"Buffer Stock Financing Facility"),"BSFF",
+#                                                             ifelse(type_program=="Other" & str_detect(keywords,"Buffer Stock Financing Facilityg"),"BSFF"))))
 
 # 
 # 
@@ -338,16 +416,21 @@ urls_clean= urls_clean %>% filter(!is.na(type_doc))
 #urls_clean= urls_clean %>% filter(!(str_detect(hierarchy,"Cor") | str_detect(hierarchy,"Sup") | is.na(type_doc)))
 
 urls_clean=urls_clean %>% 
-  dplyr::select(iso3c,date,hierarchy,type_program,type_doc,Review_number,performance_criteria,waiver,everything()) %>%
+  dplyr::select(iso3c,date,hierarchy,title,type_program,type_doc,Review_number,performance_criteria,waiver,modification,type_hierarchy,everything()) %>%
   arrange(iso3c,date)
 
 
 #remove duplicates
 
-urls_clean=urls_clean %>% dplyr::select(-c(V1,cfs,subject,title_1))
+urls_clean=urls_clean %>% dplyr::select(-c(cfs,subject,title_1))
 urls_clean=urls_clean %>% distinct()
 
 # summary number of documents by type of programs
+
+#View(urls_clean %>% filter(year<2000 & year>1983))
+#(urls_clean %>% filter(iso3c=="TUR") %>% arrange(year))$year %>% unique()
+#(urls_clean %>% filter(iso3c=="TUR" & type_doc=="request") %>% arrange(year))$year %>% unique()
+
 
 datatable(urls_clean %>% group_by(type_program,type_doc) %>% summarize(n=n()))
 
@@ -465,7 +548,43 @@ ggplotly(ggplot()+
 ```
 
 
+```{r,eval=F}
+
+ urls_clean %>% group_by(iso3c,type_hierarchy) %>%
+   summarize(n=n()) %>%
+   arrange(iso3c,type_hierarchy) %>%
+   mutate(p=dplyr::lag(n,2)/(n+dplyr::lag(n,2))) %>% 
+   arrange(-p)
+   #filter(type_hierarchy=="Correction")
+
+a=urls_clean %>% filter(iso3c=="PHL")
+#View(a)
+```
+
+
 ## Reviews
+
+```{r review numbers}
+
+details_N_reviews=urls_clean %>% filter(type_doc %in% c("review","request and review","request") &
+                          type_hierarchy=="b_Clean") %>% 
+  mutate(Review_number2=str_remove(Review_number,"review_"),
+         Review_number2=ifelse(Review_number2=="review",1,Review_number2),
+         Review_number2=ifelse(type_doc=="request",0,Review_number2),
+         Review_number2=ifelse(Review_number2=="midterm",1,Review_number2),
+         Review_number2=as.numeric(Review_number2),
+         Review_number2=ifelse(Review_number2>=4,4,Review_number2)
+        ) %>% group_by(Review_number2,type_program) %>% summarize(n=n())
+                                                     
+ggplot(details_N_reviews)+
+  geom_bar(stat="identity",aes(x=paste0("Review_",Review_number2),y=n,fill=type_program))+
+  #geom_label(aes(x=paste0("Review_",Review_number2),y=n,label=n))+
+  labs(x=NULL)+
+  theme_bw()+
+  theme(legend.position="bottom")
+
+```
+
 
 ```{r Describe reviews by programs}
 
@@ -520,7 +639,7 @@ ggplotly(ggplot()+
 sessionInfo()
 ```
 
-```{r}
+```{r create variables from metadata,eval=F}
 type_doc_list=function(){
 type_doc=c("Nonapproval recommended by staff",
            'Fund approval extension proposed',
@@ -591,15 +710,16 @@ return(type_doc)
 
 type_doc=type_doc_list()
 
+for(i in 1:length(type_doc)){
+  namevar=str_replace_all(type_doc[i]," ","_")
+  urls_clean=urls_clean %>% mutate(!!namevar:=ifelse(str_detect(keywords,type_doc[i]),1,0))
+}
+
 ```
 
 
-```{r}
-
-a=urls_clean %>% filter(str_detect(title,"flexible") & type_hierarchy=="Clean")
-
-#View(a)
-
+```{r export}
+rio::export(urls_clean,"files/IMF_urls_clean/Final_links_clean.RData")
 
 
 ```

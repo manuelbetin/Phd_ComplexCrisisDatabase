@@ -27,7 +27,7 @@ load.my.packages(packages)
 #-----------
 clean_IMF_urls=function(file){
   #label the type of EBS: cleaned, correction or supplement
-  EBS_files=url_links %>% filter(str_detect(hierarchy,"EBS"))
+  EBS_files=file %>% filter(str_detect(hierarchy,"EBS"))
   EBS_files_cor=EBS_files %>% filter(str_detect(hierarchy,"Cor")) %>% mutate(type_hierarchy="Correction")
   EBS_files_sup=EBS_files %>% filter(str_detect(hierarchy,"Sup")) %>% mutate(type_hierarchy="Supplement")
   EBS_files_clean=EBS_files %>% filter(!(str_detect(hierarchy,"Sup") | str_detect(hierarchy,"Cor"))) %>% mutate(type_hierarchy="Clean")
@@ -52,10 +52,36 @@ find_keyword_list=function(files){
   
 }
 
-name_links_dt="IMFSBA_Reviews_links.csv"#
-url_links=rio::import(paste0("files/IMF_urls_raw/",name_links_dt))
-url_links=clean_IMF_urls(url_links)
 
+links_all="all_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+links_all=links_all %>% dplyr::select(-V1)
+names(links_all)
+links_all1=clean_IMF_urls(links_all)
+
+
+links_all="IMFEFF_bef1980_Reviews_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+names(links_all)[9]="title_1"
+names(links_all)
+links_all2=clean_IMF_urls(links_all)
+
+
+links_all="IMFSBA_bef1980_Requests_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+names(links_all)[9]="title_1"
+names(links_all)
+links_all3=clean_IMF_urls(links_all)
+
+
+links_all="IMFSBA_bef1980_Reviews_links.csv"#
+links_all=rio::import(paste0("files/IMF_urls_raw/",links_all))
+names(links_all)[9]="title_1"
+names(links_all)
+links_all4=clean_IMF_urls(links_all)
+
+url_links=rbind(links_all1,links_all2,links_all3,links_all4)
+url_links=url_links %>% mutate(year=lubridate::year(date))
 # clean url links ------
 
 urls_clean=url_links #%>% filter(type_hierarchy %in% c("Clean")) #select links corresponding to EBS with no correction or supplements
@@ -107,8 +133,8 @@ urls_clean=urls_clean %>% mutate(type_doc=ifelse(str_detect(title,"request")& !s
                                  type_doc=ifelse(str_detect(title,'arrangement under the flexible credit line'),"request",type_doc),
                                  type_doc=ifelse(str_detect(keywords,'requests'),"request",type_doc),
                                  type_doc=ifelse(str_detect(keywords,'arrangement texts'),"request",type_doc),
-                                 type_doc=ifelse(str_detect(title,'letter on economic policy'),"request",type_doc))
-
+                                 type_doc=ifelse(str_detect(title,'letter on economic policy'),"request",type_doc),
+                                 type_doc=ifelse(year<=1980 & str_detect(keywords,'stand-by arrangement') & !str_detect(keywords,'review'),"request",type_doc))
 # find the number of the review ---------
 urls_clean=urls_clean %>% mutate(Review_number=ifelse(str_detect(title,"review") & str_detect(title,"first"),"review_1",
                                                       ifelse(str_detect(title,"review") & str_detect(title,"second"),"review_2",
@@ -178,7 +204,7 @@ urls_clean=urls_clean %>% mutate(type_program=ifelse(is.na(type_program) & str_d
 
 #remove programs not corresponding to any of the above programss
 
-urls_clean=urls_clean %>% filter(!is.na(type_program))
+#urls_clean=urls_clean %>% filter(!is.na(type_program))
 
 a=urls_clean %>% group_by(type_doc) %>% summarize(n=n()) %>% filter(type_doc=="review")
 
@@ -190,7 +216,7 @@ urls_clean=urls_clean %>% dplyr::select(iso3c,date,hierarchy,type_program,type_d
 
 #remove duplicates
 
-urls_clean=urls_clean %>% dplyr::select(-c(V1,cfs,subject,title_1))
+urls_clean=urls_clean %>% dplyr::select(-c(cfs,subject,title_1))
 urls_clean=urls_clean %>% distinct()
 
 # create variables for type of document -----
@@ -288,6 +314,7 @@ url_links=rio::import(paste0("files/IMF_urls_clean/",name_links_dt))
 url_links=url_links %>% mutate(date=as.Date(date,format="%b %d %Y")) %>% mutate(year=lubridate::year(date))
 #urls_clean=urls_clean  %>% mutate(date=as.Date(date,format="%b %d %Y")) %>% mutate(year=lubridate::year(date))
 head(url_links$type_hierarchy %>% unique())
+
 programs_by_year=IMF_programs  %>% mutate(year=lubridate::year(Period)) %>% group_by(year) %>% summarize(n=n())
 links_by_year=url_links %>% group_by(year) %>% filter(type_hierarchy %in% c("Clean","Supplements")) %>% summarize(n=n())
 ggplotly(ggplot()+
