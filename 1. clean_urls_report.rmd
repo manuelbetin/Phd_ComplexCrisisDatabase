@@ -28,6 +28,7 @@ packages <- c("dplyr",
               "stringi",
               "tidyr",
               "ggplot2",
+              "lubridate",
               'crayon',
               "DT",
               "plotly",
@@ -137,8 +138,8 @@ links_all12=clean_IMF_urls(links_all)
 url_links=rbind(links_all1,links_all2,links_all3,links_all4,links_all5,links_all6,links_all7,links_all8,links_all9,links_all10,links_all11,links_all12)
 url_links=url_links %>% mutate(year=lubridate::year(date))
 
-IMF_programs=rio::import("IMF_programs_dates.xlsx")
-IMF_links_old=rio::import("IMF_Requests_1960_2014_urls.xlsx")
+IMF_programs=rio::import("files/IMF_programs_dates.xlsx")
+IMF_links_old=rio::import("files/IMF_Requests_1960_2014_urls.xlsx")
 ```
 
 ```{r clean urls,warning=F}
@@ -436,6 +437,52 @@ datatable(urls_clean %>% group_by(type_program,type_doc) %>% summarize(n=n()))
 
 ```
 
+# Merge datasets of requests with new documents
+
+```{r merge request and urls}
+
+df1 <- urls_clean
+df2 <- IMF_programs
+# merge tables to match requests with docum
+
+
+df2 <- df2 %>%
+  rename(startdate = Period) %>%
+  rename(enddate = Date_Expiration) %>%
+  rename(ID = ISO3_Code) 
+
+df2=df2 %>%
+  mutate(startdate_ext=startdate %m-% months(2),
+         enddate_ext=enddate %m-% months(2))
+
+df1 <- df1 %>%
+  rename(Loss_Date = date) %>%
+  #rename(perf_crit = Performance_criteria) %>%
+  rename(perf_criterct = performance_criteria) %>%
+  rename(ID = iso3c)
+
+# Joining data
+
+dt_merged <- full_join(df1, df2, by="ID") %>% 
+  filter(Loss_Date >= startdate_ext & Loss_Date <= enddate_ext)
+#Keeping those who don't match
+liste <- dt_merged$reference
+
+#
+Nonmatching_files <- df1 %>% dplyr::filter(!reference %in% liste)
+
+urls_clean=dt_merged
+
+```
+
+```{r description merge}
+
+N_docs_by_programs=dt_merged %>% filter(type_hierarchy=="b_Clean") %>%
+  group_by(file) %>% summarize(n_docs=n(),
+                               type_docs=paste(unique(paste0(type_program,'(',type_doc,")")),collapse=","))
+
+```
+
 # Description of available data and comparison with benchmark
 
 Compare the number of documents extracted with the number of agreed programs and the number of requests already downloaded.
@@ -446,10 +493,12 @@ Compare the number of documents extracted with the number of agreed programs and
 
 ```{r descriptive stats of urls}
 
-name_links_dt="all_links.csv"#"IMFECF_Requests_links.csv" #"IMFSBA_Reviews_links.csv"#"all_links.csv"
-url_links=rio::import(paste0("files/IMF_urls_raw/",name_links_dt))
+#name_links_dt="all_links.csv"#"IMFECF_Requests_links.csv" #"IMFSBA_Reviews_links.csv"#"all_links.csv"
+#url_links=rio::import(paste0("files/IMF_urls_raw/",name_links_dt))
+#head(url_links)
 url_links=url_links %>% mutate(date=as.Date(date,format="%b %d %Y")) %>% mutate(year=lubridate::year(date))
-urls_clean=urls_clean  %>% mutate(date=as.Date(date,format="%b %d %Y")) %>% mutate(year=lubridate::year(date))
+names(urls_clean)
+urls_clean=urls_clean  %>% mutate(date=as.Date(Loss_Date,format="%b %d %Y")) %>% mutate(year=lubridate::year(date))
 
 links_by_year=url_links %>% group_by(year) %>% summarize(n=n())
 clean_links_by_year=urls_clean %>% group_by(year) %>% summarize(n=n())
@@ -468,7 +517,6 @@ ggplotly(ggplot()+
   geom_bar(data=clean_links_by_year,stat="identity",aes(x=year,y=n,fill="clean"))+
   labs(title="Only Reviews")+
   theme_bw())
-
 
 ```
 
@@ -546,21 +594,6 @@ ggplotly(ggplot()+
   theme_bw())
 
 ```
-
-
-```{r,eval=F}
-
- urls_clean %>% group_by(iso3c,type_hierarchy) %>%
-   summarize(n=n()) %>%
-   arrange(iso3c,type_hierarchy) %>%
-   mutate(p=dplyr::lag(n,2)/(n+dplyr::lag(n,2))) %>% 
-   arrange(-p)
-   #filter(type_hierarchy=="Correction")
-
-a=urls_clean %>% filter(iso3c=="PHL")
-#View(a)
-```
-
 
 ## Reviews
 
@@ -723,5 +756,6 @@ rio::export(urls_clean,"files/IMF_urls_clean/Final_links_clean.RData")
 
 
 ```
+
 
 
