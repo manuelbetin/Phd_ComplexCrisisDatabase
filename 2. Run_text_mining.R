@@ -69,17 +69,15 @@ output[["Session_info"]]=sessionInfo()
 #***************************************************************************************####
 
 name_links_dt="urls_Requests_Reviews_articleIV.RData" #name of the dataframe containing the urls
-url_links=rio::import(paste0("2.data/urls docs/",name_links_dt)) %>%
+url_links=rio::import(paste0("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/",name_links_dt)) %>%
   mutate(name_file=paste0(ID,"_",period,"_",type_doc_programs)) %>%
   filter(str_detect(pdf,".pdf"))
 
-url_links=data.frame(url_links)
-
 #filter(name_file %in% sample(url_links$name_file,15))
 
-my_urls=list(url_links %>% filter(ID=="TUR")
+my_urls=list(url_links %>% filter(ID=="USA")
              #, url_links %>% filter(ID=="ARG")
-            , url_links %>% filter(ID=="URY")
+            #, url_links %>% filter(ID=="URY")
              )
 
 #run the tf chunk by chunk
@@ -106,7 +104,7 @@ dt=mytfs %>% mutate(#year=substr(file,5,8),
 LoI_idf=idf(dt)
 
 myidf_plot=idf_barplot(LoI_idf,vars_type=c("economic_shock","debt_outcomes","non_economic_shock","adjustment_program"),idf_trans = T)
-myidf_plot$fig+ggsave(paste0(root_path,"/3.graphs/tagged docs/tf-idf/idf.png"))
+myidf_plot$fig+ggsave("2.graphs/tagged docs/tf-idf/idf.png")
 
 ## tf-idf ----------
 ### tf-idf table ------
@@ -114,33 +112,33 @@ myidf_plot$fig+ggsave(paste0(root_path,"/3.graphs/tagged docs/tf-idf/idf.png"))
 LoI_tf_idf=tf_idf(dt,weight_method="brut_frequency")
 
 output[["tf_idf_table"]]=LoI_tf_idf
-rio::export(LoI_tf_idf,paste0(root_path,"/2.data/tagged docs/tf_idf.RData"))
+rio::export(LoI_tf_idf,"../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData")
 
 ### tf-idf by type of crisis ------------------
 
 mytf_plot=tf_barplot(dt,vars_type=c("economic_shock","non_economic_shock","debt_outcomes"))
 
-mytf_plot$tf_fig_avg+ggsave(paste0(root_path,"/3.graphs/tagged docs/tf-idf/tf_avg.png"))
+mytf_plot$tf_fig_avg+ggsave("2.graphs/tagged docs/tf-idf/tf_avg.png")
 
-mytf_plot$tf_fig_avg_prop+ggsave(paste0(root_path,"/3.graphs/tagged docs/tf-idf/tf_avg_prop.png"))
+mytf_plot$tf_fig_avg_prop+ggsave("2.graphs/tagged docs/tf-idf/tf_avg_prop.png")
 
 # Cos sim Crisis -----------------------------
 
 LoI_cos_sim=cosim_matrix(LoI_tf_idf)
 output[["cos_sim_table_crisis"]]=LoI_cos_sim
-rio::export(LoI_cos_sim,paste0(root_path,"/2.data/tagged docs/cos_sim.RData"))
+rio::export(LoI_cos_sim,"2.data/tagged docs/cos_sim.RData")
 LoI_cos_sim=data.frame(LoI_cos_sim)
 LoI_cos_sim$Crisis=rownames(LoI_cos_sim)
 select_cols=names(LoI_cos_sim)[!names(LoI_cos_sim) %in% c("Crisis")] 
 
 output[["cos_sim_fig_crisis"]]=lapply(select_cols,function(x){
   plot_cos_sim(LoI_cos_sim,x)+
-    ggsave(paste0(root_path,"/3.graphs/tagged docs/cos_sim/cos_sim_",x,".png"))
+    ggsave(paste0("2.graphs/tagged docs/cos_sim/cos_sim_",x,".png"))
 })
 
 #Final output -----
 
-final_destination=paste0(root_path,"/5.output/tagged docs/Output_Run_Text_mining.RData")
+final_destination="../Betin_Collodel/2. Text mining IMF_data/output/tagged docs/Output_Run_Text_mining.RData"
 save(output,file=final_destination)
 
 print(paste0("All the Output of the script has been saved in the following directory:"))
@@ -151,8 +149,8 @@ print(final_destination)
 # dt2=dt %>% mutate(yearqrt=paste0(year(Period),"_",quarter(Period))) %>%
 #   group_by(ISO3_Code,yearqrt) %>% summarize(Soft_recession=mean(Soft_recession,na.rm=T),
 #                                             Fiscal_outcomes=mean(Fiscal_outcomes,na.rm=T)) %>% ungroup()
- ggplot(dt %>% filter(ISO3_Code=="MEX"))+
-   geom_line(aes(x=Period,y=Currency_crisis,color=ISO3_Code))+
+ ggplot(dt %>% filter(ISO3_Code=="USA"))+
+   geom_line(aes(x=Period,y=Balance_payment_crisis,color=ISO3_Code))+
    scale_x_date(date_breaks = "2 year",date_labels =  "%Y")+
    theme_bw()+
    theme(axis.text.x=element_text(angle=90,hjust=1),legend.position = "bottom",axis.text=element_text(size=12))
