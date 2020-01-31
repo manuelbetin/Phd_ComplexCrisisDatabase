@@ -71,64 +71,228 @@ rio::export(dt,"../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/con
 
 ``` R
 
-find_IMFprograms=function(dt)
-   
- [..]
-   
-find_increase_quotas=function(dt)
+ind_IMFprograms=function(dt){
   
-[..]
+  if(!any(c("title","year") %in% names(dt))){
+    print("please provide a valide database containing at least the columns title and year")
+   dt
+  }else{
+  dt=dt %>% mutate(type_doc_programs=ifelse(str_detect(title,"request"),"request",NA),
+                   type_doc_programs=ifelse(str_detect(title,'arrangement under the flexible credit line'),"request",type_doc_programs),
+                   #type_doc_programs=ifelse(str_detect(keywords,'requests'),"request",type_doc_programs),
+                   #type_doc_programs=ifelse(str_detect(keywords,'Letters of Intent'),"request",type_doc_programs),
+                   #type_doc_programs=ifelse(str_detect(keywords,'arrangement texts'),"request",type_doc_programs),
+                   type_doc_programs=ifelse(str_detect(title,'letter on economic policy'),"request",type_doc_programs),
+                   type_doc_programs=ifelse( str_detect(title,'stand-by arrangement') & !str_detect(title,'review'),"request",type_doc_programs),
+                   type_doc_programs=ifelse( str_detect(title,'extended arrangement') & (!str_detect(title,'review') | !str_detect(title,'request for modification') | !str_detect(title,'waiver') ),"request",type_doc_programs),
+                   type_doc_programs=ifelse( str_detect(title,'extended fund facility') & (!str_detect(title,'review') | !str_detect(title,'request for modification')),"request",type_doc_programs),
+                   type_doc_programs=ifelse( str_detect(title,'enhanced structural adjustment') & (!str_detect(title,'review') | !str_detect(title,'request for modification')),"request",type_doc_programs),
+                   type_doc_programs=ifelse( str_detect(title,'poverty reduction and growth') & (!str_detect(title,'review') | !str_detect(title,'request for modification')),"request",type_doc_programs),
+                   type_doc_programs=ifelse( str_detect(title,'structural adjustment facility') & (!str_detect(title,'review') | !str_detect(title,'request for modification')),"request",type_doc_programs),
+                   type_doc_programs=ifelse(str_detect(title,'request for increase in quotas'),NA,type_doc_programs),
+                   type_doc_programs=ifelse(str_detect(title,'request for enhanced article iv'),NA,type_doc_programs),
+                   type_doc_programs=ifelse(str_detect(title,'modification'),"modification",type_doc_programs))
   
-ind_membership=function(dt)
+  # find the number of the review ---------
+  dt=dt %>% mutate(Review_number=ifelse(str_detect(title,"review") & str_detect(title,"first"),"review_1",
+                                        ifelse(str_detect(title,"review") & str_detect(title,"second"),"review_2",
+                                               ifelse(str_detect(title,"review") & str_detect(title,"third"),"review_3",
+                                                      ifelse(str_detect(title,"review") & str_detect(title,"fourth"),"review_4",
+                                                             ifelse(str_detect(title,"review") & str_detect(title,"fifth"),"review_5",
+                                                                    ifelse(str_detect(title,"review") & str_detect(title,"sixth"),"review_6",
+                                                                           ifelse(str_detect(title,"review") & str_detect(title,"seventh"),"review_8",
+                                                                                  ifelse(str_detect(title,"review") & str_detect(title,"eight"),"review_9",
+                                                                                         ifelse(str_detect(title,"review") & str_detect(title,"ninth"),"review_10",
+                                                                                                ifelse(str_detect(title,"review") & str_detect(title,"tenth"),"review_11",NA)))))))))))
+  
 
-[..]
+  dt=dt %>% mutate(Review_number=ifelse(str_detect(title,"review") & str_detect(title,"midterm"),"review_midterm",Review_number),
+                   Review_number=ifelse(str_detect(title,"review") & str_detect(title,"review") & is.na(Review_number),"review",Review_number),
+                   type_doc_programs=ifelse((!is.na(Review_number) & is.na(type_doc_programs)) | (str_detect(title,"review")),"review",type_doc_programs),
+                   type_doc_programs=ifelse(!is.na(Review_number) & str_detect(title,"request") & !str_detect(title,"waiver"),"request and review",type_doc_programs))
+  
+  
+  # find use of fund ressource -------
+  
+  dt=dt %>% mutate(type_doc_programs=ifelse(is.na(type_doc_programs) & str_detect(title,"use of fund"),"Use fund",type_doc_programs))
+  
+  # find cancellations -------
+  dt=dt %>% mutate(type_doc_programs=ifelse(str_detect(title,"cancellation"),"cancelation",type_doc_programs),
+                   type_doc_programs=ifelse(str_detect(title,"cancellation") & (str_detect(title,"request") | str_detect(title,"flexible credit line") ),"cancelation and request",type_doc_programs))
+  # find extensions -------
+  
+  dt=dt %>% mutate(type_doc_programs=ifelse(! is.na(type_doc_programs) & (str_detect(title,"prolongation") | str_detect(title,"extension") | str_detect(title,"lengthening")| str_detect(title,"augmentation")),"extension",type_doc_programs))
+  
+  dt=dt %>% mutate(type_doc_programs=ifelse(str_detect(title,"request for postponement"),"request for postponement",type_doc_programs))
+  
+  dt=dt %>% mutate(type_doc_programs=ifelse(str_detect(title,"request for technical assistance"),"request for technical assistance",type_doc_programs))
+  # find compensatory -------
+  
+  dt=dt %>% mutate(type_doc_programs=ifelse(is.na(type_doc_programs) & str_detect(title,"performance criteria"),"performance criteria",type_doc_programs))
+  dt=dt %>% mutate(performance_criteria=ifelse(str_detect(title,"performance criteria") | str_detect(title,"performance criterion"),"performance criteria",NA))
+  dt=dt %>% mutate(waiver=ifelse(str_detect(title,"waiver"),"waiver",NA))
+  dt=dt %>% mutate(modification=ifelse(str_detect(title,"request for modification"),"modification",NA))
+  
+  dt=dt %>% mutate(type_doc_programs=ifelse(str_detect(title,"waiver") & str_detect(title,"performance criteria") & is.na(type_doc_programs),"performance criteria and waiver",type_doc_programs),
+                   type_doc_programs=ifelse(str_detect(title,"waiver") & is.na(type_doc_programs),"waiver",type_doc_programs))
+  
+  dt=dt %>% mutate(type_doc_programs=ifelse(!is.na(type_doc_programs) & (str_detect(title,"purchase transaction")),"purchase transac",type_doc_programs))
+  
+  #print("New columns have been created \n
+  #      type_doc_programs,Review_number")
+  dt
+  }
+  
+}
 
-find_name_from_title=function(dt)
+find_increase_quotas=function(dt){
+  dt=dt %>% mutate(increase_quotas=ifelse(str_detect(title,"increase in quotas"),1,NA))
+  dt
+}
 
-[..]
+find_membership=function(dt){
+  dt=dt %>% mutate(membership=ifelse(str_detect(title,"application for membership"),1,NA))
+  dt
+}
 
-find_repurchase=function(dt)
+find_name_from_title=function(dt){
+  
+  if(!any(c("title","year") %in% names(dt))){
+    print("please provide a valide database containing at least the columns title and year")
+    dt
+  }else{
+  dt=dt %>% mutate(title2=str_replace(title,":","-")) %>% separate(title2,into="country",sep="-") %>% dplyr::select(iso3,country,period,title,everything())
+  
+  dt= dt  %>% mutate(country=str_trim(gsub('[^ -~]', '', country),"both"))
+  
+  ctries=countrycode::countrycode(list_countries(),origin="iso3c",destination="country.name") %>% tolower()
+  
+  nonstandard_ctrynames=c(COD="zaire",SOM="somalia",YEM="yemen arab republic","yugoslavia",CIV="ivory coast",WSM="western samoa",HUN="hungarian people's republic",KOR="korea",
+                          MMR="burma",VCT="st. vincent and the grenadines",GMB="the gambia",CIV="cote d'ivoire",COD="people's republic of the congo",CHN="people's republic of china",
+                          EGY="arab republic of egypt",MOZ="people's republic of mozambique",TTO="trinidad and tobago",STP="sao tome and principe",LAO="lao people's democratic republic",
+                          MOZ="republic of mozambique",POL="republic of poland",CZE="czech and slovak federal republic",RUS='russian federation',CZE="czech republic",SVK="slovak republic",
+                          LVA='republic of latvia',KGZ="kyrgyz republic",MDA="republic of moldova",VNM="viet nam",LTU="republic of lithuania",EST="republic of estonia",KAZ="republic of kazakhstan",
+                          MKD="former yugoslav republic of macedonia",COG="republic of congo",HRV="republic of croatia",ARM="republic of armenia",BLR="republic of belarus",UZB="republic of uzbekistan",
+                          AZE="azerbaijan republic",GEO="republic of georgia",KAZ="republic of kazakstan",BIH="republic of bosnia and herzegovina",YEM="republic of yemen",TJK="republic of tajikistan",
+                          BIH="bosnia and herzegovina",KOR="republic of korea",KNA="st. kitts and nevis",GNQ="guinea bissau",MEX="mexico <U+0097> arrangement under the flexible credit line",
+                          MEX="mexico<U+0097>review under the flexible credit line arrangement",COL="colombia<U+0097>review under the flexible credit line arrangement")
+  
+  nonstandard_ctrynames2=as.data.frame(nonstandard_ctrynames)
+  nonstandard_ctrynames2$iso3c=names(nonstandard_ctrynames)
+  names(nonstandard_ctrynames2)=c("iso3_new","iso3c")
+  nonstandard_ctrynames2=nonstandard_ctrynames2 %>% mutate(iso3_new=as.character(iso3_new))
+  
+  dt=dt %>% mutate(iso3_error=ifelse(!country %in% c(ctries,nonstandard_ctrynames),country,""),
+                   iso3_new=as.character(ifelse(country %in% c(ctries,nonstandard_ctrynames),country,"")))
+  
+  dt=dt %>% left_join(nonstandard_ctrynames2,by=c("iso3_new"))
+  
+  #correct manually some cases and transform to iso3c
+  dt=dt %>% mutate(iso3c=ifelse(is.na(iso3c),countrycode::countrycode(iso3_new,origin="country.name",destination="iso3c"),iso3c),
+                   iso3c=ifelse(str_detect(iso3,"mexico"),"MEX",iso3c),
+                   iso3c=ifelse(str_detect(iso3,"philippines"),"PHL",iso3c),
+                   iso3c=ifelse(str_detect(iso3,"macedonia"),"MKD",iso3c),
+                   iso3c=ifelse(str_detect(iso3,"yugoslavia"),"YUG",iso3c))
+  
+  
+  dt=dt %>% dplyr::select(-c(iso3_new,iso3_error)) %>% rename(iso3_from_title=iso3c) %>%
+    dplyr::select(iso3,country,iso3_from_title,period,year,pdf,everything())
+  }
+  dt
+}
 
-[..]
+find_repurchase=function(dt){
+  dt=dt %>% mutate(repurchase_transaction=ifelse(str_detect(title,"repurchase transaction"),1,NA))
+  dt
+}
 
-find_consultations=function(dt)
+find_consultations=function(dt){
+  
+  if(!any(c("title","year") %in% names(dt))){
+    print("please provide a valide database containing at least the columns title and year")
+    dt
+  }else{
+    
+  # find non program reports  
+  dt=dt %>% mutate(type_doc_consultations=ifelse(str_detect(title,"article iv consultation"),"Article IV",
+                                             ifelse(str_detect(title,"article xiv consultation"),"Article XIV",
+                                                   ifelse(str_detect(title,"recent economic developments"),"Eco developments",
+                                                          ifelse(str_detect(title,"selected issues"),"Selected issues",
+                                                                 ifelse(str_detect(title,"article viii"),"Article VIII",
+                                                                        ifelse(str_detect(title,"background papers"),"Article IV",NA)))))))
+  
+ dt=dt %>% mutate(type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"consultations"),"consultations",type_doc_consultations))
+ dt=dt %>% mutate(type_doc_consultations=ifelse(str_detect(title,"summing up"),NA,type_doc_consultations),
+                  type_doc_consultations=ifelse(str_detect(title,"stand-by arrangement"),NA,type_doc_consultations)) 
+ 
+ dt=dt %>% mutate(type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"exchange system"),"exchange system",type_doc_consultations),
+                  type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"exchange rate adjustment"),"exchange system",type_doc_consultations),
+                  type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"exchange arrangement"),"exchange system",type_doc_consultations))
+  dt
+  }
+}
 
-  [..]
+find_statements=function(dt){
+  dt=dt %>% mutate(statements=ifelse(str_detect(title,"statement"),1,NA))
+  dt
+}
+
+find_technical_assistance=function(dt){
+  dt=dt %>% mutate(technical_assistance=ifelse(str_detect(title,"technical assistance"),1,NA))
+  dt
+}
+
+find_board_governors=function(dt){
+  dt=dt %>% mutate(board_governors=ifelse(str_detect(title,"board of governors"),1,NA))
+  dt
+}
+
+find_overdue_financial_obligations=function(dt){
+  dt=dt %>% mutate(overdue_obligations=ifelse(str_detect(title,"overdue financial obligations"),1,NA))
+  dt
+}
+
+find_expost_assesments=function(dt){
+  dt=dt %>% mutate(expost_assessment=ifelse(str_detect(title,"ex post assessment"),1,
+                                            ifelse(str_detect(title,"post-program"),1,NA)))
+  dt
+}
+
+find_exchange_system=function(dt){
+  dt=dt %>% mutate(exchange_system=ifelse(str_detect(title,"exchange system"),1,
+                                          ifelse(str_detect(title,"exchange rate adjustment"),1,
+                                                            ifelse(str_detect(title,"exchange arrangements"),1,NA))))
+  dt
+}
+
+find_program_type=function(dt){
   
-find_statements=function(dt)
+  dt=dt %>% mutate(type_program=ifelse(str_detect(title,"extended fund facility"),"EFF",
+                                                       ifelse(str_detect(title,"esaf arrangement"),"ESAF",
+                                                              ifelse(str_detect(title,"systemic transformation facility"),"STF",
+                                                                     ifelse(str_detect(title,"poverty reduction and growth facility"),"PRGF",
+                                                                            ifelse(str_detect(title,"flexible credit line"),"FCL",
+                                                                                   ifelse(str_detect(title,"precautionary and liquidity Line") | str_detect(title,"precautionary credit line") ,"PLL",
+                                                                                          ifelse(str_detect(title,"saf arrangement"),"SAF",
+                                                                                                 ifelse(str_detect(title,"stand-by arrangement") | str_detect(title,"stand-by arrangement") | str_detect(title,"stand-by arrangement"),"SBA",
+                                                                                                        ifelse(str_detect(title,"extended arrangement"),"EA","Other"))))))))))
   
-  [..]
   
-find_technical_assistance=function(dt)
-  
-  [..]
-  
-find_board_governors=function(dt)
-  
-  [..]
-  
-find_overdue_financial_obligations=function(dt)
-  
-  [..]
-  
-find_expost_assesments=function(dt)
-  
-  [..]
-  
-find_exchange_system=function(dt)
-  
-  [..]
-  
-find_program_type=function(dt)
-  
-  [..]
-  
-create_file_name=function(dt)
-  
-  [..]
+  dt=dt %>% mutate(type_program=ifelse(is.na(type_program) & str_detect(title,"extended fund facility"),"EFF",type_program),
+                                   type_program=ifelse(is.na(type_program) & str_detect(title,"extended arrangement"),"EA",type_program))
+  dt
+  }
+
+create_file_name=function(dt){
+  dt=dt %>% mutate(file=paste0(iso3_from_title,"_",period,"_",ifelse(!is.na(type_doc_programs),type_doc_programs,
+                                                                     ifelse(!is.na(type_doc_consultations),type_doc_consultations,"other_doc"))))
+  dt
+  }
+
 ```
   
 4.  **Apply functions by piping all functions**
+
 ``` R
 dt=dt %>% 
   find_IMFprograms() %>%
