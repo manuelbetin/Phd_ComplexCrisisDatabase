@@ -51,7 +51,7 @@ LoI_tf_idf=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagge
 name_links_dt="urls_Requests_Reviews_articleIV.RData" #name of the dataframe containing the urls
 dt_meta=rio::import(paste0("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/",name_links_dt)) %>%
   mutate(file=paste0(ID,"_",period,"_",type_doc_programs)) %>%
-  filter(str_detect(pdf,".pdf"))
+  filter(str_detect(pdf,".pdf")|str_detect(pdf,".PDF"))
 
 #merge datasets with metadata from extraction and clean variable names
 mydata=LoI_tf_idf %>% left_join(dt_meta,by=c("file")) %>% 
@@ -60,6 +60,7 @@ mydata=LoI_tf_idf %>% left_join(dt_meta,by=c("file")) %>%
                 statements,repurchase_transaction,technical_assistance,expost_assessment,
                 exchange_system,overdue_obligations,Review_number,pdf,type_hierarchy,
                 hierarchy,waiver,modification,everything())
+
 
 #create normalization of variables
 indexes_2normalize=names(mydata)[23:dim(mydata)[2]]

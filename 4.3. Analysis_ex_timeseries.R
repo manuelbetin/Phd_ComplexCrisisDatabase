@@ -39,13 +39,16 @@ plot_index_crisis=function(data,ctry,var1,var2,var3){
 }
 
 
+
 my_ts_index=list()
 
 # my_ts_index[["Financial"]]=plot_index_crisis(mydata,ctry,var1="Currency_crisis_norm",var2="Currency_crisis_norm",var3="Currency_crisis_norm")+
 #   ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/ts_index_Financial_1",ctry,".png"))
 
-my_ts_index[["Financial"]]=plot_index_crisis(mydata,ctry,var1="Balance_payment_crisis_norm",var2="Currency_crisis_norm",var3="Balance_payment_crisis_norm")+
-  ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/ts_index_Financial_",ctry,".png"))
 
+output[["TS_index_fig_example"]]=lapply(ctry,function(x){
+  
+  my_ts_index[["Financial"]]=plot_index_crisis(mydata,x,var1="Balance_payment_crisis_norm",var2="Currency_crisis_norm",var3="Balance_payment_crisis_norm")+
+  ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/ts_index_Financial_",x,".png"))
+})
 
-output[["TS_index_fig_example"]]=my_ts_index

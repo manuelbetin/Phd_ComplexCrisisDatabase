@@ -397,6 +397,7 @@ summary_available_documents=mydt %>% group_by(ID,type_doc_programs) %>% summariz
                                                                                   first=first(period),
                                                                                   last=last(period))
 
+
 #export the final database of interest containing consultations, requests and reviews and that 
 #will provide data for non crisis and crisis period
 

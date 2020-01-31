@@ -29,6 +29,7 @@ packages <- c("dplyr"
               , "stringr"
               , "stringi"
               , "tidyr"
+              , "rvest"
               , "TextMiningCrisis"
               , "SetUpProject")
 
@@ -47,6 +48,10 @@ SetUpProject::load.my.packages(packages)
 ## Instructions:
 ## replace 1) and 2)
 
+apply_tf_on_new_ctry=T
+delete_pdfs=F
+rm_short_docs=T
+min_words=100
 ##Remove comment to use all available word groups
 #keyword_list=names(key_words_crisis())
 
@@ -68,24 +73,106 @@ output[["Session_info"]]=sessionInfo()
 
 #***************************************************************************************####
 
-#Load the database of urls output of the script 1. consolidate_urls.R
-name_links_dt="urls_Requests_Reviews_articleIV.RData" #name of the dataframe containing the urls
-url_links=rio::import(paste0("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/",name_links_dt)) %>%
-  mutate(name_file=paste0(ID,"_",period,"_",type_doc_programs)) %>%
-  filter(str_detect(pdf,".pdf"))
+correct_url=function(link){
+  #ad hoc function that to correct the links for the IMF url when url does not refer to the pdf document
+  path_file=link[[1]]
+  html_file <- try(read_html(path_file), silent=T)
+  if("try-error" %in% class(html_file)) {
+    warning(paste(path_file,": Error in path file",sep=""))
+    content=NA
+  }else {
+    content=try({
+      content<- html_file %>% html_nodes(xpath=  '//*[@id="ais-detail-container"]/div[2]/div/ul') %>%html_nodes("a") %>% html_attr("href")
+      content[(str_detect(content,"pdf")|str_detect(content,"PDF"))]
+      })
+    if("try-error" %in% class(content)) {
+      warning(paste(path_file,": Error in path file",sep=""))
+      content=NA
+    }else{
+      return(content)
+    }
+    #content=data.frame(content)
+  }
+  
+}
 
-#create chunks of the database with a list containing the urls for each country that you want
-my_urls=list(url_links %>% filter(ID=="URY") %>% arrange(ID,period)
-             #, url_links %>% filter(ID=="ARG")
-            #, url_links %>% filter(ID=="URY")
-             )
+run_tf_by_chunk=function (urls = url_links, keyword_list = c("Fiscal outcomes", 
+                                                             "Currency_crisis"),
+                          extract_number = 1,
+                          delete_pdfs = T,
+                          rm_short_docs=F,
+                          min_words=100) 
+{
+  path = "temp"
+  path_pdf_files = paste0(path, "/files")
+  path_corpus = paste0(path, "/corpus")
+  path_tf = paste0(path, "/tf")
+  dir.create(path)
+  dir.create(path_pdf_files)
+  dir.create(path_corpus)
+  dir.create(path_tf)
+  pdf_from_url(urls, path_pdf_files, overwrite = F)
+  corpus = aggregate_corpus(path_pdf_files)
+  
+  if(rm_short_docs){
+    cat(crayon::blue(paste0("Remove from corpus the documents with less than ",min_words," words\n")))
+    N_char_corpus=sapply(1:length(corpus),function(x){
+      sum(stri_count_words(corpus[[x]]$file))
+    })
+    names(N_char_corpus)=names(corpus)
+    N_char_corpus=data.frame(N_char_corpus)
+    N_char_corpus$file=names(corpus)
+    N_char_corpus=N_char_corpus %>% filter(N_char_corpus>=min_words)
+    corpus2=corpus[N_char_corpus$file]
+  }
+  
+  save(corpus, file = paste0(path_corpus, "/corpus_", extract_number, 
+                             ".RData"))
+  cat(crayon::blue("delete folder with pdf \n"))
+  if (delete_pdfs) {
+    unlink(path_pdf_files, recursive = T)
+  }
+  dt = run_tf(corpus_path = paste0(path_corpus, "/corpus_", 
+                                   extract_number, ".RData"), type_lexicon = "words", keyword_list = keyword_list, 
+              export_path = path_tf, parrallel = T)
+  file.rename(from = paste0(path_tf, "/tf_crisis_words.RData"), 
+              to = paste0(path_tf, "/tf_crisis_words_", extract_number, 
+                          ".RData"))
+}
 
-#run the tf chunk by chunk, it will create a temp folder with the corpus made out of the
-#documents selected and the tf computed 
-lapply(1:length(my_urls),function(x){
-  ID=my_urls[[x]]$ID %>% unique() 
-  run_tf_by_chunk(data.frame(my_urls[[x]]),keyword_list,ID,delete_pdfs = F)
-})
+
+ctry="BRA"
+if(apply_tf_on_new_ctry==T){
+  
+  #Load the database of urls output of the script 1. consolidate_urls.R
+  name_links_dt="urls_Requests_Reviews_articleIV.RData" #name of the dataframe containing the urls
+  url_links=rio::import(paste0("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/",name_links_dt)) %>%
+    mutate(name_file=paste0(ID,"_",period,"_",type_doc_programs)) %>% filter(ID==ctry)
+  #filter(str_detect(pdf,".pdf") | str_detect(pdf,".PDF"))
+  
+  #run the tf chunk by chunk, it will create a temp folder with the corpus made out of the
+  #documents selected and the tf computed 
+  
+  # correct incorrect urls by rescarping the imf website to get the link to the pdf
+  for(i in 1:dim(url_links)[1]){
+    if(!(str_detect(url_links[i,"pdf"],".pdf") | str_detect(url_links[i,"pdf"],".PDF"))){
+      print(url_links[[i,"name_file"]])
+      url_links[i,"pdf"]=correct_url(url_links[i,"pdf"])  
+    }
+  }
+  
+  #create chunks of the database with a list containing the urls for each country that you want
+  my_urls=list(url_links
+               #, url_links %>% filter(ID=="ARG")
+               #, url_links %>% filter(ID=="MEX")
+  )
+  
+  lapply(1:length(my_urls),function(x){
+    ID=my_urls[[x]]$ID %>% unique() 
+    run_tf_by_chunk(data.frame(my_urls[[x]]),keyword_list,ID,delete_pdfs = delete_pdfs,rm_short_docs=rm_short_docs,min_words=100)
+  })
+}
+
 
 #consolidate into a single database the tf matrix of all countries
 mytfs=list.files("temp/tf",full.names = T)
