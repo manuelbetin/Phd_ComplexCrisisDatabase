@@ -296,9 +296,17 @@ dt_non_tagged=dt %>% filter(is.na(type_doc_programs) & is.na(type_doc_consultati
                     is.na(exchange_system) &
                     is.na(overdue_obligations))
 
+# 
+# 
+# test=dt %>% mutate(test=ifelse(iso3==iso3_from_title,1,0))
+# test %>% group_by(test) %>% summarize(n=n())
+# test2=test %>% filter(test==1)
+# 
+# b=dt %>% filter(iso3=="GRC"|iso3_from_title=="GRC")
+
 # Export separate database of urls for the different types of document
 
-dt=dt  %>% filter(!is.na(iso3_from_title))
+dt=dt  %>% filter(iso3_from_title==iso3)
 dt_overdue=dt  %>% filter(!is.na(overdue_obligations))
 rio::export(dt_overdue,"../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/urls_imf_overdue.RData")
 
@@ -403,4 +411,4 @@ summary_available_documents=mydt %>% group_by(ID,type_doc_programs) %>% summariz
 
 rio::export(summary_available_documents,"../Betin_Collodel/2. Text mining IMF_data/output/summary available files/summary_N_urls_Requests_Reviews_articleIV.csv")
 rio::export(mydt,"../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/urls_Requests_Reviews_articleIV.RData")
-
+a=mydt %>% filter(ID=="GRC")

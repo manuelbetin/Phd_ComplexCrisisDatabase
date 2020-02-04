@@ -11,9 +11,8 @@ source("4. Analysis.R")
 
 a=mydata %>% filter(iso3c=="GRC")
 
+b=LoI_tf_idf %>% filter(ISO3_Code=="FRA")
 
-b=LoI_tf_idf %>% filter(ISO3_Code=="BRA")
-head(b)
 ggplot()+
   geom_line(data=b,aes(x=Period,y=Currency_crisis))+
   geom_point(data=b,aes(x=Period,y=Currency_crisis))
