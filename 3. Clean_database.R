@@ -50,11 +50,13 @@ LoI_tf_idf=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagge
 #import metadata from url extractions
 name_links_dt="urls_Requests_Reviews_articleIV.RData" #name of the dataframe containing the urls
 dt_meta=rio::import(paste0("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/",name_links_dt)) %>%
-  mutate(file=paste0(ID,"_",period,"_",type_doc_programs)) %>%
-  filter(str_detect(pdf,".pdf")|str_detect(pdf,".PDF"))
-
+  mutate(file=paste0(ID,"_",period,"_",type_doc_programs))
+  
 #merge datasets with metadata from extraction and clean variable names
-mydata=LoI_tf_idf %>% left_join(dt_meta,by=c("file")) %>% 
+
+
+
+mydata=LoI_tf_idf %>% full_join(dt_meta,by=c("file")) %>% 
   rename(iso3c=ID) %>% dplyr::select(-c(ISO3_Code,period)) %>%
   dplyr::select(iso3c,Period,file,title,type_doc,type_program,type_doc_programs,type_doc_consultations,perf_criteria,membership,
                 statements,repurchase_transaction,technical_assistance,expost_assessment,
