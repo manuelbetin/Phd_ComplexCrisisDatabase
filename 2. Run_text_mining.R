@@ -16,7 +16,7 @@ root_path=current_path
 library("devtools") #make sure you have the library
 github_token=rio::import("/Users/manubetin/Dropbox/Manuel/Professionnel/github_token/github_token.txt")
 #install_github("manuelbetin/SetUpProject",auth_token=github_token[[1]])
-#install_github("manuelbetin/TextMiningCrisis",auth_token=github_token[[1]])
+install_github("manuelbetin/TextMiningCrisis",auth_token=github_token[[1]])
 
 packages <- c("dplyr"
               , "ggplot2"
@@ -29,6 +29,7 @@ packages <- c("dplyr"
               , "stringr"
               , "stringi"
               , "tidyr"
+              , "rvest"
               , "TextMiningCrisis"
               , "SetUpProject")
 
@@ -40,13 +41,17 @@ SetUpProject::load.my.packages(packages)
 ######## SECTION OF INSTRUCTIONS AND PARAMETERS ##########
 
 ## Description:
-## The script takes as input a corpus of pdf located in a directory and 
-## perform a text analysis  using a lexicon of economic crisis to 
+## The script takes as input a dataframe containing the urls where to download the 
+## documents and perform a text analysis  using a lexicon of economic crisis to 
 ## observe the type of crisis that the text mention
 
 ## Instructions:
 ## replace 1) and 2)
 
+apply_tf_on_new_ctry=T
+delete_pdfs=F
+rm_short_docs=T
+min_words=100
 ##Remove comment to use all available word groups
 #keyword_list=names(key_words_crisis())
 
@@ -68,49 +73,95 @@ output[["Session_info"]]=sessionInfo()
 
 #***************************************************************************************####
 
-name_links_dt="urls_Requests_Reviews_articleIV.RData" #name of the dataframe containing the urls
-url_links=rio::import(paste0("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/",name_links_dt)) %>%
-  mutate(name_file=paste0(ID,"_",period,"_",type_doc_programs)) %>%
-  filter(str_detect(pdf,".pdf"))
+correct_url=function(link){
+  #ad hoc function that to correct the links for the IMF url when url does not refer to the pdf document
+  path_file=link[[1]]
+  html_file <- try(read_html(path_file), silent=T)
+  if("try-error" %in% class(html_file)) {
+    warning(paste(path_file,": Error in path file",sep=""))
+    content=NA
+  }else {
+    content=try({
+      content<- html_file %>% html_nodes(xpath=  '//*[@id="ais-detail-container"]/div[2]/div/ul') %>%html_nodes("a") %>% html_attr("href")
+      content[(str_detect(content,"pdf")|str_detect(content,"PDF"))]
+      })
+    if("try-error" %in% class(content)) {
+      warning(paste(path_file,": Error in path file",sep=""))
+      content=NA
+    }else{
+      return(content)
+    }
+    #content=data.frame(content)
+  }
+  
+}
 
-#filter(name_file %in% sample(url_links$name_file,15))
+ctries=c("GRC")
 
-my_urls=list(url_links %>% filter(ID=="USA")
-             #, url_links %>% filter(ID=="ARG")
-            #, url_links %>% filter(ID=="URY")
-             )
+if(apply_tf_on_new_ctry==T){
+  
+  #run the tf chunk by chunk, it will create a temp folder with the corpus made out of the
+  #documents selected and the tf computed.
+  #when documents have not a valid url it will find the correct one on the IMF website
 
-#run the tf chunk by chunk
-lapply(1:length(my_urls),function(x){
-  ID=my_urls[[x]]$ID %>% unique() 
-  run_tf_by_chunk(data.frame(my_urls[[x]]),keyword_list,ID,delete_pdfs = T)
-})
+  lapply(ctries,function(x){
+   
+  #Load the database of urls output of the script 1. consolidate_urls.R
+  name_links_dt="urls_Requests_Reviews_articleIV.RData" #name of the dataframe containing the urls
+  url_links=rio::import(paste0("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/",name_links_dt)) %>%
+    mutate(name_file=paste0(ID,"_",period,"_",type_doc_programs)) %>% filter(ID==x)
+  #filter(str_detect(pdf,".pdf") | str_detect(pdf,".PDF"))
 
-#consolidate into a single database
+  # correct incorrect urls by rescarping the imf website to get the link to the pdf
+  if(!file.exists(paste0("temp/updated urls/updated_urls_",x,".RData"))){
+  for(i in 1:dim(url_links)[1]){
+    if(!(str_detect(url_links[i,"pdf"],".pdf") | str_detect(url_links[i,"pdf"],".PDF"))){
+      print(url_links[[i,"name_file"]])
+      url_links[i,"pdf"]=correct_url(url_links[i,"pdf"])  
+    }
+  }
+  
+  dir.create("temp/updated urls/")  
+  rio::export(url_links,paste0("temp/updated urls/updated_urls_",x,".RData"))
+  }else{
+  url_links=rio::import(paste0("temp/updated urls/updated_urls_",x,".RData"))
+  }
+  run_tf_by_chunk(urls=data.frame(url_links),
+                    keyword_list=keyword_list,
+                    extract_number=x,
+                    delete_pdfs = delete_pdfs,
+                    rm_short_docs=rm_short_docs,
+                    min_words=100)
+  })
+}
+
+#consolidate into a single database the tf matrix of all countries
 mytfs=list.files("temp/tf",full.names = T)
 mytfs=lapply(mytfs,function(x){
   y=rio::import(x)
   data.frame(y)
   })
 mytfs=do.call(rbind,mytfs)
-
+run_tf_by_chunk
 #extract from the names of the files the country, date and hierarchy of the document
+
 dt=mytfs %>% mutate(#year=substr(file,5,8),
   ISO3_Code=substr(file,1,3),
   Period=as.Date(str_match(mytfs$file,"\\d\\d\\d\\d-\\d\\d-\\d\\d")),
   type_doc=substr(file,str_length(ISO3_Code)+str_length(Period)+3,str_length(file)))
 
-## idf ----------
+## compute the idf ----------
 LoI_idf=idf(dt)
 
 myidf_plot=idf_barplot(LoI_idf,vars_type=c("economic_shock","debt_outcomes","non_economic_shock","adjustment_program"),idf_trans = T)
 myidf_plot$fig+ggsave("2.graphs/tagged docs/tf-idf/idf.png")
 
-## tf-idf ----------
+## compute the tf-idf ----------
 ### tf-idf table ------
 
 LoI_tf_idf=tf_idf(dt,weight_method="brut_frequency")
 
+#export the tf_idf
 output[["tf_idf_table"]]=LoI_tf_idf
 rio::export(LoI_tf_idf,"../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData")
 
@@ -122,11 +173,12 @@ mytf_plot$tf_fig_avg+ggsave("2.graphs/tagged docs/tf-idf/tf_avg.png")
 
 mytf_plot$tf_fig_avg_prop+ggsave("2.graphs/tagged docs/tf-idf/tf_avg_prop.png")
 
-# Cos sim Crisis -----------------------------
+# Compute the Cosinus similarity of each Crisis -----------------------------
 
 LoI_cos_sim=cosim_matrix(LoI_tf_idf)
 output[["cos_sim_table_crisis"]]=LoI_cos_sim
-rio::export(LoI_cos_sim,"2.data/tagged docs/cos_sim.RData")
+#export the cosinus similariry
+rio::export(LoI_cos_sim,"../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/cos_sim.RData")
 LoI_cos_sim=data.frame(LoI_cos_sim)
 LoI_cos_sim$Crisis=rownames(LoI_cos_sim)
 select_cols=names(LoI_cos_sim)[!names(LoI_cos_sim) %in% c("Crisis")] 
@@ -136,7 +188,7 @@ output[["cos_sim_fig_crisis"]]=lapply(select_cols,function(x){
     ggsave(paste0("2.graphs/tagged docs/cos_sim/cos_sim_",x,".png"))
 })
 
-#Final output -----
+#Export the final output -----
 
 final_destination="../Betin_Collodel/2. Text mining IMF_data/output/tagged docs/Output_Run_Text_mining.RData"
 save(output,file=final_destination)
@@ -145,15 +197,5 @@ print(paste0("All the Output of the script has been saved in the following direc
 print(final_destination)
 
 #-------------------------------------------
-
-# dt2=dt %>% mutate(yearqrt=paste0(year(Period),"_",quarter(Period))) %>%
-#   group_by(ISO3_Code,yearqrt) %>% summarize(Soft_recession=mean(Soft_recession,na.rm=T),
-#                                             Fiscal_outcomes=mean(Fiscal_outcomes,na.rm=T)) %>% ungroup()
- ggplot(dt %>% filter(ISO3_Code=="USA"))+
-   geom_line(aes(x=Period,y=Balance_payment_crisis,color=ISO3_Code))+
-   scale_x_date(date_breaks = "2 year",date_labels =  "%Y")+
-   theme_bw()+
-   theme(axis.text.x=element_text(angle=90,hjust=1),legend.position = "bottom",axis.text=element_text(size=12))
-
 
 
