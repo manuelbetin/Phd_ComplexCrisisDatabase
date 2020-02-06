@@ -76,6 +76,7 @@ source("4.2. Analysis_timing_shocks.r")
 # Plot time series of evolution ------
 
 ctry=c("URY","ARG","THA","MEX","USA","TUR","FRA","BRA","IDN")
+ctry=c("ESP")
 source("4.3. Analysis_ex_timeseries.r")
 
 # Exogeneity of the crisis ####

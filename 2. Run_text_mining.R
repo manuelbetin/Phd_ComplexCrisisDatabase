@@ -96,7 +96,7 @@ correct_url=function(link){
   
 }
 
-ctries=c("IDN")
+ctries=c("PRT")
 
 if(apply_tf_on_new_ctry==T){
   
