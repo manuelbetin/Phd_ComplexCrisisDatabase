@@ -51,7 +51,7 @@ SetUpProject::load.my.packages(packages)
 apply_tf_on_new_ctry=T
 delete_pdfs=F
 rm_short_docs=T
-min_words=100
+min_words=500
 ##Remove comment to use all available word groups
 #keyword_list=names(key_words_crisis())
 
@@ -62,10 +62,10 @@ min_words=100
 keyword_list=c('Currency_crisis',"Balance_payment_crisis")#,'Severe_recession',"Banking_crisis")
 
 # keyword_list=c('Reform_agenda','Political_crisis','Balance_payment_crisis','World_outcomes',
-#                'Contagion','Expectations','Currency_crisis',
-#                'Financial_crisis','Severe_recession','Soft_recession',
-#                'Fiscal_outcomes','Banking_crisis','Commodity_crisis','Inflation_crisis',
-#                'Sovereign_default','Fiscal_consolidation')
+#                 'Contagion','Expectations','Currency_crisis',
+#                 'Financial_crisis','Severe_recession','Soft_recession',
+#                 'Fiscal_outcomes','Banking_crisis','Commodity_crisis','Inflation_crisis',
+#                 'Sovereign_default','Fiscal_consolidation')
 
 #***************************************************************************************####
 output=list()
@@ -96,7 +96,7 @@ correct_url=function(link){
   
 }
 
-ctries=c("GRC")
+ctries=c("PRT")
 
 if(apply_tf_on_new_ctry==T){
   

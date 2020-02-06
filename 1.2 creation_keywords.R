@@ -844,6 +844,7 @@ key_words_crisis <- function(){
     "Currency crisis",
     "Currency crash",
     "large devaluation",
+    "large devaluation",
     "large depreciation",
     "sharp depreciation"
   )
