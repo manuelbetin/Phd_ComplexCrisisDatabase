@@ -796,10 +796,12 @@ key_words_crisis <- function(){
     "loss of official international reserves",
     "decline in official international reserves",
     "exhaustion of the disposable official international reserves",
-    "depleted international reserves",
     "exhausted official international reserves",
-    "strong pressure in exchange rate reserves"
+    "strong pressure in exchange rate reserves",
+    "depleted international reserves",
+    "exhaustion of all foreign exchange reserves" # not original (added on the second stage)
   )
+  
   
   key_words[["Currency_crisis"]]=c(
     "currency weakness",
@@ -817,7 +819,7 @@ key_words_crisis <- function(){
     "cumulative depreciation",
     "sharp depreciation",
     "magnitude of the depreciation",
-    "pressure in the foreign exchange markets",
+    "pressure in the foreign exchange markets", # not original (added on the second stage)
     "sharply depreciating trend",
     "a depreciating trend",
     "significant overshooting.*of the exchange rate",
@@ -832,7 +834,9 @@ key_words_crisis <- function(){
     "demand for foreign exchange hedge jumped sharply",
     "did not calm exchange.*markets",
     "continuing exchange market uncertainties",
-    "sizeable real depreciation"
+    "sizeable real depreciation",
+    "continuing depreciation",
+    "considerable depreciation"
     )
   
   key_words[["Currency_crisis_severe"]]=c(
@@ -844,9 +848,9 @@ key_words_crisis <- function(){
     "Currency crisis",
     "Currency crash",
     "large devaluation",
-    "large devaluation",
     "large depreciation",
-    "sharp depreciation"
+    "sharp depreciation",
+    "currency attack"
   )
   
   key_words[["Floating_exchange_rate"]]=c(
@@ -1253,7 +1257,19 @@ key_words_crisis <- function(){
     "solid track record"
   )
   
-
+  #---------
+  ## PROBLEMATIC DOCUMENTS TAG
+  #---------
+  
+  key_words[["Minutes"]] = c(
+    "minutes of executive board meetings"
+  )
+  
+  
+  key_words[["Working_papers"]] = c(
+    "this is a working paper"
+  )
+  
   #"floating interest rates",
 }
   #"floating rate",

@@ -123,16 +123,17 @@ plot_comparison <-
   else{NULL}
   ) %>% 
   map(~ if(!is.null(.x)){                                          # If not NULL, return list: plot the behaviour of nominal exchange rate growth,
-    list(plot = .x %>%                                             # normal index and severe index (scaled sd) and nominal exchange rate growth.
+    list(plot = .x %>%  
+           filter(year != 2002) %>% # normal index and severe index (scaled sd) and nominal exchange rate growth.
       ggplot(aes(year, group = 1)) +
-      geom_line(aes(y = scale(ner_avg_growth), col = "NER Growth")) +
       geom_line(aes(y = scale(cc), col = "Normal Index")) +
       geom_line(aes(y = scale(cc_severe), col = "Severe Index")) +
       theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
       ylab("sd") +
       ggtitle(as.character(.x$country)) +
       theme(plot.title = element_text(hjust = 0.5)),
-   nominal_exchange_rate = .x %>% 
+   nominal_exchange_rate = .x %>%
+     filter(year >= 1994) %>% 
       ggplot(aes(year, ner_avg_growth, group = 1)) +
       geom_line() +
       theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
@@ -151,12 +152,43 @@ plot_comparison <-
   )
 
 
+plot_comparison[["BRA"]][[1]]
+
+plot_comparison[["BRA"]][[2]]
+
+plot_comparison[["BRA"]][[3]]
+
+
+# Brazil ----
+# In 1964 the key-word "large devaluations" is captured by the severe index.
+# In 1971, depreciation of 15% and RR signal crisis: "The practice of small devaluations at frequent, irregular intervals, which was adopted three years ago, has played an essential role i n
+# developing Brazilian exports". Good that our index does not capture it.
+# In 1973, our normal index captures a crisis, but the severe index misses it. RR identifies it in 1974. The word responsible is "cumulative depr.".
+# In any case, no crisis. Part of the Brazilian plan of small and regular depreciations.
+# In 1985 index capturing Lebanon article IV.
+# In 1998 starts the Brazilian crisis.
+# Should pay more attention to the 80's period. Until '77 and afterwards it is fine.
+
+
+
+plot_comparison[["BRA"]][[1]]
+
+plot_comparison[["BRA"]][[2]]
+
+plot_comparison[["BRA"]][[3]]
+
+
+
+# Korea ----
+
+# Before 1975, all the currency crises identified by RR seem more moves toward market
+# determined exchange rate. 1975 is an interesting case: to discuss.
+# In 1985 there don't seem to be problem: we detect a "sharp depreciation", that, however, does not refer to US dollar.
+
+
 plot_comparison[["KOR"]][[1]]
 
 plot_comparison[["KOR"]][[2]]
 
 plot_comparison[["KOR"]][[3]]
-
-
-
 
