@@ -12,29 +12,31 @@ root_path=current_path
 #source("functions/SetUpProjet.r")
 #source("functions/TextMiningCrisis.r")
 
-##install common packages
+## Install packages:
+
 library("devtools") #make sure you have the library
-github_token=rio::import("/Users/manubetin/Dropbox/Manuel/Professionnel/github_token/github_token.txt")
-#install_github("manuelbetin/SetUpProject",auth_token=github_token[[1]])
-install_github("manuelbetin/TextMiningCrisis",auth_token=github_token[[1]])
+library("purrr")
+library("dplyr")
+library("tidyverse")
+library("pdftools")
+library("lubridate")
+library("tictoc")
+library("rio")
+library("tidytext")
+library("stringr")
+library("stringi")
+library("rvest")
+library("tidyr")
 
-packages <- c("dplyr"
-              , "ggplot2"
-              , "plotly"
-              , "pdftools"
-              , "lubridate"
-              , 'tictoc'
-              ,  "rio"
-              , "tidytext"
-              , "stringr"
-              , "stringi"
-              , "tidyr"
-              , "rvest"
-              , "TextMiningCrisis"
-              , "SetUpProject")
 
-## load common packages
-SetUpProject::load.my.packages(packages)
+
+# Load all packages from TextMiningCrisis:
+
+list.files("/Users/Umberto/Desktop/TextMiningCrisis-master/R") %>% 
+  map(~ paste0("/Users/Umberto/Desktop/TextMiningCrisis-master/R/", .x, sep = "")) %>% 
+  map(source)
+
+
 
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
@@ -59,7 +61,7 @@ min_words=500
 #keyword_list=names(key_words_categories())
 
 ##Manual selection
-keyword_list=c('Currency_crisis',"Balance_payment_crisis")#,'Severe_recession',"Banking_crisis")
+keyword_list=c('Currency_crisis',"Currency_crisis_severe")#,'Severe_recession',"Banking_crisis")
 
 # keyword_list=c('Reform_agenda','Political_crisis','Balance_payment_crisis','World_outcomes',
 #                 'Contagion','Expectations','Currency_crisis',
@@ -96,7 +98,7 @@ correct_url=function(link){
   
 }
 
-ctries=c("PRT")
+ctries=c("KAZ")
 
 if(apply_tf_on_new_ctry==T){
   
