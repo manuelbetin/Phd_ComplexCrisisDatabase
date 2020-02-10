@@ -8,18 +8,19 @@ library(dplyr)
 library(sloop)
 library(stringr)
 library(tidyverse)
+library(rio)
 
 
 # Upload all the indexes into a list ----
 
-path_project = "/Users/Umberto/Dropbox/Early warning model of currency crisis/" # Path to project folder, with codes directory and data.
 
-path_old_tf_idf = "Betin_Collodel/temp_umberto/tf" # Downloaded some old tf-idf with my keywords, to not overwrite Manu's tf-idf keep them in a different folder for the moment.
+path_project = "/Users/Umberto/Dropbox/Early warning model of currency crisis/" # Path to project folder, with codes directory and data.
+path_tf_idf = "temp/tf"
 
 # Upload: 
 
-tf_idf <- list.files(paste0(path_project,"/",path_old_tf_idf, sep = "")) %>% 
-  map(~ paste(path_project,"/",path_old_tf_idf,"/",.x, sep = "")) %>% 
+tf_idf <- list.files(paste(getwd(),"/",path_tf_idf, sep = "")) %>% 
+  map(~ paste(getwd(),"/",path_tf_idf,"/",.x, sep = "")) %>%
   map(import) %>% 
   map(~ .x %>% mutate(country = str_extract(file, "[A-Z]{3}"),year = str_extract(file, "\\d{4}"))) %>%    # create a year and country identifier.
   map(~ .x %>% group_by(country,year)) %>% # average the indexes  per year if we created an index of both currency crises and severe currency crises, otherwise return normal dataframe.
@@ -31,8 +32,7 @@ tf_idf <- list.files(paste0(path_project,"/",path_old_tf_idf, sep = "")) %>%
 
 # Assign name of country to each dataframe:
 
-names(tf_idf) <- str_extract(list.files(paste0(path_project,"/",path_old_tf_idf)),"[A-Z]{3}")
-
+names(tf_idf) <- str_extract(list.files(paste0(getwd(),"/",path_tf_idf,sep = "")),"[A-Z]{3}")
 
 # Upload comparison variables ----
 
@@ -85,7 +85,7 @@ example_tha <- tf_idf[["THA"]]
 
 # Compare to the exchange rate movements in sd:
 
-example_df %>%
+example_tha %>%
   merge(comparison_variables, by = c("country","year")) %>% 
   ggplot(aes(year, group = 1)) +
   geom_line(aes(y = scale(ner_avg_growth), col = "NER Growth")) +
@@ -117,14 +117,13 @@ RR_database %>%
 plot_comparison <- 
   tf_idf %>% 
   map(~ if("cc" %in% names(.x) & "cc_severe" %in% names(.x)){      # First chunk: if have both the cc and cc severe index, merge with
-  intermediate <- merge(.x, comparison_variables)                  # nominal exchange rate and RR database. Otherwise, NULL
+  intermediate <- merge(.x, comparison_variables)                  # nominal exchange rate and RR database. Otherwise, NULL.
   merge(intermediate, RR_database)
   }
   else{NULL}
   ) %>% 
   map(~ if(!is.null(.x)){                                          # If not NULL, return list: plot the behaviour of nominal exchange rate growth,
-    list(plot = .x %>%  
-           filter(year != 2002) %>% # normal index and severe index (scaled sd) and nominal exchange rate growth.
+    list(plot = .x %>%                                             # normal index and severe index (scaled sd) and nominal exchange rate growth.
       ggplot(aes(year, group = 1)) +
       geom_line(aes(y = scale(cc), col = "Normal Index")) +
       geom_line(aes(y = scale(cc_severe), col = "Severe Index")) +
@@ -133,7 +132,6 @@ plot_comparison <-
       ggtitle(as.character(.x$country)) +
       theme(plot.title = element_text(hjust = 0.5)),
    nominal_exchange_rate = .x %>%
-     filter(year >= 1994) %>% 
       ggplot(aes(year, ner_avg_growth, group = 1)) +
       geom_line() +
       theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
@@ -152,12 +150,9 @@ plot_comparison <-
   )
 
 
-plot_comparison[["BRA"]][[1]]
 
-plot_comparison[["BRA"]][[2]]
 
-plot_comparison[["BRA"]][[3]]
-
+# Individual country comparison ----
 
 # Brazil ----
 # In 1964 the key-word "large devaluations" is captured by the severe index.
@@ -172,9 +167,7 @@ plot_comparison[["BRA"]][[3]]
 
 
 plot_comparison[["BRA"]][[1]]
-
 plot_comparison[["BRA"]][[2]]
-
 plot_comparison[["BRA"]][[3]]
 
 
@@ -187,8 +180,67 @@ plot_comparison[["BRA"]][[3]]
 
 
 plot_comparison[["KOR"]][[1]]
-
 plot_comparison[["KOR"]][[2]]
-
 plot_comparison[["KOR"]][[3]]
+
+
+# Maleysia ----
+# In 1987, the index identifies a crisis: "large depreciation of the US dollar".
+# Minutes meeting: taking information of exchange rate crisis in Suriname.
+# In 1995, interesting case: appreciation against the US dollar, but large depreciation against all main trading
+# partners because of the contagion effect from Mexico. (MYS_1995-09-29_Article_IV). Takes into account more information.
+# After the Asian crisis, in 2001, still high why? Taking a "large depreciation" included into the notes to explain
+# a model ??-la Krugmann.
+# In 2004 some problems: they talk about currency crisis in 1998 and that's why the index spikes. Nevertheless, no crisis.
+
+
+
+plot_comparison[["MYS"]][[1]]
+plot_comparison[["MYS"]][[2]]
+plot_comparison[["MYS"]][[3]]
+
+
+
+# Kazakhstan -----
+# In 1999, crisis of contagion in Kazakhstan: contagion from the Russian crisis.
+# In 2005-2006 the index should stay constant: "sharp depreciation" captured in the notes (KAZ_2005-06-08). Hypothetical scenario:
+# "While a sharp depreciation..." Same in 2006.
+
+
+plot_comparison[["KAZ"]][[1]]
+plot_comparison[["KAZ"]][[2]]
+plot_comparison[["KAZ"]][[3]]
+
+
+# Uruguay -----
+# Why in 1963 the index is not spiking? "Sharp depreciation" term present into the document.
+
+
+plot_comparison[["URY"]][[1]]
+plot_comparison[["URY"]][[3]]
+
+
+# Export plots -----
+
+path_figures_comparison <- paste(path_project, "Betin_Collodel/2. Text Mining IMF_data/output/figures/Comparison", sep = "")
+
+# Create new directory if it does not exist already:
+
+if(!dir.exists(path_figures_comparison)){
+dir.create(path_figures_comparison)
+}
+
+# Only plots severe vs. non-severe index:
+
+plots <- plot_comparison %>% 
+  map(~ .x[["plot"]])
+
+1:length(plots) %>% 
+  map(function(i) {
+    if(!is.null(plots[[i]])){
+    ggsave(filename = paste(path_figures_comparison,"/","comparison_",names(plots)[i],".png",sep = ""), plot = plots[[i]])}
+  })
+
+
+
 
