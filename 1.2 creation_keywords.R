@@ -650,7 +650,8 @@ key_words_crisis <- function(){
     #"global crisis",
     #"global economic crisis",
     "crisis in Brazil",
-    "linkage with the US")
+    "linkage with the US",
+    "contagion effects of the Thai crisis")
   
   key_words[["Expectations"]]=c(
     "crisis risks",
@@ -845,8 +846,8 @@ key_words_crisis <- function(){
     "foreign exchange crisis",
     "severe disruption of exchange markets",
     "major devaluation",
-    "Currency crisis",
-    "Currency crash",
+    "currency crisis",
+    "currency crash",
     "large devaluation",
     "large depreciation",
     "sharp depreciation",
@@ -1270,9 +1271,10 @@ key_words_crisis <- function(){
     "this is a working paper"
   )
   
-  #"floating interest rates",
+  key_words
 }
   #"floating rate",
+  #"floating interest rates",
   #"foreign exchange-indexed",
   #"exchange rate-indexed bonds",
   #"exchange-indexed securities",
@@ -1294,5 +1296,4 @@ key_words_indicators <- function(){
   )
 }
   
-
 
