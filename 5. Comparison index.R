@@ -219,6 +219,20 @@ plot_comparison[["KAZ"]][[3]]
 plot_comparison[["URY"]][[1]]
 plot_comparison[["URY"]][[3]]
 
+# Russian Federtion ----
+
+plot_comparison[["RUS"]][[1]]
+plot_comparison[["RUS"]][[2]]
+plot_comparison[["RUS"]][[3]]
+
+# China ----
+# Why the spike in 2006? "despite the sharp depreciation in the U.S. dollar"
+
+
+plot_comparison[["CHN"]][[1]]
+plot_comparison[["CHN"]][[2]]
+plot_comparison[["CHN"]][[3]]
+
 
 # Export plots -----
 
@@ -236,7 +250,7 @@ plots <- plot_comparison %>%
   map(~ .x[["plot"]])
 
 1:length(plots) %>% 
-  map(function(i) {
+  walk(function(i) {
     if(!is.null(plots[[i]])){
     ggsave(filename = paste(path_figures_comparison,"/","comparison_",names(plots)[i],".png",sep = ""), plot = plots[[i]])}
   })
