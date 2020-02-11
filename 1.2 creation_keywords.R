@@ -1268,7 +1268,8 @@ key_words_crisis <- function(){
   
   
   key_words[["Working_papers"]] = c(
-    "this is a working paper"
+    "this is a working paper",
+    "imf working paper"
   )
   
   key_words
