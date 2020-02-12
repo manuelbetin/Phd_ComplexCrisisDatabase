@@ -176,7 +176,11 @@ plot_comparison[["BRA"]][[3]]
 
 # Before 1975, all the currency crises identified by RR seem more moves toward market
 # determined exchange rate. 1975 is an interesting case: to discuss.
-# In 1985 there don't seem to be problem: we detect a "sharp depreciation", that, however, does not refer to US dollar.
+# In 1985 there don't seem to be problem: we detect a "sharp depreciation of the u.s. dollar" in 1986.
+# In 2002 wrong documents: working papers and draft paper on role of IMF.
+# In 2011 there is a supplement to erase: KOR_2011_08_04. They talk about capital controls and currency crises in general.
+# In 2013 capturing a yen's sharp depreciation.
+
 
 
 plot_comparison[["KOR"]][[1]]
@@ -191,7 +195,8 @@ plot_comparison[["KOR"]][[3]]
 # partners because of the contagion effect from Mexico. (MYS_1995-09-29_Article_IV). Takes into account more information.
 # After the Asian crisis, in 2001, still high why? Taking a "large depreciation" included into the notes to explain
 # a model ??-la Krugmann.
-# In 2004 some problems: they talk about currency crisis in 1998 and that's why the index spikes. Nevertheless, no crisis.
+# In 2004 some problems: they talk about currency crisis in 1998 and that's why the index spikes. Nevertheless, no crisis. Phrase: "dominated
+# during the Asian crisis, with the large depreciation"
 
 
 
@@ -204,7 +209,7 @@ plot_comparison[["MYS"]][[3]]
 # Kazakhstan -----
 # In 1999, crisis of contagion in Kazakhstan: contagion from the Russian crisis.
 # In 2005-2006 the index should stay constant: "sharp depreciation" captured in the notes (KAZ_2005-06-08). Hypothetical scenario:
-# "While a sharp depreciation..." Same in 2006.
+# "While a sharp depreciation...would" Same in 2006.
 
 
 plot_comparison[["KAZ"]][[1]]
@@ -257,4 +262,4 @@ plots <- plot_comparison %>%
 
 
 
-
+  
