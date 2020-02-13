@@ -1,5 +1,3 @@
-
-
 ##### *********************************************************************************************#####
 ##### set up#####
 ##clean environment
@@ -12,29 +10,32 @@ root_path=current_path
 #source("functions/SetUpProjet.r")
 #source("functions/TextMiningCrisis.r")
 
-##install common packages
+## Install packages:
+
 library("devtools") #make sure you have the library
-github_token=rio::import("/Users/manubetin/Dropbox/Manuel/Professionnel/github_token/github_token.txt")
-#install_github("manuelbetin/SetUpProject",auth_token=github_token[[1]])
-install_github("manuelbetin/TextMiningCrisis",auth_token=github_token[[1]])
+library("purrr")
+library("dplyr")
+library("tidyverse")
+library("pdftools")
+library("lubridate")
+library("tictoc")
+library("rio")
+library("tidytext")
+library("stringr")
+library("stringi")
+library("rvest")
+library("tidyr")
+library("crayon")
 
-packages <- c("dplyr"
-              , "ggplot2"
-              , "plotly"
-              , "pdftools"
-              , "lubridate"
-              , 'tictoc'
-              ,  "rio"
-              , "tidytext"
-              , "stringr"
-              , "stringi"
-              , "tidyr"
-              , "rvest"
-              , "TextMiningCrisis"
-              , "SetUpProject")
 
-## load common packages
-SetUpProject::load.my.packages(packages)
+
+# Load all packages from TextMiningCrisis:
+
+list.files("/Users/Umberto/Desktop/TextMiningCrisis-master/R") %>% 
+  map(~ paste0("/Users/Umberto/Desktop/TextMiningCrisis-master/R/", .x, sep = "")) %>% 
+  map(source)
+
+
 
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
@@ -60,7 +61,7 @@ min_words=500
 #keyword_list=names(key_words_categories())
 
 ##Manual selection
-keyword_list=c('Currency_crisis',"Balance_payment_crisis")#,'Severe_recession',"Banking_crisis")
+keyword_list=c('Currency_crisis',"Currency_crisis_severe")#,'Severe_recession',"Banking_crisis")
 
 # keyword_list=c('Reform_agenda','Political_crisis','Balance_payment_crisis','World_outcomes',
 #                 'Contagion','Expectations','Currency_crisis',
@@ -97,7 +98,7 @@ correct_url=function(link){
   
 }
 
-ctries=c("PRT")
+ctries=c("KAZ")
 
 if(apply_tf_on_new_ctry==T){
   
@@ -136,22 +137,43 @@ if(apply_tf_on_new_ctry==T){
   })
 }
 
-#consolidate into a single database the tf matrix of all countries
+# Consolidate into a single database the tf matrix of all countries and create coherent database ----
+
+# Import all files in the temporary folder
+
 mytfs=list.files("temp/tf",full.names = T)
 mytfs=lapply(mytfs,function(x){
   y=rio::import(x)
   data.frame(y)
   })
-mytfs=do.call(rbind,mytfs)
-run_tf_by_chunk
-#extract from the names of the files the country, date and hierarchy of the document
 
-dt=mytfs %>% mutate(#year=substr(file,5,8),
+# Check that rbinding them makes sense and in case do it.
+
+if(mytfs %>% map(length) %>% reduce(`==`) == FALSE){
+  # Check that tf indexes have same number of columns
+  mytfs_different_length <- mytfs %>% map(length) %>% unique()
+  stop("Dataframes with tf indexes do not have the same length: ", paste(mytfs_different_length, collapse = " and ")) # 
+  } else {
+    # If TRUE, check that col. names are equal. 
+    if(mytfs %>% map(names) %>% reduce(`==`) == rep(F,mytfs %>% map_int(ncol) %>% unique())) {
+    stop("Dataframes with tf indexes do not have same column names.")
+    } else {
+      
+      mytfs <- do.call(rbind,mytfs)
+      
+    }
+  }
+
+# Extract from the names of the files, the country, date and hierarchy of the document.
+
+dt <- mytfs %>% mutate(
   ISO3_Code=substr(file,1,3),
-  Period=as.Date(str_match(mytfs$file,"\\d\\d\\d\\d-\\d\\d-\\d\\d")),
+  year=substr(file,5,8),
+  Period=as.Date(str_match(mytfs$file,"\\d{4}-\\d{2}-\\d{2}")),
   type_doc=substr(file,str_length(ISO3_Code)+str_length(Period)+3,str_length(file)))
 
-## compute the idf ----------
+## Compute the idf ----------
+
 LoI_idf=idf(dt)
 
 myidf_plot=idf_barplot(LoI_idf,vars_type=c("economic_shock","debt_outcomes","non_economic_shock","adjustment_program"),idf_trans = T)
@@ -200,3 +222,4 @@ print(final_destination)
 #-------------------------------------------
 
 
+?substr

@@ -650,7 +650,8 @@ key_words_crisis <- function(){
     #"global crisis",
     #"global economic crisis",
     "crisis in Brazil",
-    "linkage with the US")
+    "linkage with the US",
+    "contagion effects of the Thai crisis")
   
   key_words[["Expectations"]]=c(
     "crisis risks",
@@ -796,10 +797,12 @@ key_words_crisis <- function(){
     "loss of official international reserves",
     "decline in official international reserves",
     "exhaustion of the disposable official international reserves",
-    "depleted international reserves",
     "exhausted official international reserves",
-    "strong pressure in exchange rate reserves"
+    "strong pressure in exchange rate reserves",
+    "depleted international reserves",
+    "exhaustion of all foreign exchange reserves" # not original (added on the second stage)
   )
+  
   
   key_words[["Currency_crisis"]]=c(
     "currency weakness",
@@ -817,7 +820,7 @@ key_words_crisis <- function(){
     "cumulative depreciation",
     "sharp depreciation",
     "magnitude of the depreciation",
-    "pressure in the foreign exchange markets",
+    "pressure in the foreign exchange markets", # not original (added on the second stage)
     "sharply depreciating trend",
     "a depreciating trend",
     "significant overshooting.*of the exchange rate",
@@ -832,7 +835,9 @@ key_words_crisis <- function(){
     "demand for foreign exchange hedge jumped sharply",
     "did not calm exchange.*markets",
     "continuing exchange market uncertainties",
-    "sizeable real depreciation"
+    "sizeable real depreciation",
+    "continuing depreciation",
+    "considerable depreciation"
     )
   
   key_words[["Currency_crisis_severe"]]=c(
@@ -841,12 +846,19 @@ key_words_crisis <- function(){
     "foreign exchange crisis",
     "severe disruption of exchange markets",
     "major devaluation",
-    "Currency crisis",
-    "Currency crash",
-    "large devaluation",
+    "currency crisis",
+    "currency crash",
     "large devaluation",
     "large depreciation",
-    "sharp depreciation"
+    "sharp depreciation",
+    "currency attack"
+  )
+  
+  key_words[["Global_depreciation"]]=c(
+    "sharp depreciation in the u.s. dollar",
+    "sharp depreciation of the u.s. dollar",
+    "large depreciation of the u.s.dollar",
+    "yen's sharp depreciation"
   )
   
   key_words[["Floating_exchange_rate"]]=c(
@@ -1253,10 +1265,38 @@ key_words_crisis <- function(){
     "solid track record"
   )
   
-
-  #"floating interest rates",
+  #---------
+  ## PROBLEMATIC DOCUMENTS TAG
+  #---------
+  
+  key_words[["Minutes"]] = c(
+    "minutes of executive board meetings"
+  )
+  
+  
+  key_words[["Working_papers"]] = c(
+    "this is a working paper",
+    "imf working paper",
+    "a working paper of the international monetary fund"
+  )
+  
+  key_words[["Issues_papers"]] = c(
+    "issues paper and terms of reference on the role of the IMF"
+  )
+  
+  #--------
+  ## HYPOTHETICAL
+  #--------
+  
+  key_words[["Hypothetical"]]= c(
+  "while a sharp depreciation.*would",
+  "a large depreciation.* could"
+  )
+  
+  key_words
 }
   #"floating rate",
+  #"floating interest rates",
   #"foreign exchange-indexed",
   #"exchange rate-indexed bonds",
   #"exchange-indexed securities",
@@ -1278,5 +1318,4 @@ key_words_indicators <- function(){
   )
 }
   
-
 
