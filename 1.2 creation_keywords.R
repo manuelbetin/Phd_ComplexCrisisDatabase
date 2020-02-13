@@ -854,11 +854,10 @@ key_words_crisis <- function(){
     "currency attack"
   )
   
-  key_words[["Anti-Currency_crisis"]]=c(
+  key_words[["Global_depreciation"]]=c(
     "sharp depreciation in the u.s. dollar",
     "sharp depreciation of the u.s. dollar",
     "large depreciation of the u.s.dollar",
-    "while a sharp depreciation.*would",
     "yen's sharp depreciation"
   )
   
@@ -1277,11 +1276,21 @@ key_words_crisis <- function(){
   
   key_words[["Working_papers"]] = c(
     "this is a working paper",
-    "imf working paper"
+    "imf working paper",
+    "a working paper of the international monetary fund"
   )
   
   key_words[["Issues_papers"]] = c(
     "issues paper and terms of reference on the role of the IMF"
+  )
+  
+  #--------
+  ## HYPOTHETICAL
+  #--------
+  
+  key_words[["Hypothetical"]]= c(
+  "while a sharp depreciation.*would",
+  "a large depreciation.* could"
   )
   
   key_words
