@@ -13,8 +13,7 @@ library(rio)
 
 # Upload all the indexes into a list ----
 
-
-path_project = "/Users/Umberto/Dropbox/Early warning model of currency crisis/" # Path to project folder, with codes directory and data.
+path_project = "~/Dropbox/Early warning model of currency crisis/" # Identical path between collaborators.
 path_tf_idf = "temp/tf"
 
 # Upload: 
@@ -55,6 +54,7 @@ RR_database <- import(paste0(path_project,"Betin_Collodel/2. Text Mining IMF_Dat
 tf_idf_plots <- tf_idf %>%
   map(~ if("cc" %in% names(.x) & "cc_severe" %in% names(.x)) { # For the moment, we consider only countries for which a severe currency crisis index was created with text mining. 
   .x %>%
+      filter(year != 2002) %>% 
         ggplot(aes(year, group = 1)) +
         geom_line(aes(y = cc_severe, col = "Severe Index")) +
         geom_line(aes(y = cc, col = "Normal Index")) +
@@ -176,7 +176,10 @@ plot_comparison[["BRA"]][[3]]
 
 # Before 1975, all the currency crises identified by RR seem more moves toward market
 # determined exchange rate. 1975 is an interesting case: to discuss.
+# In 1980 the exchange rate indeed depreciates a lot.
 # In 1985 there don't seem to be problem: we detect a "sharp depreciation of the u.s. dollar" in 1986.
+# In 1995, "large depreciation" refers to Mali. The other document with "large depreciation" (KOR_1995-10-23_Article IV.pdf) is a working paper.
+# In 1996, working paper and minutes with hypothetical sentence (" a large depreciation ... could") 
 # In 2002 wrong documents: working papers and draft paper on role of IMF.
 # In 2011 there is a supplement to erase: KOR_2011_08_04. They talk about capital controls and currency crises in general.
 # In 2013 capturing a yen's sharp depreciation.
@@ -209,7 +212,8 @@ plot_comparison[["MYS"]][[3]]
 # Kazakhstan -----
 # In 1999, crisis of contagion in Kazakhstan: contagion from the Russian crisis.
 # In 2005-2006 the index should stay constant: "sharp depreciation" captured in the notes (KAZ_2005-06-08). Hypothetical scenario:
-# "While a sharp depreciation...would" Same in 2006.
+# "While a sharp depreciation...would" Same in 2006. Is this the only reason? It is the highest spike.
+
 
 
 plot_comparison[["KAZ"]][[1]]
