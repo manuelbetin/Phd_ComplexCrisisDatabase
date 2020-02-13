@@ -64,6 +64,48 @@ LoI_tf_idf=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagge
 #Complete information combining tf, url metadata and quantititve measures  
 mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
 
+#typology of categories: exogeneous/endogeneous and Economic/non economic shocks
+
+stargazer::stargazer(title="Typology of indexes"
+          , typology_categories()
+          , type="latex"
+          , digits=2
+          , no.space=T
+          , align=T
+          , summary=F
+          , rownames=T
+          , table.placement = "H"
+          , column.sep.width="3pt"
+          , font.size = "footnotesize"
+          , out="../Betin_Collodel/2. Text mining IMF_data/output/Typology indexes/Typology_indexes.tex"
+          )
+          
+# dt_old=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/comparison index/Data_crisis_q.Rdata")
+# dt_new=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
+# benchmark_var="CC.RR"
+# new_var="Currency_crisis"
+# ctry="ARG"
+# ts_compare=function(dt_new,dt_old,benchmark_var,new_var,ctry){
+#   
+#   dt_old=dt_old %>% dplyr::select(iso3c=ISO3_Code,year,quarter,benchmark_var)
+#   
+#   dt_new = dt_new%>% dplyr::select(iso3c,Period,new_var) %>% dplyr::mutate(year=year(Period),quarter=quarter(Period))
+#   
+#   data=dt_old %>% left_join(dt_new,by=c("iso3c","year",'quarter'))
+#   data=data %>% group_by(iso3c,year) %>% summarize(!!benchmark_var:=ifelse(sum(get(benchmark_var),na.rm=T)>0,1,0),
+#                                                    !!new_var:=sum(get(new_var),na.rm=T)) %>%
+#     mutate(!!benchmark_var:=(get(benchmark_var)-mean(get(benchmark_var),na.rm=T))/sd(get(benchmark_var),na.rm=T),
+#            !!new_var:=(get(new_var)-mean(get(new_var),na.rm=T))/sd(get(benchmark_var),na.rm=T))
+#   
+#   b=data %>% filter(iso3c==ctry)
+#   ggplot(b)+
+#     geom_line(aes(x=year,y=get(new_var),color=new_var))+
+#     geom_point(aes(x=year,y=get(new_var),color=new_var))+
+#     geom_point(aes(x=year,y=get(benchmark_var),color=benchmark_var))
+#   
+# }
+
+
 
 # evolution of tf-idf across decades ####
 
@@ -76,7 +118,6 @@ source("4.2. Analysis_timing_shocks.r")
 # Plot time series of evolution ------
 
 ctry=c("URY","ARG","THA","MEX","USA","TUR","FRA","BRA","IDN")
-ctry=c("ESP")
 source("4.3. Analysis_ex_timeseries.r")
 
 # Exogeneity of the crisis ####

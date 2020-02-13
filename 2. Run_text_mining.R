@@ -6,7 +6,7 @@
 rm(list = ls())
 
 ## set the working directory were the script is located
-current_path = getwd()# rstudioapi::getActiveDocumentContext()$path
+current_path = here::here()# rstudioapi::getActiveDocumentContext()$path
 root_path=current_path
 
 #source("functions/SetUpProjet.r")
@@ -47,9 +47,9 @@ SetUpProject::load.my.packages(packages)
 
 ## Instructions:
 ## replace 1) and 2)
-
 apply_tf_on_new_ctry=T
 
+usb_drive="/Volumes/Elements/IMF documents"
 delete_pdfs=F
 rm_short_docs=T
 min_words=500
@@ -57,10 +57,10 @@ min_words=500
 #keyword_list=names(key_words_crisis())
 
 ##Remove comment to next line to use all available categories
-#keyword_list=names(key_words_categories())
+keyword_list=names(key_words_crisis())
 
 ##Manual selection
-keyword_list=c('Currency_crisis',"Balance_payment_crisis")#,'Severe_recession',"Banking_crisis")
+#keyword_list=c('Currency_crisis',"Balance_payment_crisis")#,'Severe_recession',"Banking_crisis")
 
 # keyword_list=c('Reform_agenda','Political_crisis','Balance_payment_crisis','World_outcomes',
 #                 'Contagion','Expectations','Currency_crisis',
@@ -97,7 +97,7 @@ correct_url=function(link){
   
 }
 
-ctries=c("PRT")
+ctries=c("ARG")
 
 if(apply_tf_on_new_ctry==T){
   
@@ -106,44 +106,47 @@ if(apply_tf_on_new_ctry==T){
   #when documents have not a valid url it will find the correct one on the IMF website
 
   lapply(ctries,function(x){
-   
+  path_external_usb=paste0(usb_drive,"/",x)
   #Load the database of urls output of the script 1. consolidate_urls.R
-  name_links_dt="urls_Requests_Reviews_articleIV.RData" #name of the dataframe containing the urls
-  url_links=rio::import(paste0("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/",name_links_dt)) %>%
+  data("IMF_docs_urls")
+  url_links=IMF_docs_urls %>%
     mutate(name_file=paste0(ID,"_",period,"_",type_doc_programs)) %>% filter(ID==x)
   #filter(str_detect(pdf,".pdf") | str_detect(pdf,".PDF"))
 
   # correct incorrect urls by rescarping the imf website to get the link to the pdf
-  if(!file.exists(paste0("temp/updated urls/updated_urls_",x,".RData"))){
+  if(!file.exists(paste0(path_external_usb,"/updated urls/updated_urls_",x,".RData"))){
   for(i in 1:dim(url_links)[1]){
     if(!(str_detect(url_links[i,"pdf"],".pdf") | str_detect(url_links[i,"pdf"],".PDF"))){
       print(url_links[[i,"name_file"]])
-      url_links[i,"pdf"]=correct_url(url_links[i,"pdf"])  
+      url_links[i,"pdf"]=correct_url(url_links[i,"pdf"])
     }
   }
   
-  dir.create("temp/updated urls/")  
-  rio::export(url_links,paste0("temp/updated urls/updated_urls_",x,".RData"))
+  dir.create(paste0(path_external_usb,"/updated urls/"))
+  rio::export(url_links,paste0(path_external_usb,"/updated urls/updated_urls_",x,".RData"))
   }else{
-  url_links=rio::import(paste0("temp/updated urls/updated_urls_",x,".RData"))
+  url_links=rio::import(paste0(path_external_usb,"/updated urls/updated_urls_",x,".RData"))
   }
-  run_tf_by_chunk(urls=data.frame(url_links),
+  run_tf_by_chunk(urls=url_links,
                     keyword_list=keyword_list,
                     extract_number=x,
                     delete_pdfs = delete_pdfs,
                     rm_short_docs=rm_short_docs,
-                    min_words=100)
+                    min_words=100,loc_temp =path_external_usb)
   })
 }
 
 #consolidate into a single database the tf matrix of all countries
-mytfs=list.files("temp/tf",full.names = T)
+
+mytfs=setdiff(dir(usb_drive),c("download_docs.r","urls_Requests_Reviews_articleIV.RData","0. logs","0. Old extraction","tf_idf.RData"))
 mytfs=lapply(mytfs,function(x){
-  y=rio::import(x)
-  data.frame(y)
+  if(dir.exists(paste0(usb_drive,"/",x,"/tf"))){
+    y=rio::import(paste0(usb_drive,"/",x,"/tf/tf_crisis_words_",x,".RData"))
+    data.frame(y)
+  }
   })
 mytfs=do.call(rbind,mytfs)
-run_tf_by_chunk
+
 #extract from the names of the files the country, date and hierarchy of the document
 
 dt=mytfs %>% mutate(#year=substr(file,5,8),
@@ -165,6 +168,8 @@ LoI_tf_idf=tf_idf(dt,weight_method="brut_frequency")
 #export the tf_idf
 output[["tf_idf_table"]]=LoI_tf_idf
 rio::export(LoI_tf_idf,"../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData")
+rio::export(LoI_tf_idf,paste0(usb_drive,"/tf_idf.RData"))
+
 
 ### tf-idf by type of crisis ------------------
 
@@ -190,7 +195,6 @@ output[["cos_sim_fig_crisis"]]=lapply(select_cols,function(x){
 })
 
 #Export the final output -----
-
 final_destination="../Betin_Collodel/2. Text mining IMF_data/output/tagged docs/Output_Run_Text_mining.RData"
 save(output,file=final_destination)
 
