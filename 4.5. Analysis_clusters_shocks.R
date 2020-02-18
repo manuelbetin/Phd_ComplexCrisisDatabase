@@ -37,43 +37,45 @@ mydata_avg=mydata %>% group_by(iso3c,startdate) %>%
   mutate_at(vars(myvars),funs(program_sd=sd(.,na.rm=T))) %>% mutate(file=paste0(iso3c,"_",startdate)) %>% dplyr::select(file,everything())
 
 
-
 cluster=list()
 
-cluster[["request"]]=cluster_crisis(mydata_avg %>% filter(type=="Request"),
+cluster[["request"]]=cluster_crisis(mydata %>% filter(type=="request"),
                                     unit_cluster="file",
                                     list_vars = shocks,
-                                    Nclusters=3,
+                                    Nclusters=5,
                                     top_perc = 1)
 
-cluster[["all_program"]]=cluster_crisis(mydata_avg,
+cluster[["consultation"]]=cluster_crisis(mydata %>% filter(type %in% c("request","review","consultation")),
                                         unit_cluster="file",
                                         list_vars = paste0(shocks,"_program_mean"),
-                                        Nclusters=3,
-                                        top_perc = 1)
+                                        Nclusters=2,
+                                        top_perc = 0.2)
 
-cluster[["review"]]=cluster_crisis(mydata_avg %>% filter(type=="Review"),
+cluster[["review"]]=cluster_crisis(mydata_avg %>% filter(type=="review"),
                                    unit_cluster="file",
                                    list_vars = shocks,
                                    Nclusters=3,
                                    top_perc = 1)
-
-cluster[["first_doc"]]=cluster_crisis(mydata_avg %>% filter(Review_number_new=="1 Request"),
-                                      unit_cluster="file",
-                                      list_vars = shocks,
-                                      Nclusters=3,
-                                      top_perc = 1)
-
-cluster[["midterm"]]=cluster_crisis(mydata_avg %>% filter(Review_number_new=="2 midterm Review"),
-                                    unit_cluster="file",
-                                    list_vars = shocks,
-                                    Nclusters=3,
-                                    top_perc = 1)
-
-cluster[["lastdoc"]]=cluster_crisis(mydata_avg %>% filter(Review_number_new=="3 Last Review"),
-                                    unit_cluster="file",
-                                    list_vars = shocks,
-                                    Nclusters=3,
-                                    top_perc = 1)
+# 
+# cluster[["first_doc"]]=cluster_crisis(mydata_avg %>% filter(Review_number_new=="1 Request"),
+#                                       unit_cluster="file",
+#                                       list_vars = shocks,
+#                                       Nclusters=3,
+#                                       top_perc = 1)
+# 
+# cluster[["midterm"]]=cluster_crisis(mydata_avg %>% filter(Review_number_new=="2 midterm Review"),
+#                                     unit_cluster="file",
+#                                     list_vars = shocks,
+#                                     Nclusters=3,
+#                                     top_perc = 1)
+# 
+# cluster[["lastdoc"]]=cluster_crisis(mydata_avg %>% filter(Review_number_new=="3 Last Review"),
+#                                     unit_cluster="file",
+#                                     list_vars = shocks,
+#                                     Nclusters=3,
+#                                     top_perc = 1)
 
 output[["clusters"]]=cluster
+
+
+a=cluster[["consultation"]]$ctry_cluster_summary

@@ -7,35 +7,33 @@ rm(list = ls())
 current_path = here::here()# rstudioapi::getActiveDocumentContext()$path
 root_path=current_path
 
-#source("functions/SetUpProjet.r")
-#source("functions/TextMiningCrisis.r")
-
-## Install packages:
-
+##install common packages
 library("devtools") #make sure you have the library
-library("purrr")
-library("dplyr")
-library("tidyverse")
-library("pdftools")
-library("lubridate")
-library("tictoc")
-library("rio")
-library("tidytext")
-library("stringr")
-library("stringi")
-library("rvest")
-library("tidyr")
-library("crayon")
+github_token=rio::import("/Users/manubetin/Dropbox/Manuel/Professionnel/github_token/github_token.txt")
 
+#install_github("manuelbetin/SetUpProject",auth_token=github_token[[1]])
+install_github("manuelbetin/TextMiningCrisis",auth_token=github_token[[1]])
 
+packages <- c("dplyr"
+              , 'tictoc'
+              , "rio"
+              , "purrr"
+              , "tidytext"
+              , "stringr"
+              , "stringi"
+              , "tidyr"
+              , "ggplot2"
+              , "lubridate"
+              , 'crayon'
+              , "DT"
+              , "plotly"
+              , "TextMiningCrisis"
+              , "SetUpProject")
+
+## load common packages
+SetUpProject::load.my.packages(packages)
 
 # Load all packages from TextMiningCrisis:
-
-list.files("/Users/Umberto/Desktop/TextMiningCrisis-master/R") %>% 
-  map(~ paste0("/Users/Umberto/Desktop/TextMiningCrisis-master/R/", .x, sep = "")) %>% 
-  map(source)
-
-
 
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
@@ -61,11 +59,10 @@ min_words=500
 keyword_list=names(key_words_crisis())
 
 ##Manual selection
-<<<<<<< HEAD
+
 #keyword_list=c('Currency_crisis',"Balance_payment_crisis")#,'Severe_recession',"Banking_crisis")
-=======
-keyword_list=c('Currency_crisis',"Currency_crisis_severe")#,'Severe_recession',"Banking_crisis")
->>>>>>> 8692d4d7e75c85cd22b88546c6f1a886f0532ced
+
+#keyword_list=c('Currency_crisis',"Currency_crisis_severe")#,'Severe_recession',"Banking_crisis")
 
 # keyword_list=c('Reform_agenda','Political_crisis','Balance_payment_crisis','World_outcomes',
 #                 'Contagion','Expectations','Currency_crisis',
@@ -102,7 +99,10 @@ correct_url=function(link){
   
 }
 
-ctries=c("ARG")
+ctries=c('VEN','VNM','ZAF','ZMB')
+          #'ZWE')
+
+#ctries=c("USA","DEU","URY","GRC","MEX","ARG","THA","IDN")
 
 if(apply_tf_on_new_ctry==T){
   
@@ -145,28 +145,32 @@ if(apply_tf_on_new_ctry==T){
 
 mytfs=setdiff(dir(usb_drive),c("download_docs.r","urls_Requests_Reviews_articleIV.RData","0. logs","0. Old extraction","tf_idf.RData"))
 
+#mytfs[165]
+#i=0
 mytfs=lapply(mytfs,function(x){
+  #i<<-i+1
+  #print(i)
   if(dir.exists(paste0(usb_drive,"/",x,"/tf"))){
+
     y=rio::import(paste0(usb_drive,"/",x,"/tf/tf_crisis_words_",x,".RData"))
+    
     data.frame(y)
   }
   })
 mytfs=do.call(rbind,mytfs)
 
-if(mytfs %>% map(length) %>% reduce(`==`) == FALSE){
-  # Check that tf indexes have same number of columns
-  mytfs_different_length <- mytfs %>% map(length) %>% unique()
-  stop("Dataframes with tf indexes do not have the same length: ", paste(mytfs_different_length, collapse = " and ")) # 
-  } else {
-    # If TRUE, check that col. names are equal. 
-    if(mytfs %>% map(names) %>% reduce(`==`) == rep(F,mytfs %>% map_int(ncol) %>% unique())) {
-    stop("Dataframes with tf indexes do not have same column names.")
-    } else {
-      
-      mytfs <- do.call(rbind,mytfs)
-      
-    }
-  }
+# if(mytfs %>% map(length) %>% reduce(`==`) == FALSE){
+#   # Check that tf indexes have same number of columns
+#   mytfs_different_length <- mytfs %>% map(length) %>% unique()
+#   stop("Dataframes with tf indexes do not have the same length: ", paste(mytfs_different_length, collapse = " and ")) # 
+#   } else {
+#     # If TRUE, check that col. names are equal. 
+#     if(mytfs %>% map(names) %>% reduce(`==`) == rep(F,mytfs %>% map_int(ncol) %>% unique())) {
+#     stop("Dataframes with tf indexes do not have same column names.")
+#     } else {
+#       mytfs <- do.call(rbind,mytfs)
+#     }
+#   }
 
 # Extract from the names of the files, the country, date and hierarchy of the document.
 
@@ -192,7 +196,6 @@ LoI_tf_idf=tf_idf(dt,weight_method="brut_frequency")
 output[["tf_idf_table"]]=LoI_tf_idf
 rio::export(LoI_tf_idf,"../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData")
 rio::export(LoI_tf_idf,paste0(usb_drive,"/tf_idf.RData"))
-
 
 ### tf-idf by type of crisis ------------------
 
@@ -227,4 +230,3 @@ print(final_destination)
 #-------------------------------------------
 
 
-?substr

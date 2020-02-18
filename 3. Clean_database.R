@@ -55,17 +55,15 @@ dt_meta=rio::import(paste0("../Betin_Collodel/2. Text mining IMF_data/datasets/u
 #merge datasets with metadata from extraction and clean variable names
 
 
-
 mydata=LoI_tf_idf %>% full_join(dt_meta,by=c("file")) %>% 
-  rename(iso3c=ID) %>% dplyr::select(-c(ISO3_Code,period)) %>%
+  rename(iso3c=ID) %>% dplyr::select(-c(ISO3_Code,period,year)) %>%
   dplyr::select(iso3c,Period,file,title,type_doc,type_program,type_doc_programs,type_doc_consultations,perf_criteria,membership,
                 statements,repurchase_transaction,technical_assistance,expost_assessment,
                 exchange_system,overdue_obligations,Review_number,pdf,type_hierarchy,
-                hierarchy,waiver,modification,everything())
-
+                hierarchy,waiver,modification,everything()) 
 
 #create normalization of variables
-indexes_2normalize=names(mydata)[23:dim(mydata)[2]]
+indexes_2normalize=names(mydata)[25:dim(mydata)[2]]
 mydata=mydata %>% ungroup () %>% mutate_at(vars(indexes_2normalize), funs(norm = (. - mean(.,na.rm=T))/sd(.,na.rm=T)))
 output[["mydata"]]=mydata
 
@@ -166,5 +164,4 @@ mydata=mydata %>% group_by(iso3c,startdate) %>%
   mutate_at(vars(myvars),funs(program_mean=mean(.,na.rm=T)))
 
 # Export clean data ####
-
 rio::export(mydata,"../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
