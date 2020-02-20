@@ -96,7 +96,14 @@ ctry=c("ISL","IRL","PRT")
 #,"ARG","THA","MEX","USA","TUR","FRA","BRA","IDN")
 source("4.3. Analysis_ex_timeseries.r")
 
-# Exogeneity of the crisis ####
+# Exogeneity of the shocks ####
+
+#list of shocks to consider
+shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisis',
+         'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
+         'Expectations','Balance_payment_crisis',
+         'Severe_recession','Soft_recession','Expansion',
+         'Fiscal_outcomes','Sovereign_default',"Currency_crisis_severe")
 
 source("4.4. Analysis_exogeneity_shocks.r")
 
