@@ -24,8 +24,9 @@ packages <- c("dplyr"
               ,"stringr"
               ,"stringi"
               ,"tidyr"
-              , "TextMiningCrisis"
-              , "SetUpProject"
+              ,"TextMiningCrisis"
+              ,"SetUpProject",
+              "plotly"
 )
 
 ## load common packages
@@ -53,16 +54,28 @@ annual_tf_idf <- import("../Betin_Collodel/2. Text mining IMF_data/output/tagged
 # Other variables (also standard indicators):
   
 rr <- import("../Betin_Collodel/2. Text mining IMF_data/datasets/comparison/other_data.RData") %>% 
-    filter(str_detect(Period, "-01-")) %>% 
-    select(ISO3_Code, year, CC.RR_first, SD.RR_first) #banking crises?
+    filter(str_detect(Period, "-01-")) %>%
+    select(ISO3_Code, year, CC.RR_first, SD.RR_first, BC.LV, CC.LV, SD.LV) %>% #banking crises?
+    arrange(ISO3_Code,year)
 
 
 # Working dataframe:
 
-output[["comparison_dataframe"]] <- merge(annual_tf_idf, rr, by= c("ISO3_Code","year"), all = TRUE) %>% 
-  select(-Minutes, -Working_papers, -Issues_papers, -Press_releases) %>% 
-  gather("type_index","value",Deregulation:Track_record)
+output[["comparison_dataframe"]] <- merge(annual_tf_idf, rr, by= c("ISO3_Code","year"), all.x = TRUE) %>% # only countries for which global mining was performed.
+  select(-Minutes, -Working_papers, -Issues_papers, -Press_releases) %>% # intermediate indexes to correct problems!
+  gather("type_index","value",Deregulation:Track_record) %>%
+  gather("type_crisis","dummy_crisis",CC.RR_first:SD.LV) %>% 
+  mutate(type_crisis = case_when(str_detect(type_crisis, "CC.RR") ~ "Currency Crisis-Reinhart & Rogoff",
+                                    str_detect(type_crisis, "SD.RR") ~ "Sovereign Debt Crisis-Reinhart & Rogoff",
+                                    str_detect(type_crisis, "BC.LV") ~ "Banking Crisis-Laeven & Valencia",
+                                    str_detect(type_crisis, "CC.LV") ~ "Currency Crisis-Laeven & Valencia",
+                                    str_detect(type_crisis, "SD.LV") ~ "Sovereign Debt Crisis-Laeven & Valencia")) %>% 
+  separate(type_crisis, c("type_crisis", "database"), sep = "-" ) %>% 
+  arrange(ISO3_Code, year, type_index)
 
+# not confuse with output in the server function shiny:
+
+comparison_dataframe <- output[["comparison_dataframe"]]
 
 
 
