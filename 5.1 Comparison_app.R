@@ -5,7 +5,14 @@ library(plotly)
 # Initialise the app:
 
 ui <- fluidPage(
-  titlePanel("A new crisis index: text-mining IMF documents"),
+  tabsetPanel(
+    tabPanel("A new crisis index: text-mining IMF documents"),
+    tabPanel("Comparison: cross-country",
+             sidebarLayout(
+               sidebarPanel(
+             selectInput("multicountryInput", "Country:", unique(output[["comparison_dataframe"]]$ISO3_Code), multiple = TRUE)),
+             mainPanel(plotlyOutput("multi_plot")))),
+    tabPanel("Comparison: standard crisis databases",
   # For the moment simple layout:
   sidebarLayout(
     sidebarPanel(selectInput("countryInput","Country:", unique(output[["comparison_dataframe"]]$ISO3_Code)),
@@ -14,8 +21,36 @@ ui <- fluidPage(
     radioButtons("crisisdbInput", "Name of Database:", unique(output[["comparison_dataframe"]]$database))),
     mainPanel(plotlyOutput("index_plot"))
   ))
+  )
+)
 
 server <- function(input, output) {
+  
+  output$multi_plot <- renderPlotly({
+    
+    filtered <- comparison_dataframe %>% 
+      filter(type_index == "Currency_crisis",
+        ISO3_Code == input$multicountryInput)
+
+    
+   new <- filtered %>% 
+      ggplot(aes(year, scale(value), group = 1, col = ISO3_Code)) +
+      geom_line() +
+      scale_colour_discrete(name = "Country") +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+     theme_bw() +
+     xlab("Year") + 
+     ylab("Standard Deviations") +
+     ggtitle("Term Frequency") +
+     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+     theme(plot.title = element_text(hjust = 0.5)) +
+     theme(legend.title=element_blank())
+   
+   ggplotly(new)
+      
+
+  }
+  )
  
   output$index_plot <- renderPlotly({
     
