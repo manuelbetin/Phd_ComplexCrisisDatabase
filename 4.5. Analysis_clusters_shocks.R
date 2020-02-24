@@ -47,37 +47,57 @@ cluster_crisis=function(mydata,unit_cluster="iso3c",list_vars,Nclusters=6,N_Name
   return( list(dt=dt_cluster,arguments_cluster=list_vars,ctry_cluster_summary=ctry_clusters))
 }
 
+n.clusters=3
 cluster=list()
-dt=mydata %>% filter(type %in% c("consultation","request","review") & year<1980)
+dt=mydata %>% filter(type %in% c("consultation","request","review") & year<1980) %>% mutate(Period=year(Period)) %>% 
+  group_by(iso3c,year) %>% summarize_at(shocks,sum) %>% mutate(file=paste0(iso3c,"_",year)) %>%  ungroup()%>% dplyr::select(file,shocks)
+
 cluster[["bef1980"]]=cluster_crisis(dt,
                                         unit_cluster="file",
                                         list_vars = shocks,
-                                        Nclusters=3,
+                                        Nclusters=n.clusters,
                                         N_Name_categories = 3)
 cluster[["bef1980"]]$ctry_cluster_summary=cluster[["bef1980"]]$ctry_cluster_summary %>% mutate(Period="Before 1980") %>% dplyr::select(Period,everything())
 
-dt=mydata %>% filter(type %in% c("consultation","request","review") & (year<2000 & year>=1980))
-cluster[["1980_2000"]]=cluster_crisis(dt,
-                                    unit_cluster="file",
-                                    list_vars = shocks,
-                                    Nclusters=3,
-                                    N_Name_categories = 3)
-cluster[["1980_2000"]]$ctry_cluster_summary=cluster[["1980_2000"]]$ctry_cluster_summary %>% mutate(Period="1980-2000") %>% dplyr::select(Period,everything())
+dt=mydata %>% filter(type %in% c("consultation","request","review") & (year<1995 & year>=1980)) %>% mutate(Period=year(Period)) %>% 
+  group_by(iso3c,year) %>% summarize_at(shocks,sum) %>% mutate(file=paste0(iso3c,"_",year)) %>%  ungroup()%>% dplyr::select(file,shocks)
 
-dt=mydata %>% filter(type %in% c("consultation","request","review") & (year>=2000))
-cluster[["aft2000"]]=cluster_crisis(dt,
+cluster[["1980_1995"]]=cluster_crisis(dt,
                                     unit_cluster="file",
                                     list_vars = shocks,
-                                    Nclusters=3,
+                                    Nclusters=n.clusters,
                                     N_Name_categories = 3)
-cluster[["aft2000"]]$ctry_cluster_summary=cluster[["aft2000"]]$ctry_cluster_summary %>% mutate(Period="2000-2016") %>% dplyr::select(Period,everything())
+cluster[["1980_1995"]]$ctry_cluster_summary=cluster[["1980_1995"]]$ctry_cluster_summary %>% mutate(Period="1980-1995") %>% dplyr::select(Period,everything())
+
+dt=mydata %>% filter(type %in% c("consultation","request","review") & (year<2003 & year>=1995))%>% mutate(Period=year(Period)) %>% 
+  group_by(iso3c,year) %>% summarize_at(shocks,sum) %>% mutate(file=paste0(iso3c,"_",year)) %>%  ungroup()%>% dplyr::select(file,shocks)
+
+cluster[["1995_2003"]]=cluster_crisis(dt,
+                                    unit_cluster="file",
+                                    list_vars = shocks,
+                                    Nclusters=n.clusters,
+                                    N_Name_categories = 3)
+cluster[["1995_2003"]]$ctry_cluster_summary=cluster[["1995_2003"]]$ctry_cluster_summary %>% mutate(Period="1995-2003") %>% dplyr::select(Period,everything())
+
+
+dt=mydata %>% filter(type %in% c("consultation","request","review") & (year>=2004)) %>% mutate(Period=year(Period)) %>% 
+  group_by(iso3c,year) %>% summarize_at(shocks,sum) %>% mutate(file=paste0(iso3c,"_",year)) %>%  ungroup()%>% dplyr::select(file,shocks)
+
+cluster[["aft2004"]]=cluster_crisis(dt,
+                                    unit_cluster="file",
+                                    list_vars = shocks,
+                                    Nclusters=n.clusters,
+                                    N_Name_categories = 3)
+cluster[["aft2004"]]$ctry_cluster_summary=cluster[["aft2004"]]$ctry_cluster_summary %>% mutate(Period="Aft 2004") %>% dplyr::select(Period,everything())
 
 output[["clusters"]]=cluster
 
+cluster[["bef1980"]]$dt %>% filter(dt_kmeans.cluster==3)
 
 summary_cluster=rbind(cluster[["bef1980"]]$ctry_cluster_summary,
-                      cluster[["1980_2000"]]$ctry_cluster_summary,
-                      cluster[["aft2000"]]$ctry_cluster_summary)
+                      cluster[["1980_1995"]]$ctry_cluster_summary,
+                      cluster[["1995_2003"]]$ctry_cluster_summary,
+                      cluster[["aft2004"]]$ctry_cluster_summary)
 
 stargazer::stargazer(title="Systemic crisis"
                      , summary_cluster
