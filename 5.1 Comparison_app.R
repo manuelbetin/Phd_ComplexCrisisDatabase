@@ -14,7 +14,11 @@ ui <- fluidPage(
               sidebarPanel(
               radioButtons("choice_comparisonInput", "Comparison:", c("Across countries", "Across indexes")),
               uiOutput("first_choiceInput"),
-              uiOutput("second_choiceInput")),
+              uiOutput("second_choiceInput"),
+              sliderInput("timeInput", "Time range:",
+                          min(as.numeric(output[["comparison_dataframe"]]$year)), 
+                          max(as.numeric(output[["comparison_dataframe"]]$year)), 
+                          c(1960, 2010), sep = "")),
               mainPanel(plotlyOutput("multi_comparison_plot")))),
     # Third tab: comparison with standard crisis databases (Figure 2, Romer & Romer).
     tabPanel("Comparison: standard crisis databases",
@@ -22,7 +26,8 @@ ui <- fluidPage(
     sidebarPanel(selectInput("countryInput","Country:", unique(output[["comparison_dataframe"]]$ISO3_Code)),
     selectInput("typeindexInput", "Type of index:", c("Banking_crisis","Currency_crisis_severe","Sovereign_default")),
     radioButtons("crisisInput", "Type of Crisis:",sort(unique(output[["comparison_dataframe"]]$type_crisis))),
-    radioButtons("crisisdbInput", "Name of Database:", sort(unique(output[["comparison_dataframe"]]$database)))),
+    radioButtons("crisisdbInput", "Name of Database:", sort(unique(output[["comparison_dataframe"]]$database))),
+    uiOutput("definitionInput")),
     mainPanel(plotlyOutput("comparison_crisis_plot"))
   ))
   )
@@ -63,9 +68,11 @@ server <- function(input, output) {
     validate(need(input$first_choiceInput != "",""))  
       
     filtered <- comparison_dataframe %>% 
-      filter(ISO3_Code == input$first_choiceInput,
-        type_index == input$second_choiceInput) %>% 
       mutate(year = as.numeric(year)) %>% 
+      filter(ISO3_Code == input$first_choiceInput,
+        type_index == input$second_choiceInput,
+        year >= input$timeInput[1],
+        year <= input$timeInput[2]) %>% 
       rename(TF = value,
             Year = year)
 
@@ -92,10 +99,12 @@ server <- function(input, output) {
       validate(need(input$first_choiceInput != "",""))
       
       filtered <- comparison_dataframe %>% 
-        filter(type_index == input$first_choiceInput,
-                ISO3_Code == input$second_choiceInput) %>% 
         mutate(value = as.numeric(value)*100,
                year = as.numeric(year)) %>% 
+        filter(type_index == input$first_choiceInput,
+                ISO3_Code == input$second_choiceInput,
+               year >= input$timeInput[1],
+               year <= input$timeInput[2]) %>% 
         rename(TF = value,
                Year = year)
       
@@ -118,6 +127,39 @@ server <- function(input, output) {
   )
   
   # Third tab: -----
+  
+  output$definitionInput <- renderUI({
+    if(input$crisisInput == "Banking Crisis"){
+      if(input$crisisdbInput == "Reinhart & Rogoff"){
+      helpText("Definition: no data available.")
+      }
+      else{
+        helpText("Not yet written")
+      }
+    }
+    if(input$crisisInput == "Currency Crisis"){
+      if(input$crisisdbInput == "Reinhart & Rogoff"){
+      helpText(strong("Definition"), br(), br(),
+               "Data:",br(),
+               "Nominal exchange rate vis-a-vis US dollar or relevant anchor, eop.", br(),br(),
+               "Two necessary conditions:",br(),
+               "1) Year-on-year 15% depreciation",br(),
+               "2) 10% points higher than previous year",br(),br(),
+               "Consecutive episodes:", br(),
+               "First of five-year consecutive window")
+      }
+      else{
+      helpText(strong("Definition"), br(), br(),
+               "Data:",br(),
+               "Nominal exchange rate vis-a-vis US dollar, eop.", br(),br(),
+               "Two necessary conditions:",br(),
+               "1) Year-on-year 30% depreciation",br(),
+               "2) 10% points higher than previous year",br(),br(),
+               "Consecutive episodes:", br(),
+               "First of five-year consecutive window")
+      }
+    }
+  })
  
   output$comparison_crisis_plot <- renderPlotly({
     
