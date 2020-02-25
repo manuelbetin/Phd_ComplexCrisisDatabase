@@ -24,9 +24,9 @@ ui <- fluidPage(
     tabPanel("Comparison: standard crisis databases",
     sidebarLayout(
     sidebarPanel(selectInput("countryInput","Country:", unique(output[["comparison_dataframe"]]$ISO3_Code)),
-    selectInput("typeindexInput", "Type of index:", c("Banking_crisis","Currency_crisis_severe","Sovereign_default")),
-    radioButtons("crisisInput", "Type of Crisis:",sort(unique(output[["comparison_dataframe"]]$type_crisis))),
-    radioButtons("crisisdbInput", "Name of Database:", sort(unique(output[["comparison_dataframe"]]$database))),
+    selectInput("typeindexInput", "Type of index:", c("Banking_crisis","Currency_crisis_severe","Sovereign_default"), selected = "Currency_crisis_severe"),
+    radioButtons("crisisdbInput", "Name of Database:", sort(unique(output[["comparison_dataframe"]]$database)), selected = "Reinhart & Rogoff"),
+    uiOutput("crisisInput"),
     uiOutput("definitionInput")),
     mainPanel(plotlyOutput("comparison_crisis_plot"))
   ))
@@ -37,6 +37,7 @@ server <- function(input, output) {
   
   
   # Second tab: -----
+  
   # Render inputs dinamically: depending on the choice of comparison, different inputs.
   
   output$first_choiceInput <- renderUI({
@@ -128,46 +129,70 @@ server <- function(input, output) {
   
   # Third tab: -----
   
-  output$definitionInput <- renderUI({
-    if(input$crisisInput == "Banking Crisis"){
-      if(input$crisisdbInput == "Reinhart & Rogoff"){
-      helpText("Definition: no data available.")
-      }
-      else{
-        helpText("Not yet written")
-      }
-    }
-    if(input$crisisInput == "Currency Crisis"){
-      if(input$crisisdbInput == "Reinhart & Rogoff"){
-      helpText(strong("Definition"), br(), br(),
-               "Data:",br(),
-               "Nominal exchange rate vis-a-vis US dollar or relevant anchor, eop.", br(),br(),
-               "Two necessary conditions:",br(),
-               "1) Year-on-year 15% depreciation",br(),
-               "2) 10% points higher than previous year",br(),br(),
-               "Consecutive episodes:", br(),
-               "First of five-year consecutive window")
-      }
-      else{
-      helpText(strong("Definition"), br(), br(),
-               "Data:",br(),
-               "Nominal exchange rate vis-a-vis US dollar, eop.", br(),br(),
-               "Two necessary conditions:",br(),
-               "1) Year-on-year 30% depreciation",br(),
-               "2) 10% points higher than previous year",br(),br(),
-               "Consecutive episodes:", br(),
-               "First of five-year consecutive window")
-      }
+  # List of crises type depends on choice of database:
+  
+  output$crisisInput <- renderUI({
+    if(input$crisisdbInput == "Laeven & Valencia"){
+      radioButtons("crisisInput", "Type of Crisis:",c("Banking Crisis", "Currency Crisis","Sovereign Debt Crisis"), selected = "Currency Crisis")
+    }else{
+      radioButtons("crisisInput", "Type of Crisis:",c("Banking Crisis", "Currency Crisis", "Sovereign Debt Crisis",
+                                                      "Domestic Sovereign Debt Crisis",
+                                                      "External Sovereign Debt Crisis"), selected = "Currency Crisis")
     }
   })
+
+  # Part of description crises:
+
+  output$definitionInput <- renderUI({
+     if(input$crisisInput == "Banking Crisis"){
+       if(input$crisisdbInput == "Reinhart & Rogoff"){
+       helpText("Definition: no data available.")
+       }
+       else{
+         helpText("Not yet written")
+       }
+     }
+     if(input$crisisInput == "Currency Crisis"){
+       if(input$crisisdbInput == "Reinhart & Rogoff"){
+       helpText(strong("Definition"), br(), br(),
+                "Data:",br(),
+                "Nominal exchange rate vis-a-vis US dollar or relevant anchor - Eop",br(),br(),
+                "Sample:", br(),
+                "1946-2010",br(),br(),
+                "Necessary condition:",br(),
+                "Year-on-year 15% depreciation",br(),br(),
+                "Consecutive episodes:", br(),
+                "No treatment.", br(),
+                "Crisis ends when exchange rate stabilizes.")
+       }
+       else{
+       helpText(strong("Definition"), br(), br(),
+                "Data:",br(),
+                "Nominal exchange rate vis-a-vis US dollar - Eop.", br(),br(),
+                "Sample:",br(),
+                "1970-2017", br(),br(),
+                "Necessary conditions:",br(),
+                "- Year-on-year 30% depreciation",br(),
+                "- 10% points higher than previous year",br(),br(),
+                "Consecutive episodes:", br(),
+                "First of five-year consecutive window")
+       }
+     }
+   })
  
   output$comparison_crisis_plot <- renderPlotly({
+    
+    # Rendering of input takes a while: customize error message to be blank.
+    
+    validate(need(input$crisisInput != "","")) 
+    
+    # Filtering:
     
     filtered <- comparison_dataframe %>%
       filter(ISO3_Code == input$countryInput,
              type_index == input$typeindexInput,
-             type_crisis == input$crisisInput,
-             database == input$crisisdbInput) %>% 
+             database == input$crisisdbInput, 
+             type_crisis == input$crisisInput) %>% 
       mutate(value = as.numeric(value*100),
              year = as.numeric(year)) %>% 
       rename(TF = value,

@@ -55,18 +55,21 @@ annual_tf_idf <- import("../Betin_Collodel/2. Text mining IMF_data/output/tagged
   
 rr <- import("../Betin_Collodel/2. Text mining IMF_data/datasets/comparison/other_data.RData") %>% 
     filter(str_detect(Period, "-01-")) %>%
-    select(ISO3_Code, year, CC.RR_first, SD.RR_first, BC.LV, CC.LV, SD.LV) %>% #banking crises?
+    select(ISO3_Code, year, CC.RR, SD_E.RR, SD_D.RR, BC.LV, CC.LV, SD.LV) %>% # banking crises RR? 
+    mutate(SD.RR = case_when(SD_E.RR == 1 | SD_D.RR ==1 ~ 1,
+                             TRUE ~ 0)) %>% 
     arrange(ISO3_Code,year)
-
 
 # Working dataframe:
 
 output[["comparison_dataframe"]] <- merge(annual_tf_idf, rr, by= c("ISO3_Code","year"), all.x = TRUE) %>% # only countries for which global mining was performed.
   select(-Minutes, -Working_papers, -Issues_papers, -Press_releases) %>% # intermediate indexes to correct problems!
   gather("type_index","value",Deregulation:Track_record) %>%
-  gather("type_crisis","dummy_crisis",CC.RR_first:SD.LV) %>% 
+  gather("type_crisis","dummy_crisis",CC.RR:SD.RR) %>%
   mutate(type_crisis = case_when(str_detect(type_crisis, "CC.RR") ~ "Currency Crisis-Reinhart & Rogoff",
                                     str_detect(type_crisis, "SD.RR") ~ "Sovereign Debt Crisis-Reinhart & Rogoff",
+                                    str_detect(type_crisis, "SD_E.RR") ~ "External Sovereign Debt Crisis-Reinhart & Rogoff",
+                                    str_detect(type_crisis, "SD_D.RR") ~ "Domestic Sovereign Debt Crisis-Reinhart & Rogoff",
                                     str_detect(type_crisis, "BC.LV") ~ "Banking Crisis-Laeven & Valencia",
                                     str_detect(type_crisis, "CC.LV") ~ "Currency Crisis-Laeven & Valencia",
                                     str_detect(type_crisis, "SD.LV") ~ "Sovereign Debt Crisis-Laeven & Valencia")) %>% 
