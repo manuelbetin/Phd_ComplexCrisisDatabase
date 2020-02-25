@@ -6,35 +6,68 @@ library(plotly)
 
 ui <- fluidPage(
   tabsetPanel(
+    # First tab: introduction to the index.
     tabPanel("A new crisis index: text-mining IMF documents"),
-    tabPanel("Comparison: cross-country",
-             sidebarLayout(
-               sidebarPanel(
-             selectInput("multicountryInput", "Country:", unique(output[["comparison_dataframe"]]$ISO3_Code), multiple = TRUE)),
-             mainPanel(plotlyOutput("multi_plot")))),
+    # Second tab: comparison across countries for single index (Figure 1, Romer & Romer) and across indexes for single country. 
+    tabPanel("Comparison: cross-country and cross-index",
+              sidebarLayout(
+              sidebarPanel(
+              radioButtons("choice_comparisonInput", "Comparison:", c("Across countries", "Across indexes")),
+              uiOutput("first_choiceInput"),
+              uiOutput("second_choiceInput")),
+              mainPanel(plotlyOutput("multi_comparison_plot")))),
+    # Third tab: comparison with standard crisis databases (Figure 2, Romer & Romer).
     tabPanel("Comparison: standard crisis databases",
-  # For the moment simple layout:
-  sidebarLayout(
+    sidebarLayout(
     sidebarPanel(selectInput("countryInput","Country:", unique(output[["comparison_dataframe"]]$ISO3_Code)),
     selectInput("typeindexInput", "Type of index:", unique(output[["comparison_dataframe"]]$type_index)),
     radioButtons("crisisInput", "Type of Crisis:",unique(output[["comparison_dataframe"]]$type_crisis)),
     radioButtons("crisisdbInput", "Name of Database:", unique(output[["comparison_dataframe"]]$database))),
-    mainPanel(plotlyOutput("index_plot"))
+    mainPanel(plotlyOutput("comparison_crisis_plot"))
   ))
   )
 )
 
 server <- function(input, output) {
   
-  output$multi_plot <- renderPlotly({
+  
+  # Second tab: -----
+  # Render inputs dinamically: depending on the choice of comparison, different inputs.
+  
+  output$first_choiceInput <- renderUI({
+    if(input$choice_comparisonInput == "Across countries"){
+    selectInput("first_choiceInput", "Country:", unique(comparison_dataframe$ISO3_Code), selected = "ARG", multiple = TRUE)
+    }
+    else{
+      selectInput("first_choiceInput", "Type of index:", unique(comparison_dataframe$type_index), selected = "Balance_payment_crisis", multiple = TRUE)
+    }
+  })
+  
+  output$second_choiceInput <- renderUI({
+    if(input$choice_comparisonInput == "Across countries"){
+      selectInput("second_choiceInput", "Type of index:", unique(comparison_dataframe$type_index))
+    }
+    else{
+      selectInput("second_choiceInput", "Country:", unique(comparison_dataframe$ISO3_Code))
+    }
+  })
+  
+  # Plots:
+
+  output$multi_comparison_plot <- renderPlotly({
     
+    if(input$choice_comparisonInput == "Across countries"){
+      
     filtered <- comparison_dataframe %>% 
-      filter(type_index == "Currency_crisis",
-        ISO3_Code == input$multicountryInput)
+      filter(ISO3_Code == input$first_choiceInput,
+        type_index == input$second_choiceInput) %>% 
+      mutate(year = as.numeric(year)) %>% 
+      rename(TF = value,
+            Year = year)
 
     
-   new <- filtered %>% 
-      ggplot(aes(year, scale(value), group = 1, col = ISO3_Code)) +
+   no_interecative <- filtered %>% 
+      ggplot(aes(Year, scale(TF), group = 1, col = ISO3_Code)) +
       geom_line() +
       scale_colour_discrete(name = "Country") +
       theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
@@ -43,16 +76,42 @@ server <- function(input, output) {
      ylab("Standard Deviations") +
      ggtitle("Term Frequency") +
      theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-     theme(plot.title = element_text(hjust = 0.5)) +
-     theme(legend.title=element_blank())
-   
-   ggplotly(new)
+     theme(plot.title = element_text(hjust = 0.5)) 
+
+   ggplotly(no_interecative)
+  
+    }
+    else{
       
+      filtered <- comparison_dataframe %>% 
+        filter(type_index == input$first_choiceInput,
+                ISO3_Code == input$second_choiceInput) %>% 
+        mutate(value = as.numeric(value)*100,
+               year = as.numeric(year)) %>% 
+        rename(TF = value,
+               Year = year)
+      
+      no_interactive <- filtered %>% 
+        ggplot(aes(Year, TF, group = 1, col = type_index)) +
+        geom_line() +
+        scale_colour_discrete(name = "Type of Index") +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+        theme_bw() +
+        xlab("Year") + 
+        ylab("% of characters") +
+        ggtitle("Term Frequency") +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+        theme(plot.title = element_text(hjust = 0.5)) 
+      
+      ggplotly(no_interactive)
+    }
 
   }
   )
+  
+  # Third tab: -----
  
-  output$index_plot <- renderPlotly({
+  output$comparison_crisis_plot <- renderPlotly({
     
     filtered <- comparison_dataframe %>%
       filter(ISO3_Code == input$countryInput,
@@ -63,6 +122,8 @@ server <- function(input, output) {
              year = as.numeric(year)) %>% 
       rename(TF = value,
              Year = year)
+    
+    # Substitute dummy with corresponding year.
     
     filtered$dummy_crisis <- ifelse(filtered$dummy_crisis > 0,
                                                 filtered$Year,
