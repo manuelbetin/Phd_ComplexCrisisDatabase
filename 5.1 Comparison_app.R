@@ -20,9 +20,9 @@ ui <- fluidPage(
     tabPanel("Comparison: standard crisis databases",
     sidebarLayout(
     sidebarPanel(selectInput("countryInput","Country:", unique(output[["comparison_dataframe"]]$ISO3_Code)),
-    selectInput("typeindexInput", "Type of index:", unique(output[["comparison_dataframe"]]$type_index)),
-    radioButtons("crisisInput", "Type of Crisis:",unique(output[["comparison_dataframe"]]$type_crisis)),
-    radioButtons("crisisdbInput", "Name of Database:", unique(output[["comparison_dataframe"]]$database))),
+    selectInput("typeindexInput", "Type of index:", c("Banking_crisis","Currency_crisis_severe","Sovereign_default")),
+    radioButtons("crisisInput", "Type of Crisis:",sort(unique(output[["comparison_dataframe"]]$type_crisis))),
+    radioButtons("crisisdbInput", "Name of Database:", sort(unique(output[["comparison_dataframe"]]$database)))),
     mainPanel(plotlyOutput("comparison_crisis_plot"))
   ))
   )
@@ -57,6 +57,10 @@ server <- function(input, output) {
   output$multi_comparison_plot <- renderPlotly({
     
     if(input$choice_comparisonInput == "Across countries"){
+    
+    # Rendering of input takes a while: customize error message to be blank.
+      
+    validate(need(input$first_choiceInput != "",""))  
       
     filtered <- comparison_dataframe %>% 
       filter(ISO3_Code == input$first_choiceInput,
@@ -82,6 +86,10 @@ server <- function(input, output) {
   
     }
     else{
+      
+      # Rendering of input takes a while: customize error message to be blank.
+      
+      validate(need(input$first_choiceInput != "",""))
       
       filtered <- comparison_dataframe %>% 
         filter(type_index == input$first_choiceInput,
