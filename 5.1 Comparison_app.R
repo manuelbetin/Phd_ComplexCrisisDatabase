@@ -1,7 +1,3 @@
-# Move package loading in the main section:
-
-library(shiny)
-library(plotly)
 # Initialise the app:
 
 ui <- fluidPage(

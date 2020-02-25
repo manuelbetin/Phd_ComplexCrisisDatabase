@@ -26,7 +26,8 @@ packages <- c("dplyr"
               ,"tidyr"
               ,"TextMiningCrisis"
               ,"SetUpProject",
-              "plotly"
+              "plotly",
+              "shiny"
 )
 
 ## load common packages
