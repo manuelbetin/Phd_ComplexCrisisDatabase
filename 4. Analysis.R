@@ -84,6 +84,7 @@ stargazer::stargazer(title="Typology of indexes"
           
 # evolution of tf-idf across decades and radar chart ####
 
+
 source("4.1. Analysis_tf_idf_decades.r")
 
 # Timing and sequence of the crisis ####

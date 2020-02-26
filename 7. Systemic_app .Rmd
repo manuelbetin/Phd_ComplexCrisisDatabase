@@ -1,5 +1,5 @@
 ---
-title: <center> A Narrative approach to systemic crisis </center>
+title: <center> A Narrative Approach to Systemic Crisis </center>
 runtime: shiny
 output: 
   html_document:
@@ -37,12 +37,11 @@ library(tidyverse)
 
 mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
 
-head(mydata)
 ```
 
 
 ```{r network function}
-network_eco_shocks=function(mydata,shocks,min_year=1960,max_year=2016){
+network_eco_shocks=function(mydata,shocks,min_year=1960,max_year=2016,mymode="target",min_corr=0.1,labelsize="Uniform size"){
   
   
   max_no_1=function(x){
@@ -58,7 +57,8 @@ min_no_1=function(x){
 
   corr_matrix=mydata %>% ungroup() %>%
     filter(type%in%c("request","consultation","review"))%>% filter(year>min_year & year<max_year) %>%
-    dplyr::select(shocks) %>%
+    dplyr::select(shocks) %>% #rename(Austerity=Fiscal_consolidation,
+                              #       High_public_debt=Fiscal_outcomes) %>%
     cor() %>% data.frame()
   
   #average correlation
@@ -86,6 +86,7 @@ min_no_1=function(x){
   
   net %v% "intensity"=round(intensity/max(intensity_all),2)
   
+   net %v% "labelsize"=round(percent_rank(intensity/max(intensity_all)),2)*10
   
   fun=function(x){
     ifelse(x>0,1,0)
@@ -98,34 +99,35 @@ min_no_1=function(x){
   
   net %v% "proba"=round(percent_rank(data.frame(proba[1,]))*20,0)
   
-  net %v% "alphaproba"=ifelse(round(percent_rank(data.frame(proba[1,])),1)<=0.3,0.3,round(percent_rank(data.frame(proba[1,])),1))
+  net %v% "alphaproba"=ifelse(round(percent_rank(data.frame(proba[1,])),1)<=0.4,0.4,round(percent_rank(data.frame(proba[1,])),1))
   
   typology=typology_categories() %>% filter(variable %in% shocks)
   net %v% "typology"=typology$nature_shock
   
-  ## define edge
+  ## define edge attributes
   
-  set.edge.attribute(net, "color", ifelse(net %e% "weights" <0.1,"darkgreen",
-                                          ifelse(net %e% "weights" > 0.1 & net %e% "weights" < 0.2,"darkblue",
+  set.edge.attribute(net, "color", ifelse(net %e% "weights" <=min_corr,"lightgrey",
+                                          ifelse(net %e% "weights" > min_corr & net %e% "weights" < 0.2,"darkblue",
                                                  ifelse(net %e% "weights" > 0.2 & net %e% "weights" < 0.5,"orange",
                                                         ifelse(net %e% "weights" > 0.5,"darkred",0)))))
   
-  set.edge.attribute(net, "lty", ifelse(net %e% "weights" <0.1,3,
-                                        ifelse(net %e% "weights" > 0.1 & net %e% "weights" < 0.2,3,
+  set.edge.attribute(net, "lty", ifelse(net %e% "weights" <min_corr,3,
+                                        ifelse(net %e% "weights" > min_corr & net %e% "weights" < 0.2,3,
                                                ifelse(net %e% "weights" > 0.2 & net %e% "weights" < 0.5,1,
                                                       ifelse(net %e% "weights" > 0.5,1,0)))))
-  
-  set.edge.attribute(net, "alpha", ifelse(net %e% "weights" <0.1,0.2,
-                                          ifelse(net %e% "weights" > 0.1 & net %e% "weights" < 0.5,0.5,
+
+  set.edge.attribute(net, "alpha", ifelse(net %e% "weights" <min_corr,0.2,
+                                          ifelse(net %e% "weights" > min_corr & net %e% "weights" < 0.5,0.5,
                                                  ifelse(net %e% "weights" > 0.5,1,0))))
   
   set.edge.attribute(net, "abc", ifelse(net %e% "weights">=0.1,net %e% "weights",0.0001)*5)
   
   set.seed(2)
   ggnet2(net,
-         mode="target",layout.par = list(niter = 100,circ.rad=2),
+         mode=mymode,layout.par = list(niter = 300,weights="abc"),
          color="darkred",#"typology",
-         node.size ="intensity",
+         node.size =0.001,
+         max_size = 15,
          edge.size = "abc",
          #node.alpha = "alphaproba",
          #edge.label = "weights",
@@ -134,14 +136,15 @@ min_no_1=function(x){
          edge.lty = "lty",
          #legend.position = "none",
          alpha=1,
-         #label.size = "size_node",
+         label.size = ifelse(labelsize=="Uniform size",10,"labelsize"),
          label.alpha = "alphaproba",
          #label.color="Color",
          edge.color = "color",
          edge.alpha = 0.4,
          #edge.label.color = "black",
-         size.zero=T,
+         #size.zero=T,
          label=T,
+        layout.exp = 0.5,
          edge.label.fill = NA
   )+
     theme_grey()+
@@ -154,25 +157,35 @@ min_no_1=function(x){
     #            The opacity of the label denotes the probability of occurence")+
     theme(panel.background = element_rect(fill = "lightgrey",colour="lightgrey"),
           plot.background = element_rect(fill = "lightgrey"),
-          legend.position = "bottom",
+          legend.position = "none",
           legend.background = element_rect(fill = "lightgrey"))
   #        )
 }
 
 ```
 
-
 <center>
 ```{r Main figure,fig.align="center"}
 
 renderPlot(network_eco_shocks(mydata,
                             c(input$group1,input$group2,input$group3,input$group4),
-                            min_year=input$myperiods[1],max_year = input$myperiods[2]
+                            min_year=input$myperiods[1],max_year = input$myperiods[2],
+                            mymode=input$mymode,
+                            min_corr=input$mincorr,
+                            labelsize=input$labelsize
                             ),
            height = 700, width = 1600)
 ```
 </center>
 <br>
+
+```{r type visualization}
+fluidRow(
+  column(4,shiny::selectInput("mymode","Layout of visualization",choice=c("kamadakawai","circle","target")))
+  ,column(4,shiny::selectInput("mincorr","Minimum correlation to display edges",choice=seq(0,1,0.1)))
+  ,column(4,shiny::selectInput("labelsize","Size of label",choice=c("Uniform size","Function of intensity")))
+)
+```
 
 <center>
 ```{r inputs periods}
@@ -271,7 +284,7 @@ fluidRow(column(3,
 ```
 
 <center>
-```{r cluster for systemic index}
+```{r cluster for systemic index,eval=F}
 cluster_crisis=function(mydata,unit_cluster="iso3c",list_vars,Nclusters=6,N_Name_categories=3){
   
   dt=mydata %>% ungroup() %>%  dplyr::select(unit_cluster) %>% unique()
