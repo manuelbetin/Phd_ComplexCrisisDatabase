@@ -4,13 +4,14 @@ library(tidytext)
 library(tidyverse)
 library(pdftools)
 
-# Absolute path maintained for pure explanation purpose. Change to location of file name.
+# Absolute path maintained for pure explanation purpose. Change to location of file name in the hard disk.
 
-# Propostion for Manu -----
+# Proposition of netting for global depreciations (terms present in our keyword category, but
+# referring to other countries e.g. U.S.)  -----
 
 # First example:
 
-file <- pdf_text("~/Desktop/CHN_2006-07-12_Article IV.pdf") %>% 
+file <- pdf_text("~/Desktop/CHN_2006-07-28_Article IV.pdf") %>% 
   str_split("\n") 
 
 # Collapse the corpus:
@@ -115,10 +116,13 @@ tibble(doc = file_collapsed) %>%
   filter(is == "TRUE")
 
 
+# Are we counting the tf in the correct way? ----
+# We have to count number of sentences, not number of characters.
+  
+tibble(doc = file_collapsed) %>% 
+    unnest_tokens(word, doc, token = "sentences") %>% 
+    nrow()
 
 
-
-
-
-
-
+  
+  
