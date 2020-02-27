@@ -26,7 +26,8 @@ packages <- c("dplyr"
               ,"tidyr"
               ,"TextMiningCrisis"
               ,"SetUpProject",
-              "plotly"
+              "plotly",
+              "shinythemess"
 )
 
 ## load common packages
@@ -44,6 +45,7 @@ SetUpProject::load.my.packages(packages)
 output=list()
 output[["Session_info"]]=sessionInfo()
 
+# Build working dataframe: ----
 
 # Average value of tf-idf per year:
 
@@ -76,9 +78,30 @@ output[["comparison_dataframe"]] <- merge(annual_tf_idf, rr, by= c("ISO3_Code","
   separate(type_crisis, c("type_crisis", "database"), sep = "-" ) %>% 
   arrange(ISO3_Code, year, type_index)
 
-# not confuse with output in the server function shiny:
+
+# Problem in the merge when missing years for IMF documents e.g. Thailand 1984.
+
+# Working dataframe for the share graph: -----
+
+
+share_countries <- output[["comparison_dataframe"]] %>% 
+  # Remove duplicates of same index for each country and year
+  select(ISO3_Code, year, type_index, value) %>% 
+  group_by(ISO3_Code, year) %>% 
+  filter(!duplicated(type_index)) %>% 
+  ungroup() %>% 
+  # Set variable equal to 1 if value of index above 0.
+  mutate(occurence = case_when(value > 0 ~ 1,
+                               TRUE ~ 0)) %>% 
+  select(-value)
+
+# Add to the working dataframe:
+
+output[["comparison_dataframe"]] <-output[["comparison_dataframe"]] %>% 
+  merge(share_countries, by= c("ISO3_Code","year","type_index"))
+
+# Not confuse with output in the server function shiny: -----
 
 comparison_dataframe <- output[["comparison_dataframe"]]
 
-# Problem in the merge when missing years for IMF documents e.g. Thailand 1984.
 

@@ -1,10 +1,16 @@
 # Initialise the app:
 
-ui <- fluidPage(
+ui <- fluidPage(theme = shinytheme("paper"),
   tabsetPanel(
     # First tab: introduction to the index.
     tabPanel("A new crisis index: text-mining IMF documents"),
-    # Second tab: comparison across countries for single index (Figure 1, Romer & Romer) and across indexes for single country. 
+    # Second tab: number of events by type and year (Reinhart & Rogoff)
+    tabPanel("Number of events and comovement", 
+             sidebarLayout(
+             sidebarPanel(selectInput("sharecrisisInput", "Type of index:", unique(output[["comparison_dataframe"]]$type_index), selected = "Currency_crisis_severe", multiple = TRUE)),
+             mainPanel(plotlyOutput("sharecrisis_plot"))
+             )),
+    # Third tab: comparison across countries for single index (Figure 1, Romer & Romer) and across indexes for single country. 
     tabPanel("Comparison: cross-country and cross-index",
               sidebarLayout(
               sidebarPanel(
@@ -31,8 +37,40 @@ ui <- fluidPage(
 
 server <- function(input, output) {
   
+  # Second tab: ----
   
-  # Second tab: -----
+  output$sharecrisis_plot <- renderPlotly({
+    
+    share_crisis <- comparison_dataframe %>%
+      mutate(year = as.numeric(year)) %>% 
+      # Remove duplicates.
+      group_by(ISO3_Code, year) %>% 
+      filter(!duplicated(type_index)) %>% 
+      ungroup() %>% 
+      # Sum by year and type of index.
+      group_by(year, type_index) %>% 
+      summarise(n.events = sum(occurence, na.rm = TRUE)) %>% 
+      # Input filter: choice of index.
+      filter(type_index %in% input$sharecrisisInput) 
+    
+  no_interactive <- share_crisis %>% 
+    ggplot(aes(year, n.events, group = 1, col = type_index)) +
+    geom_line() +
+    theme_bw() +
+    scale_colour_discrete(name = "Type of Index") +
+    xlab("") +
+    ylab("") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+  
+  ggplotly(no_interactive)
+    
+    
+  # The indexes seem to behave all in the same way: weird, probably some mistake to correct.
+    
+  })
+  
+
+  # Third tab: -----
   
   # Render inputs dinamically: depending on the choice of comparison, different inputs.
   
