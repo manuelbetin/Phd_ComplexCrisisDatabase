@@ -26,8 +26,7 @@ packages <- c("dplyr"
               ,"tidyr"
               ,"TextMiningCrisis"
               ,"SetUpProject",
-              "plotly",
-              "shiny"
+              "plotly"
 )
 
 ## load common packages
@@ -53,13 +52,12 @@ annual_tf_idf <- import("../Betin_Collodel/2. Text mining IMF_data/output/tagged
   summarise_if(is.numeric, mean, na.rm = TRUE)
 
 # Other variables (also standard indicators):
-
-rr <- import("../Betin_Collodel/2. Text mining IMF_data/datasets/comparison/other_data.RData") %>%
+  
+rr <- import("../Betin_Collodel/2. Text mining IMF_data/datasets/comparison/other_data.RData") %>% 
+    filter(str_detect(Period, "-01-")) %>%
     select(ISO3_Code, year, CC.RR, SD_E.RR, SD_D.RR, BC.LV, CC.LV, SD.LV) %>% # banking crises RR? 
-    group_by(ISO3_Code, year) %>% 
     mutate(SD.RR = case_when(SD_E.RR == 1 | SD_D.RR ==1 ~ 1,
                              TRUE ~ 0)) %>% 
-    summarise_if(is.numeric, mean, na.rm = TRUE) %>%
     arrange(ISO3_Code,year)
 
 # Working dataframe:
@@ -81,4 +79,6 @@ output[["comparison_dataframe"]] <- merge(annual_tf_idf, rr, by= c("ISO3_Code","
 # not confuse with output in the server function shiny:
 
 comparison_dataframe <- output[["comparison_dataframe"]]
+
+# Problem in the merge when missing years for IMF documents e.g. Thailand 1984.
 
