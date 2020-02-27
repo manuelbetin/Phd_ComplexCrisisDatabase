@@ -35,7 +35,6 @@ comparison_variables <- comparison_data %>%
   mutate(resgrowth = (reserves - dplyr::lag(reserves, 1))/dplyr::lag(reserves, 1)) %>% 
   select(-reserves, -ngdp, -ngdp_usd)
 
-
 # Create a new directory with comparison Rdata cleaned and save them:
 
 comparison_path <- "~/Umberto/Dropbox/Betin_Collodel/2. Text Mining IMF_data/datasets/comparison index"

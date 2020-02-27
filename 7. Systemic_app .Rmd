@@ -17,9 +17,10 @@ output:
     margin-right: auto;
 }
 body {
-background-color: lightgrey;
+background-color: `r grey.colors(5)[5]`;
 }
 </style>
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -31,40 +32,49 @@ library(dplyr)
 library(network)
 library(GGally)
 library(TextMiningCrisis)
+library(SetUpProject)
 library(lubridate)
 library(stringr)
 library(tidyverse)
 
+
+background_color=grey.colors(5)[5]
 mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
 
+# observe({
+# subsample_countries=SetUpProject::ctry_classif() %>% filter(Classification %in% ifelse(input$mygroup=="All",c("Developped","Emerging"),c(input$mygroup)))
+# mydata=mydata %>% filter(iso3c %in% subsample_countries$ISO3_Code)
+# })
+subsample_countries=SetUpProject::ctry_classif() %>% filter(Classification %in% c("Emerging"))
+mydata=mydata #%>% filter(iso3c %in% subsample_countries$ISO3_Code)
+
+
 ```
+
 
 
 ```{r network function}
 network_eco_shocks=function(mydata,shocks,min_year=1960,max_year=2016,mymode="target",min_corr=0.1,labelsize="Uniform size"){
   
-  
-  max_no_1=function(x){
-  max(ifelse(x!=1,x,NA),na.rm=T)
-}
-mean_no_1=function(x){
-  mean(ifelse(x!=1,x,NA),na.rm=T)
-}
-min_no_1=function(x){
-  min(ifelse(x!=1,x,NA),na.rm=T)
-}
+  # min_year=1960
+  # max_year=1970
+  # min_corr=0
+  N=dim(mydata %>% ungroup()%>% filter(year(Period)>min_year & year(Period)<max_year) %>% dplyr::select(shocks))[1]
 
-
+degree_threshold=function(x){
+  ifelse(x>min_corr,x,0)
+}
   corr_matrix=mydata %>% ungroup() %>%
     filter(type%in%c("request","consultation","review"))%>% filter(year>min_year & year<max_year) %>%
     dplyr::select(shocks) %>% #rename(Austerity=Fiscal_consolidation,
                               #       High_public_debt=Fiscal_outcomes) %>%
-    cor() %>% data.frame()
+    cor() %>% data.frame()%>% mutate_all(degree_threshold)
+
+  #average degree  
   
-  #average correlation
-  avg_corr_matrix=corr_matrix %>% summarize_all(mean_no_1)
-  min_corr_matrix=corr_matrix %>% summarize_all(min_no_1)
-  max_corr_matrix=corr_matrix %>% summarize_all(max_no_1)
+  degree=corr_matrix %>% summarize_all(sum)
+  avg_degree=mean(as.numeric(degree)) %>% round(.,1)
+
   
   # network analysis
   net = network(corr_matrix,
@@ -76,7 +86,7 @@ min_no_1=function(x){
   ## define nodes caracteristics
   intensity=mydata %>% ungroup() %>%
     filter(type%in%c("request","consultation","review"))%>%
-    filter(year>min_year & year<max_year) %>% dplyr::select(shocks) %>%
+    filter(year(Period)>min_year & year(Period)<max_year) %>% dplyr::select(shocks) %>%
     na.omit() %>% summarize_all(mean)
   
   intensity_all=mydata %>% ungroup() %>%
@@ -84,8 +94,7 @@ min_no_1=function(x){
     dplyr::select(shocks) %>%
     na.omit() %>% summarize_all(mean)
   
-  net %v% "intensity"=round(intensity/max(intensity_all),2)
-  
+   net %v% "intensity"=round(intensity/max(intensity_all),2)
    net %v% "labelsize"=round(percent_rank(intensity/max(intensity_all)),2)*10
   
   fun=function(x){
@@ -93,72 +102,61 @@ min_no_1=function(x){
   }
   proba=mydata %>% ungroup() %>%
     filter(type%in%c("request","consultation","review"))%>%
-    filter(year>min_year & year<max_year) %>% dplyr::select(shocks) %>%
+    filter(year(Period)>min_year & year(Period)<max_year) %>% dplyr::select(shocks) %>%
     na.omit() %>% mutate_all(fun) %>%summarize_all(mean)
   
-  
   net %v% "proba"=round(percent_rank(data.frame(proba[1,]))*20,0)
-  
   net %v% "alphaproba"=ifelse(round(percent_rank(data.frame(proba[1,])),1)<=0.4,0.4,round(percent_rank(data.frame(proba[1,])),1))
-  
-  typology=typology_categories() %>% filter(variable %in% shocks)
-  net %v% "typology"=typology$nature_shock
   
   ## define edge attributes
   
-  set.edge.attribute(net, "color", ifelse(net %e% "weights" <=min_corr,"lightgrey",
+  set.edge.attribute(net, "edgecolor", ifelse(net %e% "weights" <=min_corr,background_color,
                                           ifelse(net %e% "weights" > min_corr & net %e% "weights" < 0.2,"darkblue",
                                                  ifelse(net %e% "weights" > 0.2 & net %e% "weights" < 0.5,"orange",
                                                         ifelse(net %e% "weights" > 0.5,"darkred",0)))))
   
-  set.edge.attribute(net, "lty", ifelse(net %e% "weights" <min_corr,3,
+  set.edge.attribute(net, "edgelty", ifelse(net %e% "weights" <min_corr,3,
                                         ifelse(net %e% "weights" > min_corr & net %e% "weights" < 0.2,3,
                                                ifelse(net %e% "weights" > 0.2 & net %e% "weights" < 0.5,1,
                                                       ifelse(net %e% "weights" > 0.5,1,0)))))
-
-  set.edge.attribute(net, "alpha", ifelse(net %e% "weights" <min_corr,0.2,
-                                          ifelse(net %e% "weights" > min_corr & net %e% "weights" < 0.5,0.5,
-                                                 ifelse(net %e% "weights" > 0.5,1,0))))
   
-  set.edge.attribute(net, "abc", ifelse(net %e% "weights">=0.1,net %e% "weights",0.0001)*5)
+  set.edge.attribute(net, "edgesize", ifelse(net %e% "weights">=0.1,net %e% "weights",0.0001)*5)
+
+  set.edge.attribute(net, "force", ifelse(net %e% "weights">=0.1,net %e% "weights",0.0001)/2)
   
   set.seed(2)
   ggnet2(net,
-         mode=mymode,layout.par = list(niter = 300,weights="abc"),
+         mode=mymode,layout.par = list(niter = 500,weights="force"),
          color="darkred",#"typology",
          node.size =0.001,
-         max_size = 15,
-         edge.size = "abc",
+         max_size = 8,
+         edge.size = "edgesize",
          #node.alpha = "alphaproba",
          #edge.label = "weights",
          edge.label.alpha = 1,
          edge.label.size = "proba",
-         edge.lty = "lty",
+         edge.lty = "edgelty",
          #legend.position = "none",
          alpha=1,
-         label.size = ifelse(labelsize=="Uniform size",10,"labelsize"),
+         label.size = ifelse(labelsize=="Uniform size",8,"labelsize"),
          label.alpha = "alphaproba",
-         #label.color="Color",
-         edge.color = "color",
+         label.color="black",
+         edge.color = "edgecolor",
          edge.alpha = 0.4,
          #edge.label.color = "black",
-         #size.zero=T,
+         size.zero=T,
          label=T,
-        layout.exp = 0.5,
+         layout.exp = 0.5,
          edge.label.fill = NA
   )+
-    theme_grey()+
+    theme_void()+
     labs(x=NULL,y=NULL)+
-    #labs(title=paste0("Systemic crisis: ",min_year,"-",max_year),
-    #     caption="Edge color, type and size measure the correlation between crisis.
-    #            Red links denote correlations higher than 0.5, orange between 0.2 and 0.5,
-    #            dotted lines correlations between 0.1 and 0.2.
-    #            The size of node measure the average intensity of each crisis.
-    #            The opacity of the label denotes the probability of occurence")+
-    theme(panel.background = element_rect(fill = "lightgrey",colour="lightgrey"),
-          plot.background = element_rect(fill = "lightgrey"),
+    annotate("text",label=paste0("N=",N),x=1,y=0,size=6,color="darkgrey")+
+    annotate("text",label=paste0("Average degree=",avg_degree),x=1.05,y=0.03,size=6,color="darkgrey")+
+    theme(panel.background = element_rect(fill = background_color,colour=background_color),
+          plot.background = element_rect(fill = background_color),
           legend.position = "none",
-          legend.background = element_rect(fill = "lightgrey"))
+          legend.background = element_rect(fill = background_color))
   #        )
 }
 
@@ -182,8 +180,9 @@ renderPlot(network_eco_shocks(mydata,
 ```{r type visualization}
 fluidRow(
   column(4,shiny::selectInput("mymode","Layout of visualization",choice=c("kamadakawai","circle","target")))
-  ,column(4,shiny::selectInput("mincorr","Minimum correlation to display edges",choice=seq(0,1,0.1)))
   ,column(4,shiny::selectInput("labelsize","Size of label",choice=c("Uniform size","Function of intensity")))
+  ,column(4,shiny::selectInput("mincorr","Minimum correlation to display edges",choice=seq(0,1,0.1)))
+  #,column(4,shiny::selectInput("mygroup","Group of countries",choice=c("All","Developped","Emerging")))
 )
 ```
 
@@ -282,80 +281,3 @@ fluidRow(column(3,
          )
 
 ```
-
-<center>
-```{r cluster for systemic index,eval=F}
-cluster_crisis=function(mydata,unit_cluster="iso3c",list_vars,Nclusters=6,N_Name_categories=3){
-  
-  dt=mydata %>% ungroup() %>%  dplyr::select(unit_cluster) %>% unique()
-  
-  dt_cluster=mydata %>%
-    group_by(get(unit_cluster)) %>% 
-    dplyr::select(list_vars) %>% na.omit() %>%
-    summarize_all(mean) %>% ungroup() #%>% dplyr::select(-unit_cluster)
-  dt_cluster=dt_cluster[,-1]
-  dt_cluster=scale(dt_cluster)
-  
-  set.seed(1)
-  dt_kmeans=kmeans(dt_cluster,centers=Nclusters, iter.max=500, nstart=1)
-  dt_cluster_avg=aggregate(dt_cluster,by=list(dt_kmeans$cluster),FUN=mean)
-  
-  dt2 <- data.frame(dt_cluster, dt_kmeans$cluster)
-  dt_cluster<-cbind(dt,dt2)
-  
-  # type_crisis_group=dt_cluster %>% group_by(dt_kmeans.cluster) %>% summarize_if(is.numeric,mean) %>%
-  #   gather(key="group",value="values",-dt_kmeans.cluster) %>% arrange(dt_kmeans.cluster,-values) %>% group_by(dt_kmeans.cluster) %>%
-  #   top_frac(top_perc) %>% summarize(typology=str_replace_all(paste0(group,collapse="/ "),"_"," "))
-  # 
-  type_crisis_group=dt_cluster %>% group_by(dt_kmeans.cluster) %>% summarize_if(is.numeric,mean) %>%
-    gather(key="group",value="values",-dt_kmeans.cluster) %>% arrange(dt_kmeans.cluster,-values) %>% group_by(dt_kmeans.cluster)
-  
-  #compute the average correlation between all shocks
-  avg_corr_matrix=mydata  %>% ungroup() %>% dplyr::select(shocks) %>% na.omit() %>% cor() %>% data.frame() %>% summarize_all(mean)
-  avg_corr_matrix=data.frame(t(avg_corr_matrix))
-  avg_corr_matrix$group=rownames(avg_corr_matrix)
-  names(avg_corr_matrix)[1]="corr.coef"
-  
-  #compute the exogeneity index
-  type_crisis_group=type_crisis_group %>% left_join(avg_corr_matrix,by=c("group")) %>% mutate(systemicity_index=sum(corr.coef*values,na.rm=T))%>% 
- summarize(typology=str_replace_all(paste0(group,collapse="/ "),"_"," "),
-           systemicity_index=mean(systemicity_index,na.rm=T) %>% round(.,2)) %>% rowwise() %>%
-    mutate(typology=paste0(unlist(str_split(typology,"/"))[1:N_Name_categories],collapse="/"))
-  
-  ctry_clusters=dt_cluster %>% group_by(dt_kmeans.cluster) %>%
-    summarize(ctries=paste(unique(unit_cluster),collapse = ', '),
-              n=n()) %>% 
-    left_join(type_crisis_group,by="dt_kmeans.cluster") %>%
-    rename(group=dt_kmeans.cluster) %>% ungroup() %>% mutate(prop=round(100*n/sum(n),2)) %>%
-    dplyr::select(typology,n,prop,systemicity_index) %>% arrange(-prop)
-  
-  return( list(dt=dt_cluster,arguments_cluster=list_vars,ctry_cluster_summary=ctry_clusters))
-}
-
-renderTable({
-  
-n.clusters=3
-cluster=list()
-dt=mydata %>% filter(type %in% c("consultation","request","review") & (year>input$myperiods[1] & year<input$myperiods[2])) %>% mutate(Period=year(Period)) %>% 
-  group_by(iso3c,year) %>% summarize_at(c(input$group1,input$group2,input$group3,input$group4),sum) %>% mutate(file=paste0(iso3c,"_",year)) %>%  ungroup()%>% dplyr::select(file,c(input$group1,input$group2,input$group3,input$group4))
-
-cluster=cluster_crisis(dt,
-                      unit_cluster="file",
-                      list_vars = c(input$group1,input$group2,input$group3,input$group4),
-                      Nclusters=n.clusters,
-                      N_Name_categories = 5)
-
-cluster[[3]] %>% arrange(systemicity_index)
-})
-
-```
-</center>
-
-
-```{r,eval=F}
-renderTable({
-  dt=mydata %>% filter( (year>input$myperiods[1] & year<input$myperiods[2])) %>% ungroup() %>% group_by(iso3c)%>%summarize(n=n())
-  #type %in% c("consultation","request","review") &
-})
-```
-
