@@ -99,7 +99,7 @@ ctry=c("ISL","IRL","PRT")
 #,"ARG","THA","MEX","USA","TUR","FRA","BRA","IDN")
 source("4.3. Analysis_ex_timeseries.r")
 
-# Exogeneity of the shocks ####
+# Compute the composite crisis index ####
 
 #list of shocks to consider
 shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisis',
@@ -107,7 +107,7 @@ shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisi
          'Expectations','Balance_payment_crisis',
          'Severe_recession','Sovereign_default',"Currency_crisis_severe","Wars","Social_crisis")
 
-source("4.4. Analysis_exogeneity_shocks.r")
+source("4.4. Analysis_composite_crisis_index.r")
 
 # clusters shocks #########
 
