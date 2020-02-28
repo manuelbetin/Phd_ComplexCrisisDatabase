@@ -6,7 +6,7 @@ ui <- fluidPage(theme = shinytheme("paper"),
     # First tab: explanation of methodology
     tabPanel("Methodology"),
     # Second tab: number of events by type and year (Reinhart & Rogoff)
-    tabPanel("Number of events and comovement", 
+    tabPanel("First dimension: is there a crisis?", 
              sidebarLayout(
              sidebarPanel(
                 selectInput("sharecrisisInput", "Type of index:", c("Banking_crisis","Currency_crisis_severe", "Sovereign_default"), selected = "Currency_crisis_severe"),
@@ -14,8 +14,18 @@ ui <- fluidPage(theme = shinytheme("paper"),
              mainPanel(plotlyOutput("sharecrisis_plot"),
                        tableOutput("share_crisis_correlation"))
              )),
-    # Third tab: comparison across countries for single index (Figure 1, Romer & Romer) and across indexes for single country. 
-    tabPanel("Comparison: cross-country and cross-index",
+    # Third tab: comparison with standard crisis databases (Figure 2, Romer & Romer).
+    tabPanel("First dimension: important differences",
+             sidebarLayout(
+               sidebarPanel(selectInput("countryInput","Country:", unique(output[["comparison_dataframe"]]$ISO3_Code)),
+                            selectInput("typeindexInput", "Type of index:", c("Banking_crisis","Currency_crisis_severe","Sovereign_default"), selected = "Currency_crisis_severe"),
+                            radioButtons("crisisdbInput", "Name of Database:", sort(unique(output[["comparison_dataframe"]]$database)), selected = "Reinhart & Rogoff"),
+                            uiOutput("crisisInput"),
+                            uiOutput("definitionInput")),
+               mainPanel(plotlyOutput("comparison_crisis_plot"))
+             )),
+    # Fourth tab: comparison across countries for single index (Figure 1, Romer & Romer) and across indexes for single country. 
+    tabPanel("Second dimension: intensity of the crisis",
               sidebarLayout(
               sidebarPanel(
               radioButtons("choice_comparisonInput", "Comparison:", c("Across countries", "Across indexes")),
@@ -25,17 +35,7 @@ ui <- fluidPage(theme = shinytheme("paper"),
                           min(as.numeric(output[["comparison_dataframe"]]$year)), 
                           max(as.numeric(output[["comparison_dataframe"]]$year)), 
                           c(1960, 2010), sep = "")),
-              mainPanel(plotlyOutput("multi_comparison_plot")))),
-    # Third tab: comparison with standard crisis databases (Figure 2, Romer & Romer).
-    tabPanel("Comparison: standard crisis databases",
-    sidebarLayout(
-    sidebarPanel(selectInput("countryInput","Country:", unique(output[["comparison_dataframe"]]$ISO3_Code)),
-    selectInput("typeindexInput", "Type of index:", c("Banking_crisis","Currency_crisis_severe","Sovereign_default"), selected = "Currency_crisis_severe"),
-    radioButtons("crisisdbInput", "Name of Database:", sort(unique(output[["comparison_dataframe"]]$database)), selected = "Reinhart & Rogoff"),
-    uiOutput("crisisInput"),
-    uiOutput("definitionInput")),
-    mainPanel(plotlyOutput("comparison_crisis_plot"))
-  ))
+              mainPanel(plotlyOutput("multi_comparison_plot"))))
   )
 )
 
@@ -90,27 +90,33 @@ server <- function(input, output) {
   output$share_crisis_correlation <- renderTable({
     
     share_crisis <- comparison_dataframe %>%
-      filter(type_index %in% input$sharecrisisInput) 
-    
+      filter(type_index %in% input$sharecrisisInput) %>% 
+      mutate(year = as.numeric(year))
     
     if(input$sharecrisisInput == "Currency_crisis_severe"){
-      
       share_crisis <- share_crisis %>% 
-        mutate(year = as.numeric(year)) %>% 
-        filter(type_crisis %in% "Currency Crisis") %>% 
-        filter(database %in% input$sharecrisisInput2) %>% 
-        group_by(year) %>% 
-        summarise(n.events = sum(occurence, na.rm = TRUE), n.events_rr = sum(dummy_crisis, na.rm = TRUE))
-      
+        filter(type_crisis %in% "Currency Crisis") 
+    }
+    if(input$sharecrisisInput == "Banking_crisis"){
+      share_crisis <- share_crisis %>% 
+        filter(type_crisis %in% "Banking Crisis")  
+    }  
+    if(input$sharecrisisInput == "Sovereign_default"){
+      share_crisis <- share_crisis %>% 
+        filter(type_crisis %in% "Sovereign Debt Crisis")
+    }
+    
+    share_crisis <- share_crisis %>% 
+      filter(database %in% input$sharecrisisInput2) %>% 
+      group_by(year) %>% 
+      summarise(n.events_own = sum(occurence, na.rm = TRUE), n.events_others = sum(dummy_crisis, na.rm = TRUE))
+    
       correlation <- data.frame(
-        cor(share_crisis$n.events, share_crisis$n.events_rr)
+        cor(share_crisis$n.events_own, share_crisis$n.events_others)
       )
       names(correlation) <- "Correlation share of countries:"
       correlation
       
-    }
-      
-    
   }, striped = TRUE)
   
 
@@ -120,19 +126,19 @@ server <- function(input, output) {
   
   output$first_choiceInput <- renderUI({
     if(input$choice_comparisonInput == "Across countries"){
-    selectInput("first_choiceInput", "Country:", unique(comparison_dataframe$ISO3_Code), selected = "ARG", multiple = TRUE)
+    selectizeInput("first_choiceInput", "Country:", unique(comparison_dataframe$ISO3_Code), selected = "ARG", multiple = TRUE, options = list(maxItems = 8))
     }
     else{
-      selectInput("first_choiceInput", "Type of index:", unique(comparison_dataframe$type_index), selected = "Balance_payment_crisis", multiple = TRUE)
+      selectizeInput("first_choiceInput", "Type of index:", unique(comparison_dataframe$type_index), selected = c("Currency_crisis_severe", "Banking_crisis","Sovereign_default"), multiple = TRUE, options = list(maxItems = 3))
     }
   })
   
   output$second_choiceInput <- renderUI({
     if(input$choice_comparisonInput == "Across countries"){
-      selectInput("second_choiceInput", "Type of index:", unique(comparison_dataframe$type_index))
+      selectizeInput("second_choiceInput", "Type of index:", unique(comparison_dataframe$type_index))
     }
     else{
-      selectInput("second_choiceInput", "Country:", unique(comparison_dataframe$ISO3_Code))
+      selectizeInput("second_choiceInput", "Country:", unique(comparison_dataframe$ISO3_Code), selected = "RUS")
     }
   })
   
@@ -160,13 +166,14 @@ server <- function(input, output) {
       ggplot(aes(Year, scale(TF), group = 1, col = ISO3_Code)) +
       geom_line() +
       scale_colour_discrete(name = "Country") +
-      theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+      theme(axis.text.x = element_text(angle = 270, hjust = 1)) +
      theme_bw() +
      xlab("Year") + 
      ylab("Standard Deviations") +
      ggtitle("Term Frequency") +
-     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-     theme(plot.title = element_text(hjust = 0.5)) 
+     theme(legend.position = "bottom") +
+     theme(axis.text.x = element_text(angle = 270, hjust = 1)) +
+     theme(plot.title = element_text(hjust = 0.5))  
 
    ggplotly(no_interecative)
   
@@ -191,13 +198,14 @@ server <- function(input, output) {
         ggplot(aes(Year, TF, group = 1, col = type_index)) +
         geom_line() +
         scale_colour_discrete(name = "Type of Index") +
-        theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
         theme_bw() +
         xlab("Year") + 
         ylab("% of characters") +
         ggtitle("Term Frequency") +
-        theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-        theme(plot.title = element_text(hjust = 0.5)) 
+        scale_x_continuous(seq(1960,2010, by = 5)) +
+        theme(axis.text.x = element_text(angle = 270, hjust = 1)) +
+        theme(plot.title = element_text(hjust = 0.5)) +
+        theme(legend.position = "bottom")
       
       ggplotly(no_interactive)
     }
