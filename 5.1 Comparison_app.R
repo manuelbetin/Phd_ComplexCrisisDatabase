@@ -9,10 +9,10 @@ ui <- fluidPage(theme = shinytheme("paper"),
     tabPanel("Number of events and comovement", 
              sidebarLayout(
              sidebarPanel(
-               selectInput("sharecrisisInput", "Type of index:", c("Banking_crisis","Currency_crisis_severe", "Sovereign_default"), selected = "Currency_crisis_severe"),
+                selectInput("sharecrisisInput", "Type of index:", c("Banking_crisis","Currency_crisis_severe", "Sovereign_default"), selected = "Currency_crisis_severe"),
                 radioButtons("sharecrisisInput2", "Database:",unique(output[["comparison_dataframe"]]$database))),
              mainPanel(plotlyOutput("sharecrisis_plot"),
-                       tableOutput("share_crisis_cor"))
+                       tableOutput("share_crisis_correlation"))
              )),
     # Third tab: comparison across countries for single index (Figure 1, Romer & Romer) and across indexes for single country. 
     tabPanel("Comparison: cross-country and cross-index",
@@ -45,40 +45,49 @@ server <- function(input, output) {
   
   output$sharecrisis_plot <- renderPlotly({
     
-    share_crisis <- comparison_dataframe %>%
-      filter(type_index %in% input$sharecrisisInput) 
+    # Filter by type of crisis:
     
+    share_crisis <- comparison_dataframe %>%
+      filter(type_index %in% input$sharecrisisInput) %>% 
+      mutate(year = as.numeric(year))
     
     if(input$sharecrisisInput == "Currency_crisis_severe"){
-      
       share_crisis <- share_crisis %>% 
-        mutate(year = as.numeric(year)) %>% 
-        filter(type_crisis %in% "Currency Crisis") %>% 
-        filter(database %in% input$sharecrisisInput2) %>% 
-        group_by(year) %>% 
-        summarise(n.events = sum(occurence, na.rm = TRUE), n.events_rr = sum(dummy_crisis, na.rm = TRUE))
-      
+      filter(type_crisis %in% "Currency Crisis") 
+    }
+    if(input$sharecrisisInput == "Banking_crisis"){
+      share_crisis <- share_crisis %>% 
+      filter(type_crisis %in% "Banking Crisis")  
+    }  
+    if(input$sharecrisisInput == "Sovereign_default"){
+      share_crisis <- share_crisis %>% 
+        filter(type_crisis %in% "Sovereign Debt Crisis")
+    }
+    
+    share_crisis <- share_crisis %>% 
+      filter(database %in% input$sharecrisisInput2) %>% 
+      group_by(year) %>% 
+      summarise(n.events_own = sum(occurence, na.rm = TRUE), n.events_others = sum(dummy_crisis, na.rm = TRUE))
+    
       no_interactive <- share_crisis %>% 
-        ggplot(aes()) +
-        geom_point(aes(x = n.events, y = n.events_rr, group = 1, col = names(share_crisis)[2])) +
-        geom_smooth(aes(x = n.events, y = n.events_rr), method=lm) +
+        ggplot(aes(x = n.events_own, y = n.events_others, group = 1)) +
+        geom_point(aes(col = "comparison")) +
+        geom_smooth(method = "lm") +
         theme_bw() +
         xlab("") +
         ylab("") +
+        theme(legend.position = "none") +
         theme(axis.text.x = element_text(angle = 270, hjust = 1))
         
       
       ggplotly(no_interactive)
         
-    }
-    
-
   # The indexes seem to behave all in the same way: weird, probably some mistake to correct.
     
   })
   
   
-  output$share_crisis_cor <- renderTable({
+  output$share_crisis_correlation <- renderTable({
     
     share_crisis <- comparison_dataframe %>%
       filter(type_index %in% input$sharecrisisInput) 
@@ -93,12 +102,16 @@ server <- function(input, output) {
         group_by(year) %>% 
         summarise(n.events = sum(occurence, na.rm = TRUE), n.events_rr = sum(dummy_crisis, na.rm = TRUE))
       
-      correlation <- cor(share_crisis$n.events, share_crisis$n.events_rr)
+      correlation <- data.frame(
+        cor(share_crisis$n.events, share_crisis$n.events_rr)
+      )
+      names(correlation) <- "Correlation share of countries:"
+      correlation
       
     }
       
     
-  }, striped = TRUE, caption = "Correlation between shares of countries experiencing a crisis:")
+  }, striped = TRUE)
   
 
   # Third tab: -----
