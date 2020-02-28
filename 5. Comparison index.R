@@ -57,10 +57,19 @@ annual_tf_idf <- import("../Betin_Collodel/2. Text mining IMF_data/output/tagged
   
 rr <- import("../Betin_Collodel/2. Text mining IMF_data/datasets/comparison/other_data.RData") %>% 
     filter(str_detect(Period, "-01-")) %>%
-    select(ISO3_Code, year, CC.RR, SD_E.RR, SD_D.RR, BC.LV, CC.LV, SD.LV) %>% # banking crises RR? 
+    select(ISO3_Code, year, CC.RR, SD_E.RR, SD_D.RR, BC.LV, CC.LV, SD.LV) %>% # banking crises RR?
+    # Add general default (domestic + external)
     mutate(SD.RR = case_when(SD_E.RR == 1 | SD_D.RR ==1 ~ 1,
-                             TRUE ~ 0)) %>% 
+                             TRUE ~ 0)) %>%
+    # Laeven & Valencia 0.33 when crisis, not 1: correct
+    mutate(BC.LV = case_when(BC.LV > 0 ~ 1,
+                             TRUE ~ BC.LV)) %>% 
+    mutate(CC.LV = case_when(CC.LV > 0 ~ 1,
+                           TRUE ~ CC.LV)) %>%
+    mutate(SD.LV = case_when(SD.LV > 0 ~ 1,
+                             TRUE ~ SD.LV)) %>%   
     arrange(ISO3_Code,year)
+  
 
 # Working dataframe:
 
