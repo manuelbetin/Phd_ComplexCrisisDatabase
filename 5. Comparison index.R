@@ -27,7 +27,7 @@ packages <- c("dplyr"
               ,"TextMiningCrisis"
               ,"SetUpProject",
               "plotly",
-              "shinythemess"
+              "shinythemes"
 )
 
 ## load common packages

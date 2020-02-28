@@ -1,9 +1,10 @@
 # Initialise the app:
 
 ui <- fluidPage(theme = shinytheme("paper"),
+  navbarPage("A new crisis index: text-mining IMF documents"),
   tabsetPanel(
-    # First tab: introduction to the index.
-    tabPanel("A new crisis index: text-mining IMF documents"),
+    # First tab: explanation of methodology
+    tabPanel("Methodology"),
     # Second tab: number of events by type and year (Reinhart & Rogoff)
     tabPanel("Number of events and comovement", 
              sidebarLayout(
