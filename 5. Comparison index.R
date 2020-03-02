@@ -27,7 +27,8 @@ packages <- c("dplyr"
               ,"TextMiningCrisis"
               ,"SetUpProject",
               "plotly",
-              "shinythemes"
+              "shinythemes",
+              "purrr"
 )
 
 ## load common packages
@@ -38,7 +39,8 @@ SetUpProject::load.my.packages(packages)
 ######## INSTRUCTIONS ##########
 
 # Description:
-# The script builds a dataframe with the created tf-idf and the Reinhart & Rogoff definition.
+# The script builds a dataframe with the created tf-idf and other databases of crisis.
+# It sources the modules for the different tabs of the shiny app and executes it.
 
 #***************************************************************************************####
 
@@ -112,5 +114,19 @@ output[["comparison_dataframe"]] <-output[["comparison_dataframe"]] %>%
 # Not confuse with output in the server function shiny: -----
 
 comparison_dataframe <- output[["comparison_dataframe"]]
+
+
+
+# Source modules ----
+
+# Call invisibly all files that start with 5.1
+
+list.files(getwd()) %>%
+  str_subset("5\\.1") %>%
+  walk(~ source(.x)) 
+
+ # Executes app ----
+
+runApp("5.2 Comparison_app.R")
 
 
