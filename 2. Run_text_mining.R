@@ -141,6 +141,39 @@ if(apply_tf_on_new_ctry==T){
   })
 }
 
+
+# Update existing indexes:
+
+# List of all directories in external drive:
+
+mytfs <- setdiff(dir(usb_drive),c("download_docs.r","urls_Requests_Reviews_articleIV.RData","0. logs","0. Old extraction","tf_idf.RData"))
+
+# Nested lists with all paths necessary for run_tf_update function:
+
+path_to_update <- mytfs %>% 
+    map(function(x) {
+    path_tf_to_update <- paste0(usb_drive,"/",x,"/","tf","/","tf_crisis_words_",x,".RData")
+    corpus_tf_to_update <- paste0(usb_drive,"/",x,"/","corpus","/","corpus_",x,".RData")
+    export_path <- path_tf_to_update
+                  return(list(path_tf_to_update = path_tf_to_update, 
+                              path_corpus_to_update = corpus_tf_to_update,
+                              export_path = export_path))
+                  }) 
+
+# Run_tf_update for all countries previously downloaded:
+
+path_to_update %>% 
+map(function(x){
+  run_tf_update(path_tf_to_update = x[[1]], corpus_path = x[[2]], export_path = x[[3]])
+})
+
+
+
+
+
+
+
+
 #consolidate into a single database the tf matrix of all countries
 
 mytfs=setdiff(dir(usb_drive),c("download_docs.r","urls_Requests_Reviews_articleIV.RData","0. logs","0. Old extraction","tf_idf.RData"))
