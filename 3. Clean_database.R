@@ -56,15 +56,22 @@ dt_meta=rio::import(paste0("../Betin_Collodel/2. Text mining IMF_data/datasets/u
 
 
 mydata=LoI_tf_idf %>% full_join(dt_meta,by=c("file")) %>% 
-  rename(iso3c=ID) %>% dplyr::select(-c(ISO3_Code,period,year)) %>%
-  dplyr::select(iso3c,Period,file,title,type_doc,type_program,type_doc_programs,type_doc_consultations,perf_criteria,membership,
+  rename(iso3c=ID) %>% dplyr::select(-c(ISO3_Code,Period,year)) %>%
+  dplyr::select(iso3c,period,file,title,type_doc,type_program,type_doc_programs,type_doc_consultations,perf_criteria,membership,
                 statements,repurchase_transaction,technical_assistance,expost_assessment,
                 exchange_system,overdue_obligations,Review_number,pdf,type_hierarchy,
-                hierarchy,waiver,modification,everything()) 
-
+                hierarchy,waiver,modification,everything()) %>% 
+  rename(review_number = Review_number)
+  
 #create normalization of variables
-indexes_2normalize=names(mydata)[25:dim(mydata)[2]]
-mydata=mydata %>% ungroup () %>% mutate_at(vars(indexes_2normalize), funs(norm = (. - mean(.,na.rm=T))/sd(.,na.rm=T)))
+
+indexes_2normalize = names(mydata) %>% # the indexes created must all have upper case for the first letter.
+  str_subset("^[A-Z]{1}")
+
+mydata=mydata %>% 
+  ungroup () %>%
+  mutate_at(vars(indexes_2normalize), funs(norm = (. - mean(.,na.rm=T))/sd(.,na.rm=T)))
+
 output[["mydata"]]=mydata
 
 # regroup type documents into lower level categories: request, reviews, cancelations and modifications, consultations and technical assistance
@@ -99,6 +106,7 @@ IMFprograms=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/Lend
 
 df1 <- mydata
 df2 <- IMFprograms
+
 # merge tables to match requests with docum
 
 df2 <- df2 %>%
@@ -110,7 +118,7 @@ df2 <- df2 %>%
   dplyr::select(-c(file))
 
 df1 <- df1 %>%
-  rename(Loss_Date = Period) %>%
+  rename(Loss_Date = period) %>%
   #rename(perf_crit = Performance_criteria) %>%
   rename(ID = iso3c)
 
