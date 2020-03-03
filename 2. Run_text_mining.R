@@ -148,17 +148,28 @@ if(apply_tf_on_new_ctry==T){
 
 mytfs <- setdiff(dir(usb_drive),c("download_docs.r","urls_Requests_Reviews_articleIV.RData","0. logs","0. Old extraction","tf_idf.RData"))
 
+# Set again the list of categories with only the ones you will update:
+
+keyword_list = c("Currency_crisis_severe","Banking_crisis_severe","Epidemics")
+
 # Nested lists with all paths necessary for run_tf_update function:
 
 path_to_update <- mytfs %>% 
     map(function(x) {
+    # For every country check if directory corpus and tf exits - previous extraction performed
+    if(dir.exists(paste0(usb_drive,"/",x,"/","corpus")) & dir.exists(paste0(usb_drive,"/",x,"/","tf"))){
+      # If yes, get all the paths needed for the run_tf_update and return as list 
     path_tf_to_update <- paste0(usb_drive,"/",x,"/","tf","/","tf_crisis_words_",x,".RData")
     corpus_tf_to_update <- paste0(usb_drive,"/",x,"/","corpus","/","corpus_",x,".RData")
     export_path <- path_tf_to_update
                   return(list(path_tf_to_update = path_tf_to_update, 
                               path_corpus_to_update = corpus_tf_to_update,
                               export_path = export_path))
-                  }) 
+      }
+  }) %>% 
+  # Remove NULL elements from the list
+  compact()
+
 
 # Run_tf_update for all countries previously downloaded:
 
