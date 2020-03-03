@@ -4,9 +4,9 @@
 rm(list = ls())
 
 ## set the working directory were the script is located
-current_path = here::here()
-setwd(current_path)
-root_path=current_path
+current_path = rstudioapi::getActiveDocumentContext()$path
+setwd(dirname(current_path))
+root_path=dirname(current_path)
 
 ##install common packages
 library("devtools") #make sure you have the library
@@ -56,9 +56,10 @@ annual_tf_idf <- import("../Betin_Collodel/2. Text mining IMF_data/output/tagged
   summarise_if(is.numeric, mean, na.rm = TRUE)
 
 # Other variables (also standard indicators):
+
+list_vars_comparison <- c("CC.RR","SD_E.RR","SD_D.RR","SD.RR","BC.LV","CC.LV","SD.LV")
   
 rr <- import("../Betin_Collodel/2. Text mining IMF_data/datasets/comparison/other_data.RData") %>% 
-    filter(str_detect(Period, "-01-")) %>%
     select(ISO3_Code, year, CC.RR, SD_E.RR, SD_D.RR, BC.LV, CC.LV, SD.LV) %>% # banking crises RR?
     # Add general default (domestic + external)
     mutate(SD.RR = case_when(SD_E.RR == 1 | SD_D.RR ==1 ~ 1,
@@ -69,8 +70,13 @@ rr <- import("../Betin_Collodel/2. Text mining IMF_data/datasets/comparison/othe
     mutate(CC.LV = case_when(CC.LV > 0 ~ 1,
                            TRUE ~ CC.LV)) %>%
     mutate(SD.LV = case_when(SD.LV > 0 ~ 1,
-                             TRUE ~ SD.LV)) %>%   
-    arrange(ISO3_Code,year)
+                             TRUE ~ SD.LV)) %>%
+    # From quarterly to annual:
+    arrange(ISO3_Code,year) %>% 
+    group_by(ISO3_Code, year) %>% 
+    summarise_at(vars(list_vars_comparison), mean, na.rm = TRUE) %>%
+    mutate_at(vars(list_vars_comparison), ~ ifelse(.> 0 ,1,.)) 
+
   
 
 # Working dataframe:
@@ -78,7 +84,7 @@ rr <- import("../Betin_Collodel/2. Text mining IMF_data/datasets/comparison/othe
 output[["comparison_dataframe"]] <- merge(annual_tf_idf, rr, by= c("ISO3_Code","year"), all.x = TRUE) %>% # only countries for which global mining was performed.
   select(-Minutes, -Working_papers, -Issues_papers, -Press_releases) %>% # intermediate indexes to correct problems!
   gather("type_index","value",Deregulation:Track_record) %>%
-  gather("type_crisis","dummy_crisis",CC.RR:SD.RR) %>%
+  gather("type_crisis","dummy_crisis",CC.RR:SD.LV) %>%
   mutate(type_crisis = case_when(str_detect(type_crisis, "CC.RR") ~ "Currency Crisis-Reinhart & Rogoff",
                                     str_detect(type_crisis, "SD.RR") ~ "Sovereign Debt Crisis-Reinhart & Rogoff",
                                     str_detect(type_crisis, "SD_E.RR") ~ "External Sovereign Debt Crisis-Reinhart & Rogoff",
