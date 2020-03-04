@@ -153,35 +153,6 @@ mytfs <- setdiff(dir(usb_drive),c("download_docs.r","urls_Requests_Reviews_artic
 
 keyword_list = c("Currency_crisis_severe","Banking_crisis_severe","Epidemics")
 
-# Move old tf-files in a folder external unit:
-
-# # Create folder for old tfs
-# path_old_tf <- paste0(usb_drive,"/0. Old extraction","/tf")
-# 
-# if(dir.exists(path_old_tf) != T){
-# dir.create(path_old_tf)
-# }
-# 
-# # Move them
-# 
-# mytfs %>% 
-#   walk(function(x){ 
-#     if(dir.exists(paste0(usb_drive,"/",x,"/","tf"))){
-#     file.move(paste0(usb_drive,"/",x,"/","tf","/tf_crisis_words_",x,".RData"), path_old_tf)
-#   }
-#   })
-
-# If problems with the run_tf_update can move back the old extraction to the original place:
-# 
-# 
-# mytfs %>% 
-#   walk(function(x){
-#     if(dir.exists(paste0(usb_drive,"/",x,"/","tf"))){
-#       file.move(paste0(path_old_tf,"/tf_crisis_words_",x,".RData"),paste0(usb_drive,"/",x,"/tf"))
-#     }
-#   })
-
-
 # Nested list with all paths necessary for run_tf_update function:
 
 path_to_update <- mytfs %>% 
