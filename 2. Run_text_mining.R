@@ -28,7 +28,8 @@ packages <- c("dplyr"
               , "DT"
               , "plotly"
               , "TextMiningCrisis"
-              , "SetUpProject")
+              , "SetUpProject",
+              "filesstrings")
 
 ## load common packages
 SetUpProject::load.my.packages(packages)
@@ -142,7 +143,7 @@ if(apply_tf_on_new_ctry==T){
 }
 
 
-# Update existing indexes:
+################################### Update existing indexes:
 
 # List of all directories in external drive:
 
@@ -152,11 +153,40 @@ mytfs <- setdiff(dir(usb_drive),c("download_docs.r","urls_Requests_Reviews_artic
 
 keyword_list = c("Currency_crisis_severe","Banking_crisis_severe","Epidemics")
 
-# Nested lists with all paths necessary for run_tf_update function:
+# Move old tf-files in a folder external unit:
+
+# # Create folder for old tfs
+# path_old_tf <- paste0(usb_drive,"/0. Old extraction","/tf")
+# 
+# if(dir.exists(path_old_tf) != T){
+# dir.create(path_old_tf)
+# }
+# 
+# # Move them
+# 
+# mytfs %>% 
+#   walk(function(x){ 
+#     if(dir.exists(paste0(usb_drive,"/",x,"/","tf"))){
+#     file.move(paste0(usb_drive,"/",x,"/","tf","/tf_crisis_words_",x,".RData"), path_old_tf)
+#   }
+#   })
+
+# If problems with the run_tf_update can move back the old extraction to the original place:
+# 
+# 
+# mytfs %>% 
+#   walk(function(x){
+#     if(dir.exists(paste0(usb_drive,"/",x,"/","tf"))){
+#       file.move(paste0(path_old_tf,"/tf_crisis_words_",x,".RData"),paste0(usb_drive,"/",x,"/tf"))
+#     }
+#   })
+
+
+# Nested list with all paths necessary for run_tf_update function:
 
 path_to_update <- mytfs %>% 
     map(function(x) {
-    # For every country check if directory corpus and tf exits - previous extraction performed
+    # For every country, check if directory corpus and tf exits i.e. previous extraction performed
     if(dir.exists(paste0(usb_drive,"/",x,"/","corpus")) & dir.exists(paste0(usb_drive,"/",x,"/","tf"))){
       # If yes, get all the paths needed for the run_tf_update and return as list 
     path_tf_to_update <- paste0(usb_drive,"/",x,"/","tf","/","tf_crisis_words_",x,".RData")
@@ -181,7 +211,7 @@ map(function(x){
 
 
 
-
+# #################################################
 
 
 
