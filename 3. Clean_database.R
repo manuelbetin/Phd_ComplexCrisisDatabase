@@ -96,7 +96,7 @@ mydata =mydata %>% mutate(type=ifelse(type %in% c("request") & is.na(type_hierar
                           type=ifelse(type %in% c("modification") & is.na(type_hierarchy),"modification not confirmed",type)) 
 
 
-mydata=mydata %>% dplyr::select(iso3c,Period,type,everything())
+mydata=mydata %>% dplyr::select(iso3c,period,type,everything())
 
 output[["N_doc_by_type"]]=mydata %>% group_by(type,type_hierarchy) %>% summarize(n=n())
 
@@ -136,7 +136,7 @@ for(i in 1:length(cols)){
 }
 
 dt_merged=rbind(dt_merged,df)
-dt_merged=dt_merged %>%rename(iso3c=ID,Period=Loss_Date) %>% arrange(iso3c,Period)
+dt_merged=dt_merged %>%rename(iso3c=ID, period=Loss_Date) %>% arrange(iso3c, period)
 
 
 #Only keep verified requests and reviews
