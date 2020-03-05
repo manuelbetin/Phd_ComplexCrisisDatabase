@@ -96,7 +96,7 @@ mydata =mydata %>% mutate(type=ifelse(type %in% c("request") & is.na(type_hierar
                           type=ifelse(type %in% c("modification") & is.na(type_hierarchy),"modification not confirmed",type)) 
 
 
-mydata=mydata %>% dplyr::select(iso3c,Period,type,everything())
+mydata=mydata %>% dplyr::select(iso3c,period,type,everything())
 
 output[["N_doc_by_type"]]=mydata %>% group_by(type,type_hierarchy) %>% summarize(n=n())
 
@@ -136,7 +136,7 @@ for(i in 1:length(cols)){
 }
 
 dt_merged=rbind(dt_merged,df)
-dt_merged=dt_merged %>%rename(iso3c=ID,Period=Loss_Date) %>% arrange(iso3c,Period)
+dt_merged=dt_merged %>%rename(iso3c=ID,period=Loss_Date) %>% arrange(iso3c,period)
 
 
 #Only keep verified requests and reviews
@@ -148,21 +148,23 @@ dt_merged=dt_merged %>% filter(!type %in% c("modification not confirmed",
 dt_merged %>% group_by(type) %>% summarize(n=sum(ifelse(!is.na(Amount_agreed_quotas),1,0))/n())
 
 mydata=dt_merged
+
+names(mydata)
 # Clean review numbers ####
 mydata=mydata %>% group_by(iso3c,startdate) %>% 
   #find first and last documents of each program
-  mutate(first_doc=ifelse(is.na(first(Review_number)), first(type_doc),first(Review_number)), last_review_N=last(Review_number)) %>%
+  mutate(first_doc=ifelse(is.na(first(review_number)), first(type_doc),first(review_number)), last_review_N=last(review_number)) %>%
   ungroup() %>%
   # regroup review numbers into 3 periods: first review, midterm review and last review
-  mutate(Review_number_new=ifelse(Review_number=="review_midterm" & duration_IMFprogram==1,"review",NA),
-                         Review_number_new=ifelse(Review_number=="review_1" & duration_IMFprogram==1,"review",Review_number_new),
-                         Review_number_new=ifelse(Review_number==last_review_N,"3 Last Review",Review_number_new),
-                         Review_number_new=ifelse(type==first_doc | type=="Request","1 Request",Review_number_new),#,
-                         Review_number_new=ifelse(is.na(Review_number_new) & !is.na(type),"2 midterm Review",Review_number_new),
-         Review_number_new=ifelse(is.na(myID),"0 No crisis",Review_number_new))
+  mutate(review_number_new=ifelse(review_number=="review_midterm" & duration_IMFprogram==1,"review",NA),
+                         review_number_new=ifelse(review_number=="review_1" & duration_IMFprogram==1,"review",review_number_new),
+                         review_number_new=ifelse(review_number==last_review_N,"3 Last Review",review_number_new),
+                         review_number_new=ifelse(type==first_doc | type=="Request","1 Request",review_number_new),#,
+                         review_number_new=ifelse(is.na(review_number_new) & !is.na(type),"2 midterm Review",review_number_new),
+         review_number_new=ifelse(is.na(myID),"0 No crisis",review_number_new))
 
 
-output[["N_doc_by_sequence"]]=mydata %>% group_by(Review_number_new) %>% summarize(n=n())
+output[["N_doc_by_sequence"]]=mydata %>% group_by(review_number_new) %>% summarize(n=n())
 
 
 # averages on the full duration of the programs ####

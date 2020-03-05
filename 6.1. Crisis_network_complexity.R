@@ -103,9 +103,10 @@ ggplot()+
 shortdist_banking=network_shortdist(mydata,shocks=shocks,
                                     Period_range=c(1990,2016),
                                     root_node = "Expectations",
-                                    min_cor=0.3,min_dist=0)
+                                    min_cor=0.4,min_dist=0)
 
 stargazer(shortdist_banking,summary=F)
+
 
 
 

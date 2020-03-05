@@ -94,7 +94,7 @@ source("4.2. Analysis_timing_shocks.r")
 
 # Plot time series of evolution ------
 
-ctry=c("CHN","MEX","KOR")
+ctry=c("IND")
 #c("MEX","ARG","USA","URY","IDN","THA","DEU","GRC")
 
 #,"ARG","THA","MEX","USA","TUR","FRA","BRA","IDN")
