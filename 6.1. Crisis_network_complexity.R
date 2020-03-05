@@ -53,6 +53,13 @@ mydata=PICdata
 rm(PICdata)
 #mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
 
+
+shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisis',
+         'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
+         'Expectations','Balance_payment_crisis',
+         'Severe_recession','Sovereign_default',"Currency_crisis_severe","Wars","Social_crisis")
+
+
 # correlation matrix of shocks ####
 mymin=1960
 mymax=2016
@@ -63,11 +70,6 @@ corr=mydata %>% ungroup() %>% mutate(year=year(Period))%>%
   cor() %>% data.frame()
 
 #degree of the network #####
-
-shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisis',
-         'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
-         'Expectations','Balance_payment_crisis',
-         'Severe_recession','Sovereign_default',"Currency_crisis_severe","Wars","Social_crisis")
 
 network_degree(mydata,shocks=shocks)
 
@@ -87,18 +89,27 @@ netdistrib_2000_2016=network_degree_distrib(mydata,
 
 ggplot()+
   geom_point(data=netdistrib_60_90$sumbycorr,aes(x=rownames(netdistrib_60_90$sumbycorr),y=sumlinks,color="1960-1990"))+
+  geom_line(data=netdistrib_60_90$sumbycorr,aes(x=rownames(netdistrib_60_90$sumbycorr),y=sumlinks,color="1960-1990",group="1960-1990"))+
   geom_point(data=netdistrib_95_2000$sumbycorr,aes(x=rownames(netdistrib_95_2000$sumbycorr),y=sumlinks,color="1995-2000"))+
+  geom_line(data=netdistrib_95_2000$sumbycorr,aes(x=rownames(netdistrib_95_2000$sumbycorr),y=sumlinks,color="1995-2000",group="1995-2000"))+
   geom_point(data=netdistrib_2000_2016$sumbycorr,aes(x=rownames(netdistrib_2000_2016$sumbycorr),y=sumlinks,color="2000-2016"))+
+  geom_line(data=netdistrib_2000_2016$sumbycorr,aes(x=rownames(netdistrib_2000_2016$sumbycorr),y=sumlinks,color="2000-2016",group="2000-2016"))+
   #lims(y=c(0,15))+
   labs(x=NULL,y=NULL)+
-  theme_minimal()
+  theme_minimal()+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/network/degree_distribution.png")
 
 #degree distribution #####
 
 shortdist_banking=network_shortdist(mydata,shocks=shocks,
                                     Period_range=c(1990,2016),
                                     root_node = "Expectations",
-                                    min_cor=0.4,min_dist=0)
+                                    min_cor=0.3,min_dist=0)
 
-shortdist_banking
+stargazer(shortdist_banking,summary=F)
+
+
+
+
+
+
 
