@@ -28,7 +28,8 @@ packages <- c("dplyr"
               , "DT"
               , "plotly"
               , "TextMiningCrisis"
-              , "SetUpProject")
+              , "SetUpProject",
+              "filesstrings")
 
 ## load common packages
 SetUpProject::load.my.packages(packages)
@@ -140,6 +141,55 @@ if(apply_tf_on_new_ctry==T){
                     min_words=100,loc_temp =path_external_usb)
   })
 }
+
+
+################################### Update existing indexes:
+
+# List of all directories in external drive:
+
+mytfs <- setdiff(dir(usb_drive),c("download_docs.r","urls_Requests_Reviews_articleIV.RData","0. logs","0. Old extraction","tf_idf.RData"))
+
+# Set again the list of categories with only the ones you will update:
+
+keyword_list = c("Currency_crisis_confusing","Currency_crisis_severe","Banking_crisis_severe","Epidemics")
+
+# Nested list with all paths necessary for run_tf_update function:
+
+path_to_update <- mytfs %>% 
+    map(function(x) {
+    # For every country, check if directory corpus and tf exits i.e. previous extraction performed
+    if(dir.exists(paste0(usb_drive,"/",x,"/","corpus")) & dir.exists(paste0(usb_drive,"/",x,"/","tf"))){
+      # If yes, get all the paths needed for the run_tf_update and return as list 
+    path_tf_to_update <- paste0(usb_drive,"/",x,"/","tf","/","tf_crisis_words_",x,".RData")
+    corpus_tf_to_update <- paste0(usb_drive,"/",x,"/","corpus","/","corpus_",x,".RData")
+    export_path <- path_tf_to_update
+                  return(list(path_tf_to_update = path_tf_to_update, 
+                              path_corpus_to_update = corpus_tf_to_update,
+                              export_path = export_path))
+      }
+  }) %>% 
+  # Remove NULL elements from the list
+  compact()
+
+
+# Run_tf_update for all countries previously downloaded:
+
+path_to_update %>% 
+map(function(x){
+  run_tf_update(path_tf_to_update = x[[1]], 
+                corpus_path = x[[2]], 
+                export_path = x[[3]],
+                keyword_list = keyword_list,
+                store_old = T, 
+                store_old_path = paste0(usb_drive,"/0. Old extraction/tf"))
+})
+
+
+
+
+# #################################################
+
+
 
 #consolidate into a single database the tf matrix of all countries
 

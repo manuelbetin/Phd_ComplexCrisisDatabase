@@ -1,4 +1,3 @@
-
 shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisis',
          'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
          'Expectations','Balance_payment_crisis',

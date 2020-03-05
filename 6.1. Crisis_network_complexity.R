@@ -59,7 +59,6 @@ shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisi
          'Expectations','Balance_payment_crisis',
          'Severe_recession','Sovereign_default',"Currency_crisis_severe","Wars","Social_crisis")
 
-
 # correlation matrix of shocks ####
 mymin=1960
 mymax=2016
@@ -71,9 +70,7 @@ corr=mydata %>% ungroup() %>% mutate(year=year(Period))%>%
 
 #degree of the network #####
 
-network_degree(mydata,shocks=shocks)
 
-#degree distribution #####
 
 netdistrib_60_90=network_degree_distrib(mydata,
                                         Period_range=c(1960,1990),
@@ -106,10 +103,5 @@ shortdist_banking=network_shortdist(mydata,shocks=shocks,
                                     min_cor=0.3,min_dist=0)
 
 stargazer(shortdist_banking,summary=F)
-
-
-
-
-
 
 
