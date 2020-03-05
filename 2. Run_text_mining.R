@@ -151,7 +151,7 @@ mytfs <- setdiff(dir(usb_drive),c("download_docs.r","urls_Requests_Reviews_artic
 
 # Set again the list of categories with only the ones you will update:
 
-keyword_list = c("Currency_crisis_severe","Banking_crisis_severe","Epidemics")
+keyword_list = c("Currency_crisis_confusing","Currency_crisis_severe","Banking_crisis_severe","Epidemics")
 
 # Nested list with all paths necessary for run_tf_update function:
 
@@ -176,7 +176,12 @@ path_to_update <- mytfs %>%
 
 path_to_update %>% 
 map(function(x){
-  run_tf_update(path_tf_to_update = x[[1]], corpus_path = x[[2]], export_path = x[[3]])
+  run_tf_update(path_tf_to_update = x[[1]], 
+                corpus_path = x[[2]], 
+                export_path = x[[3]],
+                keyword_list = keyword_list,
+                store_old = T, 
+                store_old_path = paste0(usb_drive,"/0. Old extraction/tf"))
 })
 
 
