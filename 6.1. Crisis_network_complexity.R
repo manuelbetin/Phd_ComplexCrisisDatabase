@@ -63,7 +63,7 @@ shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisi
 # correlation matrix of shocks ####
 mymin=1960
 mymax=2016
-corr=mydata %>% ungroup() %>% mutate(year=year(Period))%>%
+corr=mydata %>% ungroup() %>% mutate(year=year(period))%>%
   filter(type%in%c("request","consultation","review"))%>%
   filter(year>mymin & year<=mymax)%>%
   dplyr::select(shocks) %>%
@@ -76,15 +76,15 @@ network_degree(mydata,shocks=shocks)
 #degree distribution #####
 
 netdistrib_60_90=network_degree_distrib(mydata,
-                                        Period_range=c(1960,1990),
+                                        period_range=c(1960,1990),
                                         shocks=shocks)
 
 netdistrib_95_2000=network_degree_distrib(mydata,
-                                          Period_range=c(1995,2000),
+                                          period_range=c(1995,2000),
                                           shocks=shocks)
 
 netdistrib_2000_2016=network_degree_distrib(mydata,
-                                            Period_range=c(2000,2016),
+                                            period_range=c(2000,2016),
                                             shocks=shocks)
 
 ggplot()+
@@ -101,7 +101,7 @@ ggplot()+
 #degree distribution #####
 
 shortdist_banking=network_shortdist(mydata,shocks=shocks,
-                                    Period_range=c(1990,2016),
+                                    period_range=c(1990,2016),
                                     root_node = "Expectations",
                                     min_cor=0.4,min_dist=0)
 
