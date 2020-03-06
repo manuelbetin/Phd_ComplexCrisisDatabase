@@ -4,9 +4,9 @@
 rm(list = ls())
 
 ## set the working directory were the script is located
-current_path = rstudioapi::getActiveDocumentContext()$path
-setwd(dirname(current_path))
-root_path=dirname(current_path)
+current_path = here::here()
+setwd(current_path)
+root_path=current_path
 ##install common packages
 library("devtools") #make sure you have the library
 #install_github("manuelbetin/SetUpProject",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
