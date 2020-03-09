@@ -48,6 +48,7 @@ SetUpProject::load.my.packages(packages)
 ## Instructions:
 ## replace 1) and 2)
 apply_tf_on_new_ctry=T
+update_tf=F
 
 usb_drive="/Volumes/Elements/IMF documents"
 delete_pdfs=F
@@ -144,6 +145,11 @@ if(apply_tf_on_new_ctry==T){
 
 
 ################################### Update existing indexes:
+# When doing it, the text file with date and indexes updated is going to be overwritten. Commit it to Git with an explanation
+# of the update and eventual problems that remain unsolved.
+
+
+if(update_tf == T){
 
 # List of all directories in external drive:
 
@@ -183,6 +189,29 @@ map(function(x){
                 store_old = T, 
                 store_old_path = paste0(usb_drive,"/0. Old extraction/tf"))
 })
+
+# Write txt file with details of update:
+
+# Directory with txt
+
+if(!dir.exists("2.updates")){
+  dir.create("2.update")
+}
+
+# Txt writing
+
+file.create("update_details.txt", overwrite = TRUE)
+sink("update_details.txt")
+cat("Update details:","\n")
+cat("\n")
+cat("date of update: ", as.character(Sys.time()),"\n")
+cat("updated indexes:", paste0(keyword_list, collapse = "  "),"\n")
+closeAllConnections()
+
+}
+
+
+
 
 
 
