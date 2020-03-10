@@ -310,12 +310,5 @@ print(final_destination)
 
 #-------------------------------------------
 
-get_sentences(corpus,"Problematic_documents") %>% 
-  data.frame()
-  
 
-
-list.files("~/Desktop/Packages/TextMiningCrisis/R/") %>% 
-  map(~ paste0("~/Desktop/Packages/TextMiningCrisis/R/",.x)) %>% 
-  walk(source)
 
