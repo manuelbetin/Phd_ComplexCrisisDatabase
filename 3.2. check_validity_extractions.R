@@ -43,16 +43,20 @@ check_extract=function(path_urls="../Betin_Collodel/2. Text mining IMF_data/data
                        path_final_tf_idf="../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData"){
   
   
-  #Description:
-  #check the validity of each steps in the scripts to see what documents are lost in each step of the process from the download, to the 
-  #text mining and finally to the merging with the rest of the variables
+  #'check the validity of each steps in the scripts to see what documents are lost
+  #'in each step of the process from the download, to the 
+  #'text mining and finally to the merging with the rest of the variables
   
-  #parameters
-  #path_urls: the path to locate the dataframe of urls (output of 1. Consolidate_urls.R)
-  #path_tf_idf: path to locate the tf_idf matrix (output of 2. Run_text_mining.R)
-  # path_final_tf_idf: path to locate the final database containing the tf of the text mining and the rest of the variables merge after 
-  # (output of 3. Clean_database.R)
-  
+  #'@param path_urls the path to locate the dataframe of urls (output of 1. Consolidate_urls.R)
+  #'@param path_tf_idf: path to locate the tf_idf matrix (output of 2. Run_text_mining.R)
+  #'@param path_final_tf_idf: path to locate the final database containing the tf of the text mining and the
+  #' rest of the variables merge after (output of 3. Clean_database.R)
+  #'@author Manuel Betin
+  #'@return a list with a table given the proportion of the files that have not been properly computed by country
+  #' the files that have an error and have not been downloaded and the files that have not been downloaded and
+  #' merged
+  #' 
+  #'@export
   
   metadata=rio::import(path_urls) %>%
     mutate(name_file=paste0(ID,"_",period,"_",type_doc_programs)) 
@@ -84,22 +88,6 @@ check_extract=function(path_urls="../Betin_Collodel/2. Text mining IMF_data/data
   return(list(proportion_error_in_url=prop_error_in_url,
               files_with_error_in_url=error_in_url,
               files_not_downloaded=missing_urls))
-}
-
-correct_url=function(link){
-  
-  path_file=link[[1]]
-  html_file <- try(read_html(path_file), silent=T)
-  if("try-error" %in% class(html_file)) {
-    warning(paste(path_file,": Error in path file",sep=""))
-    content=NA
-  }else {
-    content<- html_file %>% html_nodes(xpath=  '//*[@id="ais-detail-container"]/div[2]/div/ul') %>%html_nodes("a") %>% html_attr("href")
-    
-    content<-content[str_detect(content,"pdf")]
-    #content=data.frame(content)
-  }
-  return(content)
 }
 
 my_validity_check=check_extract()
