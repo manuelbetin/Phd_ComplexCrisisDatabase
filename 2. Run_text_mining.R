@@ -157,7 +157,7 @@ mytfs <- setdiff(dir(usb_drive),c("download_docs.r","urls_Requests_Reviews_artic
 
 # Set again the list of categories with only the ones you will update:
 
-keyword_list = c("Currency_crisis_confusing","Currency_crisis_severe","Banking_crisis_severe","Epidemics")
+keyword_list = c("Epidemics")
 
 # Nested list with all paths necessary for run_tf_update function:
 
@@ -200,13 +200,15 @@ if(!dir.exists("2.updates")){
 
 # Txt writing
 
-file.create("update_details.txt", overwrite = TRUE)
-sink("update_details.txt")
+file.create("2.update/update_details.txt", overwrite = TRUE)
+sink("2.update/update_details.txt")
 cat("Update details:","\n")
 cat("\n")
 cat("date of update: ", as.character(Sys.time()),"\n")
 cat("updated indexes:", paste0(keyword_list, collapse = "  "),"\n")
 closeAllConnections()
+
+crayon::bgGreen(cat("Indexes succesfully updated."))
 
 }
 
@@ -308,4 +310,12 @@ print(final_destination)
 
 #-------------------------------------------
 
+get_sentences(corpus,"Problematic_documents") %>% 
+  data.frame()
+  
+
+
+list.files("~/Desktop/Packages/TextMiningCrisis/R/") %>% 
+  map(~ paste0("~/Desktop/Packages/TextMiningCrisis/R/",.x)) %>% 
+  walk(source)
 
