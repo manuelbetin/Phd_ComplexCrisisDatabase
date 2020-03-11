@@ -16,7 +16,7 @@ annual_tf_idf_norm <- annual_tf_idf %>%
 
 lp_df <- annual_tf_idf_norm %>% select(ISO3_Code, year, Currency_crisis_severe_norm, Soft_recession_norm, Severe_recession_norm)
 
-# Figure 3 Romer & Romer:
+# Figure 3 Romer & Romer: ------
 
 # Without lags explanatory variable:
 
@@ -47,7 +47,7 @@ results_panel2 <- lp_lin_panel(annual_tf_idf_norm,
 
 plot(results_panel2)
 
-# Figure 5 Romer & Romer:
+# Figure 5 Romer & Romer: -----
 
 results_panel2 <- lp_lin_panel(annual_tf_idf_norm, 
                                endog_data = "Currency_crisis_severe_norm",
@@ -63,6 +63,21 @@ plot(results_panel2)
 
 
 # what it means that is never dying?
+
+# Possible nonlinearities: -----
+
+results_panel4 <- lp_nl_panel(annual_tf_idf_norm, 
+                               endog_data = "Severe_recession_norm",
+                               shock = "Currency_crisis_severe_norm",
+                               panel_model = "within",
+                               panel_effect = "twoways",
+                               l_exog_data = "Currency_crisis_severe",
+                               lags_exog_data = 2,
+                               confint = 1.96,
+                               hor = 5,
+                               switching = "Currency_crisis_severe_norm",
+                                gamma = 0.2
+)
 
 
 
