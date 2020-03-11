@@ -4,7 +4,7 @@ library("devtools") #make sure you have the library
 github_token=rio::import("/Users/manubetin/Dropbox/Manuel/Professionnel/github_token/github_token.txt")
 
 #install_github("manuelbetin/SetUpProject",auth_token=github_token[[1]])
-#install_github("manuelbetin/TextMiningCrisis",auth_token=github_token[[1]])
+install_github("manuelbetin/TextMiningCrisis",auth_token=github_token[[1]])
 
 packages <- c("dplyr"
               , 'tictoc'
@@ -42,7 +42,6 @@ dt=dt %>% mutate(period=as.Date(date,"%B %d %Y"),
 #export consolidated urls database
 
 rio::export(dt,"../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/consolidated_urls_by_ctry.RData")
-
 
 #--------------------------------------------
 # create functions to extract the type of document from the title each functions will be 
@@ -168,13 +167,24 @@ find_name_from_title=function(dt){
   #correct manually some cases and transform to iso3c
   dt=dt %>% mutate(iso3c=ifelse(is.na(iso3c),countrycode::countrycode(iso3_new,origin="country.name",destination="iso3c"),iso3c),
                    iso3c=ifelse(str_detect(iso3,"mexico"),"MEX",iso3c),
+                   #iso3c=ifelse(str_detect(title,"germany"),"DEU",iso3c),
                    iso3c=ifelse(str_detect(iso3,"philippines"),"PHL",iso3c),
                    iso3c=ifelse(str_detect(iso3,"macedonia"),"MKD",iso3c),
                    iso3c=ifelse(str_detect(iso3,"yugoslavia"),"YUG",iso3c))
   
   
+   mycountries=c(ctries,nonstandard_ctrynames)
+for(j in 1:length(mycountries)){
+  iso3ccode=countrycode::countrycode(mycountries[j],origin="country.name",destination="iso3c")
+    dt=dt%>%mutate(iso3c=ifelse(is.na(iso3c) & str_detect(title,mycountries[j]),iso3ccode,iso3c))
+  }
+
+
+  
   dt=dt %>% dplyr::select(-c(iso3_new,iso3_error)) %>% rename(iso3_from_title=iso3c) %>%
     dplyr::select(iso3,country,iso3_from_title,period,year,pdf,everything())
+  
+  
   }
   dt
 }
@@ -268,6 +278,7 @@ create_file_name=function(dt){
   }
 
 # apply functions by piping all functions
+#a=dt %>% filter(iso3=="USA")
 
 dt=dt %>% 
   find_IMFprograms() %>%
@@ -296,16 +307,8 @@ dt_non_tagged=dt %>% filter(is.na(type_doc_programs) & is.na(type_doc_consultati
                     is.na(exchange_system) &
                     is.na(overdue_obligations))
 
-# 
-# 
-# test=dt %>% mutate(test=ifelse(iso3==iso3_from_title,1,0))
-# test %>% group_by(test) %>% summarize(n=n())
-# test2=test %>% filter(test==1)
-# 
-# b=dt %>% filter(iso3=="GRC"|iso3_from_title=="GRC")
 
-# Export separate database of urls for the different types of document
-
+a=dt_non_tagged %>% filter(period<=1980-01-01)
 dt=dt  %>% filter(iso3_from_title==iso3)
 dt_overdue=dt  %>% filter(!is.na(overdue_obligations))
 rio::export(dt_overdue,"../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/urls_imf_overdue.RData")
@@ -350,7 +353,6 @@ dt_IMF_exchange_system=dt %>%
 rio::export(dt_IMF_repurchase_transaction,"../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/urls_exchange_system.RData")
 
 
-
 # Consolidate old and new extractions to obtain a single database with all documents of interests:
 # crisis periods: requests and reviews
 # non crisis periods: article IV, consultations, recent economic development, article XIV and exchange system
@@ -377,7 +379,6 @@ dt_old=dt_old %>% ungroup() %>% dplyr::select(ID,Loss_Date,hierarchy,
                                               waiver_program=waiver,
                                               modification_program=modification,
                                               type_hierarchy)
-
 
 dt1=dt %>% dplyr::select(ID,Loss_Date,title,pdf)
 dt_old1=dt_old %>% dplyr::select(ID,Loss_Date,title,pdf)
@@ -411,4 +412,4 @@ summary_available_documents=mydt %>% group_by(ID,type_doc_programs) %>% summariz
 
 rio::export(summary_available_documents,"../Betin_Collodel/2. Text mining IMF_data/output/summary available files/summary_N_urls_Requests_Reviews_articleIV.csv")
 rio::export(mydt,"../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/urls_Requests_Reviews_articleIV.RData")
-a=mydt %>% filter(ID=="GRC")
+a=mydt %>% filter(ID=="DEU")
