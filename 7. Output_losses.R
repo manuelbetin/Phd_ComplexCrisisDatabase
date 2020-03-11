@@ -20,22 +20,29 @@ lp_df <- annual_tf_idf_norm %>% select(ISO3_Code, year, Currency_crisis_severe_n
 
 # Without lags explanatory variable:
 
+dependent_var <- c("Soft_recession_norm", "Severe_recession_norm")
 
-results_panel1 <- lp_lin_panel(annual_tf_idf_norm, 
-             endog_data = "Severe_recession_norm",
+results1 <- dependent_var %>% 
+  map( ~ lp_lin_panel(annual_tf_idf_norm, 
+             endog_data = .x,
              shock = "Currency_crisis_severe_norm",
              panel_model = "within",
              panel_effect = "twoways",
              confint = 1.96,
              hor = 5
        )
+  )
 
-plot(results_panel1)
+# soft
+plot(results1[[1]])
+# severe
+plot(results1[[2]])
 
 # With lags explanatory variable:
 
-results_panel2 <- lp_lin_panel(annual_tf_idf_norm, 
-                               endog_data = "Severe_recession_norm",
+results2 <- dependent_var %>% 
+  map( ~ lp_lin_panel(annual_tf_idf_norm, 
+                               endog_data = .x,
                                shock = "Currency_crisis_severe_norm",
                                panel_model = "within",
                                panel_effect = "twoways",
@@ -44,8 +51,12 @@ results_panel2 <- lp_lin_panel(annual_tf_idf_norm,
                                confint = 1.96,
                                hor = 5
 )
+)
 
-plot(results_panel2)
+# soft
+plot(results2[[1]])
+# severe
+plot(results2[[2]])
 
 # Figure 5 Romer & Romer: -----
 
@@ -80,4 +91,8 @@ results_panel4 <- lp_nl_panel(annual_tf_idf_norm,
 )
 
 
+# To do: distinguish between advanced and emerging countries.
 
+
+plot.lpirfs_lin_panel_obj
+plot_lin
