@@ -136,7 +136,8 @@ for(i in 1:length(cols)){
 }
 
 dt_merged=rbind(dt_merged,df)
-dt_merged=dt_merged %>%rename(iso3c=ID,period=Loss_Date) %>% arrange(iso3c,period)
+dt_merged=dt_merged %>%rename(iso3c=ID, period=Loss_Date) %>% arrange(iso3c, period)
+
 
 
 #Only keep verified requests and reviews
