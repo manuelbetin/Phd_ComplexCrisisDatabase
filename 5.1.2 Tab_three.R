@@ -107,8 +107,9 @@ tabThree <- function(input, output, session){
                                     filtered$Year,
                                     NA)
     no_interactive <- filtered %>% 
-      ggplot(aes(Year, TF, group = 1, col = input$typeindexInput)) +
-      geom_line() +
+      ggplot() +
+      geom_line(aes(Year, TF, group = 1, col = input$typeindexInput)) +
+      geom_point(aes(Year, TF, group = 1, col = input$typeindexInput)) +
       geom_vline(aes(xintercept = as.numeric(filtered$dummy_crisis), col = unique(filtered$database)), linetype = "dotted") +
       theme_bw() +
       xlab("Year") + 

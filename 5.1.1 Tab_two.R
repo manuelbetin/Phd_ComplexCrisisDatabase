@@ -1,4 +1,4 @@
-# First experiments with modules representation Shiny app.
+  # First experiments with modules representation Shiny app.
 
 # UI
 
@@ -61,19 +61,20 @@ tabTwo <- function(input, output, session){
     # Filter by database of comparison chosen and calculate events count by year:
     
     share_crisis <- share_crisis %>% 
-      filter(database %in% input$sharecrisisInput2) %>% 
+      filter(database %in% input$sharecrisisInput2) %>%
+      filter(year<=2010) %>%
       group_by(year) %>% 
       summarise(n.events_own = sum(occurence, na.rm = TRUE), n.events_others = sum(dummy_crisis, na.rm = TRUE))
     
     # Plot static graph:
     
     no_interactive <- share_crisis %>% 
-      ggplot(aes(x = n.events_own, y = n.events_others, group = 1)) +
+      ggplot(aes(x = n.events_own, y = n.events_others, group = 1,label=year)) +
       geom_point(aes(col = "comparison")) +
       geom_smooth(method = "lm") +
       theme_bw() +
-      xlab("") +
-      ylab("") +
+      xlab("Betin-Collodel") +
+      ylab("Others") +
       theme(legend.position = "none") +
       theme(axis.text.x = element_text(angle = 270, hjust = 1))
     
@@ -94,6 +95,7 @@ tabTwo <- function(input, output, session){
     
     share_crisis <- comparison_dataframe %>%
       filter(type_index %in% input$sharecrisisInput) %>% 
+      filter(year<=2010) %>% # only include periods prior to 2010 because RR start in 2010
       mutate(year = as.numeric(year))
     
     # Filter by equivalent type crisis:
