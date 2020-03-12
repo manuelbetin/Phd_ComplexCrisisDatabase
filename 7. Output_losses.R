@@ -16,7 +16,7 @@ annual_tf_idf_norm <- annual_tf_idf %>%
 
 # Download World Bank data:
 
-growth_df <- wb(country = "countries_only",indicator = "NY.GDP.MKTP.KD.ZG",startdate = 1954, enddate = 2016) %>% 
+growth_df <- wb(country = "countries_only",indicator = "NY.GDP.MKTP.KD",startdate = 1954, enddate = 2016) %>% 
   rename(ISO3_Code = iso3c, 
          year = date,
          gdp_growth = value) %>% 
@@ -136,4 +136,41 @@ plot(results_panel5)
 
 
 
+# From Jorda & Taylor (2013):
 
+periods = seq(1:5)
+
+
+
+list_jorda_df <- periods %>%
+  map(~ lp_df %>% mutate(gdp_growth = log(gdp_growth)) %>% group_by(ISO3_Code) %>% mutate(gdp_growth = dplyr::lead(gdp_growth,.x) - gdp_growth)) %>% 
+  map(~ .x %>% mutate(Currency_crisis_severe_norm = dplyr::lead(Currency_crisis_severe_norm,1) - Currency_crisis_severe_norm)) %>% 
+  map(~ .x %>% ungroup())
+
+
+
+results_jorda <- list_jorda_df %>% 
+  map(~ plm(gdp_growth ~ Currency_crisis_severe_norm, .x, effect = "individual",model = "within")) %>% 
+  map(~ data.frame(coef = .x[["coefficients"]]*100, ci = confint(.x)*100)) %>% 
+  bind_rows() %>% 
+  cbind(periods) %>% 
+  rename(lower = ci.2.5.., 
+         upper = ci.97.5..)
+
+
+
+
+results_jorda %>% 
+  ggplot(aes(periods, coef)) +
+  geom_line(col = "blue") +
+  geom_line(aes(y = lower), linetype = "dashed", col = "white") +
+  geom_line(aes(y = upper), linetype = "dashed", col = "white") +
+  geom_ribbon(aes(ymin = lower, ymax = upper),alpha = 0.2) +
+  theme_bw() +
+  xlab("")
+
+  
+
+  
+  
+  
