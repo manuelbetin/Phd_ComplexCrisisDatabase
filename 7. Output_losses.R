@@ -140,14 +140,14 @@ plot(results_panel5)
 
 periods = seq(1:5)
 
-
+# Create the five specifications:
 
 list_jorda_df <- periods %>%
   map(~ lp_df %>% mutate(gdp_growth = log(gdp_growth)) %>% group_by(ISO3_Code) %>% mutate(gdp_growth = dplyr::lead(gdp_growth,.x) - gdp_growth)) %>% 
   map(~ .x %>% mutate(Currency_crisis_severe_norm = dplyr::lead(Currency_crisis_severe_norm,1) - Currency_crisis_severe_norm)) %>% 
   map(~ .x %>% ungroup())
 
-
+# Run models:
 
 results_jorda <- list_jorda_df %>% 
   map(~ plm(gdp_growth ~ Currency_crisis_severe_norm, .x, effect = "individual",model = "within")) %>% 
@@ -157,8 +157,7 @@ results_jorda <- list_jorda_df %>%
   rename(lower = ci.2.5.., 
          upper = ci.97.5..)
 
-
-
+# Plot IRF:
 
 results_jorda %>% 
   ggplot(aes(periods, coef)) +
