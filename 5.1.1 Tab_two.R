@@ -18,10 +18,12 @@ tabTwo_UI <- function(id, label = "Table Two"){
     sidebarLayout(
     sidebarPanel(
     selectInput(ns("sharecrisisInput"), "Type of index:", c("Banking_crisis_severe","Currency_crisis_severe", "Sovereign_default"), selected = "Currency_crisis_severe"),
-    radioButtons(ns("sharecrisisInput2"), "Database:",unique(output[["comparison_dataframe"]]$database))
+    radioButtons(ns("sharecrisisInput2"), "Database:",unique(output[["comparison_dataframe"]]$database)),
+    selectInput(ns("WordlexiconInput"), "Words associated to:", names(lexicon()), selected = "Sovereign_default")
     ),
     mainPanel(plotlyOutput(ns("sharecrisis_plot")),
-              tableOutput(ns("share_crisis_correlation"))
+             # tableOutput(ns("share_crisis_correlation")),
+              tableOutput(ns("word_lexicon"))
     )
   )
 )
@@ -133,6 +135,13 @@ tabTwo <- function(input, output, session){
     correlation
     
   }, striped = TRUE)
+  
+  
+  #lexicon
+  
+  output$word_lexicon=renderTable({
+    lexicon()[input$WordlexiconInput]
+  })
 }
 
 
