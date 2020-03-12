@@ -17,7 +17,7 @@ tabTwo_UI <- function(id, label = "Table Two"){
   tagList(
     sidebarLayout(
     sidebarPanel(
-    selectInput(ns("sharecrisisInput"), "Type of index:", c("Banking_crisis","Currency_crisis_severe", "Sovereign_default"), selected = "Currency_crisis_severe"),
+    selectInput(ns("sharecrisisInput"), "Type of index:", c("Banking_crisis_severe","Currency_crisis_severe", "Sovereign_default"), selected = "Currency_crisis_severe"),
     radioButtons(ns("sharecrisisInput2"), "Database:",unique(output[["comparison_dataframe"]]$database))
     ),
     mainPanel(plotlyOutput(ns("sharecrisis_plot")),
@@ -49,7 +49,7 @@ tabTwo <- function(input, output, session){
       share_crisis <- share_crisis %>% 
         filter(type_crisis %in% "Currency Crisis") 
     }
-    if(input$sharecrisisInput == "Banking_crisis"){
+    if(input$sharecrisisInput == "Banking_crisis_severe"){
       share_crisis <- share_crisis %>% 
         filter(type_crisis %in% "Banking Crisis")  
     }  
@@ -71,10 +71,14 @@ tabTwo <- function(input, output, session){
     no_interactive <- share_crisis %>% 
       ggplot(aes(x = n.events_own, y = n.events_others, group = 1,label=year)) +
       geom_point(aes(col = "comparison")) +
-      geom_smooth(method = "lm") +
-      theme_bw() +
-      xlab("Betin-Collodel") +
-      ylab("Others") +
+      geom_smooth(method = "lm",se = FALSE, linetype = "dotted",color='lightgrey',size=1) +
+      annotate(x=2,y=max(share_crisis$n.events_others),geom="text",
+               label=paste0("y=",round(cor(share_crisis$n.events_own,share_crisis$n.events_others),2),"x"),
+               color="lightgrey")+
+      theme_minimal() +
+      labs(x="Betin-Collodel",
+           y=input$sharecrisisInput2,
+           caption="Number of countries experiencing a crisis each year")+
       theme(legend.position = "none") +
       theme(axis.text.x = element_text(angle = 270, hjust = 1))
     
@@ -104,7 +108,7 @@ tabTwo <- function(input, output, session){
       share_crisis <- share_crisis %>% 
         filter(type_crisis %in% "Currency Crisis") 
     }
-    if(input$sharecrisisInput == "Banking_crisis"){
+    if(input$sharecrisisInput == "Banking_crisis_severe"){
       share_crisis <- share_crisis %>% 
         filter(type_crisis %in% "Banking Crisis")  
     }  
