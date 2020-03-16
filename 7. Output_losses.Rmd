@@ -163,25 +163,27 @@ results <- list(local_proj_dummy("complete"), local_proj_rr("complete"))
 results_df <- results %>% 
   map("df_results") %>% 
   bind_cols() %>% 
-  select(-periods1)
+  select(-periods1) %>%
+  mutate(periods = as.character(periods))
 
 
 
-irfs_dummy <- ggplot(results_df,aes(x = periods)) +
-  geom_line(aes(y = coef, col = "Text Index - Currency Crisis"), size = 1) +
+irfs_dummy <- ggplot(results_df,aes(x = periods, group = 1)) +
+  geom_line(aes(y = coef, col = "Betin-Collodel - Currency Crisis"), size = 1) +
   geom_line(aes(y = coef_rr, col = "RR - Currency Crisis"), size = 1) +
   geom_line(aes(y = upper_rr, col = "RR - Currency Crisis"), linetype = "dashed") +
   geom_line(aes(y = lower_rr, col = "RR - Currency Crisis"), linetype = "dashed") +
-  geom_line(aes(y = upper, col = "Text Index - Currency Crisis"), linetype = "dashed") +
-  geom_line(aes(y = lower, col = "Text Index - Currency Crisis"), linetype = "dashed") +
+  geom_line(aes(y = upper, col = "Betin-Collodel - Currency Crisis"), linetype = "dashed") +
+  geom_line(aes(y = lower, col = "Betin-Collodel - Currency Crisis"), linetype = "dashed") +
   theme_bw() +
   xlab("") +
   ylab("") +
   theme(legend.position = "bottom", legend.title = element_blank()) +
   scale_y_continuous(breaks = c(3:-6)) +
-  coord_cartesian(ylim = c(3, -6))
+  scale_x_discrete(breaks = c(1,2,3,4,5), labels = c("T+1","T+2","T+3","T+4","T+5"), expand = c(0.05,0.05)) +
+  coord_cartesian(ylim = c(3, -6)) 
+  
 
-output[["irfs_dummy"]] <- irfs_dummy
 
 # Show:
 
