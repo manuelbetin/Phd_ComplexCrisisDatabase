@@ -78,8 +78,9 @@ tabFour <- function(input, output, session){
       
       
       no_interecative <- filtered %>% 
-        ggplot(aes(Year, scale(TF), group = 1, col = ISO3_Code)) +
-        geom_line() +
+        ggplot() +
+        geom_line(aes(Year, scale(TF), group = 1, col = ISO3_Code)) +
+        geom_point(aes(Year, scale(TF), group = 1, col = ISO3_Code)) +
         scale_colour_discrete(name = "Country") +
         theme(axis.text.x = element_text(angle = 270, hjust = 1)) +
         theme_bw() +
@@ -110,8 +111,9 @@ tabFour <- function(input, output, session){
                Year = year)
       
       no_interactive <- filtered %>% 
-        ggplot(aes(Year, TF, group = 1, col = type_index)) +
-        geom_line() +
+        ggplot() +
+        geom_line(aes(Year, TF, group = 1, col = type_index)) +
+        geom_point(aes(Year, TF, group = 1, col = type_index)) +
         scale_colour_discrete(name = "Type of Index") +
         theme_bw() +
         xlab("Year") + 

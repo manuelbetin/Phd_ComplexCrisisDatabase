@@ -1,4 +1,4 @@
-# First experiments with modules representation Shiny app.
+  # First experiments with modules representation Shiny app.
 
 # UI
 
@@ -17,11 +17,13 @@ tabTwo_UI <- function(id, label = "Table Two"){
   tagList(
     sidebarLayout(
     sidebarPanel(
-    selectInput(ns("sharecrisisInput"), "Type of index:", c("Banking_crisis","Currency_crisis_severe", "Sovereign_default"), selected = "Currency_crisis_severe"),
-    radioButtons(ns("sharecrisisInput2"), "Database:",unique(output[["comparison_dataframe"]]$database))
+    selectInput(ns("sharecrisisInput"), "Type of index:", c("Banking_crisis_severe","Currency_crisis_severe", "Sovereign_default"), selected = "Currency_crisis_severe"),
+    radioButtons(ns("sharecrisisInput2"), "Database:",unique(output[["comparison_dataframe"]]$database)),
+    selectInput(ns("WordlexiconInput"), "Words associated to:", names(lexicon()), selected = "Sovereign_default")
     ),
     mainPanel(plotlyOutput(ns("sharecrisis_plot")),
-              tableOutput(ns("share_crisis_correlation"))
+             # tableOutput(ns("share_crisis_correlation")),
+              tableOutput(ns("word_lexicon"))
     )
   )
 )
@@ -49,7 +51,7 @@ tabTwo <- function(input, output, session){
       share_crisis <- share_crisis %>% 
         filter(type_crisis %in% "Currency Crisis") 
     }
-    if(input$sharecrisisInput == "Banking_crisis"){
+    if(input$sharecrisisInput == "Banking_crisis_severe"){
       share_crisis <- share_crisis %>% 
         filter(type_crisis %in% "Banking Crisis")  
     }  
@@ -61,19 +63,24 @@ tabTwo <- function(input, output, session){
     # Filter by database of comparison chosen and calculate events count by year:
     
     share_crisis <- share_crisis %>% 
-      filter(database %in% input$sharecrisisInput2) %>% 
+      filter(database %in% input$sharecrisisInput2) %>%
+      filter(year<=2010) %>%
       group_by(year) %>% 
       summarise(n.events_own = sum(occurence, na.rm = TRUE), n.events_others = sum(dummy_crisis, na.rm = TRUE))
     
     # Plot static graph:
     
     no_interactive <- share_crisis %>% 
-      ggplot(aes(x = n.events_own, y = n.events_others, group = 1)) +
+      ggplot(aes(x = n.events_own, y = n.events_others, group = 1,label=year)) +
       geom_point(aes(col = "comparison")) +
-      geom_smooth(method = "lm") +
-      theme_bw() +
-      xlab("") +
-      ylab("") +
+      geom_smooth(method = "lm",se = FALSE, linetype = "dotted",color='lightgrey',size=1) +
+      annotate(x=2,y=max(share_crisis$n.events_others),geom="text",
+               label=paste0("y=",round(cor(share_crisis$n.events_own,share_crisis$n.events_others),2),"x"),
+               color="lightgrey")+
+      theme_minimal() +
+      labs(x="Betin-Collodel",
+           y=input$sharecrisisInput2,
+           caption="Number of countries experiencing a crisis each year")+
       theme(legend.position = "none") +
       theme(axis.text.x = element_text(angle = 270, hjust = 1))
     
@@ -94,6 +101,7 @@ tabTwo <- function(input, output, session){
     
     share_crisis <- comparison_dataframe %>%
       filter(type_index %in% input$sharecrisisInput) %>% 
+      filter(year<=2010) %>% # only include periods prior to 2010 because RR start in 2010
       mutate(year = as.numeric(year))
     
     # Filter by equivalent type crisis:
@@ -102,7 +110,7 @@ tabTwo <- function(input, output, session){
       share_crisis <- share_crisis %>% 
         filter(type_crisis %in% "Currency Crisis") 
     }
-    if(input$sharecrisisInput == "Banking_crisis"){
+    if(input$sharecrisisInput == "Banking_crisis_severe"){
       share_crisis <- share_crisis %>% 
         filter(type_crisis %in% "Banking Crisis")  
     }  
@@ -127,6 +135,13 @@ tabTwo <- function(input, output, session){
     correlation
     
   }, striped = TRUE)
+  
+  
+  #lexicon
+  
+  output$word_lexicon=renderTable({
+    lexicon()[input$WordlexiconInput]
+  })
 }
 
 

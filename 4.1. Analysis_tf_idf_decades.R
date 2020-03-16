@@ -15,22 +15,22 @@ output[["tf-idf_fig_year_radars"]]=lapply(buckets,function(x){
   reforms=list()
   structure=list()
   dt_year_radar=tf_by_group(mydata %>% filter(file %in% (mydata %>% filter(type=="request"))$file))
-  dt_year_radar=dt_year_radar %>% group_by(Crisis) %>% mutate(year=year(Period)) %>% filter(year>=start & year<end) %>% summarize(word_weight=mean(word_weight),
-                                                                                                                                  Period=paste0(min(year),"-",max(year)))
+  dt_year_radar=dt_year_radar %>% group_by(Crisis) %>% mutate(year=year(period)) %>% filter(year>=start & year<end) %>% summarize(word_weight=mean(word_weight),
+                                                                                                                                  period=paste0(min(year),"-",max(year)))
   shocks[["request"]]=country_radar_fig(dt_year_radar)
   reforms[["request"]]=TextMiningCrisis::radar_reforms_fig(dt_year_radar)
   structure[["request"]]=TextMiningCrisis::radar_structure_fig(dt_year_radar)
   
   dt_year_radar=tf_by_group(mydata %>% filter(file %in% (mydata %>% filter(type=="review"))$file))
-  dt_year_radar=dt_year_radar %>% group_by(Crisis)%>% mutate(year=year(Period)) %>% filter(year>=start & year<end) %>% summarize(word_weight=mean(word_weight),
-                                                                                                                                 Period=paste0(min(year),"-",max(year)))
+  dt_year_radar=dt_year_radar %>% group_by(Crisis)%>% mutate(year=year(period)) %>% filter(year>=start & year<end) %>% summarize(word_weight=mean(word_weight),
+                                                                                                                                 period=paste0(min(year),"-",max(year)))
   shocks[["review"]]=country_radar_fig(dt_year_radar)
   reforms[["review"]]=TextMiningCrisis::radar_reforms_fig(dt_year_radar)
   structure[["review"]]=TextMiningCrisis::radar_structure_fig(dt_year_radar)
   
   dt_year_radar=tf_by_group(mydata %>% filter(file %in% (mydata %>% filter(type=="consultation"))$file))
-  dt_year_radar=dt_year_radar %>% group_by(Crisis)%>% mutate(year=year(Period)) %>% filter(year>=start & year<end) %>% summarize(word_weight=mean(word_weight),
-                                                                                                                                 Period=paste0(min(year),"-",max(year)))
+  dt_year_radar=dt_year_radar %>% group_by(Crisis)%>% mutate(year=year(period)) %>% filter(year>=start & year<end) %>% summarize(word_weight=mean(word_weight),
+                                                                                                                                 period=paste0(min(year),"-",max(year)))
   shocks[["consultation"]]=country_radar_fig(dt_year_radar)
   reforms[["consultation"]]=TextMiningCrisis::radar_reforms_fig(dt_year_radar)
   structure[["consultation"]]=TextMiningCrisis::radar_structure_fig(dt_year_radar)

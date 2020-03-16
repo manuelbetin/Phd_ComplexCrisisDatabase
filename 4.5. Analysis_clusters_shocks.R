@@ -49,7 +49,7 @@ cluster_crisis=function(mydata,unit_cluster="iso3c",list_vars,Nclusters=6,N_Name
 
 n.clusters=3
 cluster=list()
-dt=mydata %>% filter(type %in% c("consultation","request","review") & year<1980) %>% mutate(Period=year(Period)) %>% 
+dt=mydata %>% filter(type %in% c("consultation","request","review") & year<1980) %>% mutate(period=year(period)) %>% 
   group_by(iso3c,year) %>% summarize_at(shocks,sum) %>% mutate(file=paste0(iso3c,"_",year)) %>%  ungroup()%>% dplyr::select(file,shocks)
 
 cluster[["bef1980"]]=cluster_crisis(dt,
@@ -57,9 +57,9 @@ cluster[["bef1980"]]=cluster_crisis(dt,
                                         list_vars = shocks,
                                         Nclusters=n.clusters,
                                         N_Name_categories = 3)
-cluster[["bef1980"]]$ctry_cluster_summary=cluster[["bef1980"]]$ctry_cluster_summary %>% mutate(Period="Before 1980") %>% dplyr::select(Period,everything())
+cluster[["bef1980"]]$ctry_cluster_summary=cluster[["bef1980"]]$ctry_cluster_summary %>% mutate(period="Before 1980") %>% dplyr::select(period,everything())
 
-dt=mydata %>% filter(type %in% c("consultation","request","review") & (year<1995 & year>=1980)) %>% mutate(Period=year(Period)) %>% 
+dt=mydata %>% filter(type %in% c("consultation","request","review") & (year<1995 & year>=1980)) %>% mutate(period=year(period)) %>% 
   group_by(iso3c,year) %>% summarize_at(shocks,sum) %>% mutate(file=paste0(iso3c,"_",year)) %>%  ungroup()%>% dplyr::select(file,shocks)
 
 cluster[["1980_1995"]]=cluster_crisis(dt,
@@ -67,9 +67,9 @@ cluster[["1980_1995"]]=cluster_crisis(dt,
                                     list_vars = shocks,
                                     Nclusters=n.clusters,
                                     N_Name_categories = 3)
-cluster[["1980_1995"]]$ctry_cluster_summary=cluster[["1980_1995"]]$ctry_cluster_summary %>% mutate(Period="1980-1995") %>% dplyr::select(Period,everything())
+cluster[["1980_1995"]]$ctry_cluster_summary=cluster[["1980_1995"]]$ctry_cluster_summary %>% mutate(period="1980-1995") %>% dplyr::select(period,everything())
 
-dt=mydata %>% filter(type %in% c("consultation","request","review") & (year<2003 & year>=1995))%>% mutate(Period=year(Period)) %>% 
+dt=mydata %>% filter(type %in% c("consultation","request","review") & (year<2003 & year>=1995))%>% mutate(period=year(period)) %>% 
   group_by(iso3c,year) %>% summarize_at(shocks,sum) %>% mutate(file=paste0(iso3c,"_",year)) %>%  ungroup()%>% dplyr::select(file,shocks)
 
 cluster[["1995_2003"]]=cluster_crisis(dt,
@@ -77,10 +77,10 @@ cluster[["1995_2003"]]=cluster_crisis(dt,
                                     list_vars = shocks,
                                     Nclusters=n.clusters,
                                     N_Name_categories = 3)
-cluster[["1995_2003"]]$ctry_cluster_summary=cluster[["1995_2003"]]$ctry_cluster_summary %>% mutate(Period="1995-2003") %>% dplyr::select(Period,everything())
+cluster[["1995_2003"]]$ctry_cluster_summary=cluster[["1995_2003"]]$ctry_cluster_summary %>% mutate(period="1995-2003") %>% dplyr::select(period,everything())
 
 
-dt=mydata %>% filter(type %in% c("consultation","request","review") & (year>=2004)) %>% mutate(Period=year(Period)) %>% 
+dt=mydata %>% filter(type %in% c("consultation","request","review") & (year>=2004)) %>% mutate(period=year(period)) %>% 
   group_by(iso3c,year) %>% summarize_at(shocks,sum) %>% mutate(file=paste0(iso3c,"_",year)) %>%  ungroup()%>% dplyr::select(file,shocks)
 
 cluster[["aft2004"]]=cluster_crisis(dt,
@@ -88,7 +88,7 @@ cluster[["aft2004"]]=cluster_crisis(dt,
                                     list_vars = shocks,
                                     Nclusters=n.clusters,
                                     N_Name_categories = 3)
-cluster[["aft2004"]]$ctry_cluster_summary=cluster[["aft2004"]]$ctry_cluster_summary %>% mutate(Period="Aft 2004") %>% dplyr::select(Period,everything())
+cluster[["aft2004"]]$ctry_cluster_summary=cluster[["aft2004"]]$ctry_cluster_summary %>% mutate(period="Aft 2004") %>% dplyr::select(period,everything())
 
 output[["clusters"]]=cluster
 
