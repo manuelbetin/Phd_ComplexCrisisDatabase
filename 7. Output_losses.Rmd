@@ -1,21 +1,13 @@
 ---
-title: "R Notebook"
+title: "Output losses for financial crisis: a comparison with the literature"
 output: html_notebook
 ---
 
 
 ```{r echo = F}
-
-# Preliminary steps:
-
-library(lpirfs)
-library(wbstats)
-
-# set periods IRFs
+# Set periods IRFs
 periods = seq(1:5)
-# output list
-output = list()
-output[["Session_info"]] = sessionInfo()
+
 
 ```
 
