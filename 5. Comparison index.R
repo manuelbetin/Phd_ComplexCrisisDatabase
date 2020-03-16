@@ -29,8 +29,7 @@ packages <- c("dplyr"
               "plotly",
               "shinythemes",
               "purrr",
-              "wbstats",
-              "lpirfs"
+              "wbstats"
 )
 
 ## load common packages
