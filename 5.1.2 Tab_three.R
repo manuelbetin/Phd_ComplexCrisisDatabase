@@ -112,12 +112,13 @@ tabThree <- function(input, output, session){
       geom_point(aes(Year, TF, group = 1, col = input$typeindexInput)) +
       geom_vline(aes(xintercept = as.numeric(filtered$dummy_crisis), col = unique(filtered$database)), linetype = "dotted") +
       theme_bw() +
-      xlab("Year") + 
-      ylab("% of characters") +
-      ggtitle("Term Frequency") +
+      xlab("") + 
+      ylab("") +
+      ggtitle("") +
       theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
       theme(plot.title = element_text(hjust = 0.5)) +
-      theme(legend.title=element_blank()) 
+      theme(legend.title=element_blank()) +
+      theme(legend.position = "none")
     
     ggplotly(no_interactive)
   })  
