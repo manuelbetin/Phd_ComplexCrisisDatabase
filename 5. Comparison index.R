@@ -28,7 +28,8 @@ packages <- c("dplyr"
               ,"SetUpProject",
               "plotly",
               "shinythemes",
-              "purrr"
+              "purrr",
+              "wbstats"
 )
 
 ## load common packages
@@ -81,7 +82,7 @@ rr <- import("../Betin_Collodel/2. Text mining IMF_data/datasets/comparison/othe
 
 # Working dataframe:
 
-output[["comparison_dataframe"]] <- merge(annual_tf_idf, rr, by= c("ISO3_Code","year"), all.x = TRUE) %>% # only countries for which global mining was performed.
+output[["comparison_dataframe"]] <- merge(annual_tf_idf, rr, by= c("ISO3_Code","year")) %>% # only countries for which global mining was performed.
   # select(-Minutes, -Working_papers, -Issues_papers, -Press_releases) %>% # intermediate indexes to correct problems!
   gather("type_index","value",-c(ISO3_Code, year, CC.RR, SD_E.RR, SD_D.RR, SD.RR, BC.LV, CC.LV, SD.LV)) %>%
   gather("type_crisis","dummy_crisis",CC.RR:SD.LV) %>%

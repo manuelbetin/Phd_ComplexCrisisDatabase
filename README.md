@@ -29,6 +29,7 @@ Text mining on pdf documents.
 - **5.1.1 Tab_three.R**
 - **5.1.1 Tab_four.R**
 - **5.2 Comparison_app.R**
+- **5.3 Comparison_output_losses.R**
 - **6. Crisis_network.R**
 - **6.1 Crisis_network_complexity.R**
 
@@ -63,6 +64,8 @@ Text mining on pdf documents.
 - rio
 - tictoc
 - lubridate
+- filesstring
+- wbstats
 
 
 ## Structure and workflow of code
