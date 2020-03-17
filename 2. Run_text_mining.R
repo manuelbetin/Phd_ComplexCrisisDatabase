@@ -58,7 +58,7 @@ min_words=500
 #keyword_list=names(key_words_crisis())
 
 ##Remove comment to next line to use all available categories
-keyword_list=names(key_words_crisis())
+keyword_list=names(lexicon())
 
 ##Manual selection
 
@@ -115,7 +115,6 @@ if(apply_tf_on_new_ctry==T){
   lapply(ctries,function(x){
   path_external_usb=paste0(usb_drive,"/",x)
   #Load the database of urls output of the script 1. consolidate_urls.R
-  data("IMF_docs_urls")
   url_links=IMF_docs_urls %>%
     mutate(name_file=paste0(ID,"_",period,"_",type_doc_programs)) %>% filter(ID==x)
   #filter(str_detect(pdf,".pdf") | str_detect(pdf,".PDF"))
@@ -154,10 +153,10 @@ if(update_tf == T){
 # List of all directories in external drive:
 
 mytfs <- setdiff(dir(usb_drive),c("download_docs.r","urls_Requests_Reviews_articleIV.RData","0. logs","0. Old extraction","tf_idf.RData"))
-
+ctries
 # Set again the list of categories with only the ones you will update:
 
-keyword_list = c("Epidemics")
+# keyword_list = c("Epidemics")
 
 # Nested list with all paths necessary for run_tf_update function:
 
@@ -208,7 +207,7 @@ cat("date of update: ", as.character(Sys.time()),"\n")
 cat("updated indexes:", paste0(keyword_list, collapse = "  "),"\n")
 closeAllConnections()
 
-crayon::bgGreen(cat("Indexes succesfully updated."))
+cat(crayon::green("Indexes succesfully updated."))
 
 }
 
@@ -232,26 +231,23 @@ mytfs=lapply(mytfs,function(x){
   #i<<-i+1
   #print(i)
   if(dir.exists(paste0(usb_drive,"/",x,"/tf"))){
-
+    tryCatch({
     y=rio::import(paste0(usb_drive,"/",x,"/tf/tf_crisis_words_",x,".RData"))
-    
-    data.frame(y)
-  }
+    data.frame(y)},
+    error = function(e){
+      cat(crayon::red(x,":","Folder existing, but for some reason missing tf.","\n"))
+      return(NULL)}
+  )}
   })
-mytfs=do.call(rbind,mytfs)
 
-# if(mytfs %>% map(length) %>% reduce(`==`) == FALSE){
-#   # Check that tf indexes have same number of columns
-#   mytfs_different_length <- mytfs %>% map(length) %>% unique()
-#   stop("Dataframes with tf indexes do not have the same length: ", paste(mytfs_different_length, collapse = " and ")) # 
-#   } else {
-#     # If TRUE, check that col. names are equal. 
-#     if(mytfs %>% map(names) %>% reduce(`==`) == rep(F,mytfs %>% map_int(ncol) %>% unique())) {
-#     stop("Dataframes with tf indexes do not have same column names.")
-#     } else {
-#       mytfs <- do.call(rbind,mytfs)
-#     }
-#   }
+mytfs = mytfs %>% compact()
+mytfs=try(do.call(plyr::rbind.fill,mytfs))
+
+
+if("try-error" != class(mytfs)){
+  cat(crayon::green("Consolidated tfs succesfully."))
+}
+
 
 # Extract from the names of the files, the country, date and hierarchy of the document.
 
@@ -309,6 +305,5 @@ print(paste0("All the Output of the script has been saved in the following direc
 print(final_destination)
 
 #-------------------------------------------
-
 
 
