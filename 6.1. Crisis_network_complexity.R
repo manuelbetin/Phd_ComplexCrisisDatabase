@@ -25,8 +25,11 @@ packages <- c("dplyr"
               ,"stringi"
               ,"tidyr"
               ,"network"
+              ,"animation"
+              ,"visNetwork"
               ,"GGally"
               , "igraph"
+              ,"stargazer"
               , "TextMiningCrisis"
               , "SetUpProject"
               , "PICindex"
@@ -52,8 +55,7 @@ data("PICdata")
 mydata=PICdata
 rm(PICdata)
 
-#mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
-
+mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
 
 shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisis',
          'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
@@ -61,51 +63,74 @@ shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisi
          'Severe_recession','Sovereign_default',"Currency_crisis_severe","Wars","Social_crisis")
 
 
-# correlation matrix of shocks ####
+# drawn network ####
 mymin=1960
 mymax=2016
-min_cor=0
+min_cor=0.25
 corr=mydata %>% ungroup() %>% mutate(year=year(period))%>%
   filter(type%in%c("request","consultation","review"))%>%
   filter(year>mymin & year<=mymax)%>%
   dplyr::select(shocks) %>%
   cor()
-
-corr[corr<=min_cor]=0
 mygraph=graph_from_adjacency_matrix(corr,weighted=T, mode="undirected", diag=F)
 
-V(mygraph)$size <- 8
-V(mygraph)$frame.color <- "grey"
-#colors
-clp <- cluster_optimal(mygraph)
-V(mygraph)$community <- clp$membership
-colrs <- adjustcolor( 1:length(clp$membership), alpha=.6)
-V(mygraph)$color <- colrs[V(mygraph)$community]
-#labels
-#V(mygraph)$label <- "" 
-E(mygraph)$arrow.mode <- 0
-mygraph <- delete_edges(mygraph, E(mygraph)[weight<0.25])
+visnet
+mynet=network_visnet(mydata,
+               period_range=c(2010,2016),
+               shocks=shocks,
+               min_cor = 0.05)
+#visSave(mynet,file="network.html")
 
-news.path <- shortest_paths(mygraph, 
-                            from = V(mygraph)[mygraph=="Banking_crisis"], 
-                            to  = V(mygraph)[mygraph=="Commodity_crisis"],
-                            output = "both") # both path nodes and edges
+network_incidence_graph(mydata,
+                        period_range=c(1990,2000),
+                        shocks=shocks,
+                        target="Natural_disaster",
+                        min_cor = 0.1)
 
-plot(mygraph,layout=layout,vertex.color=colrs[V(mygraph)$community])
+network_shortdist_graph(mydata,
+                        period_range=c(1990,2000),
+                        shocks=shocks,
+                        shock_start="Natural_disaster",
+                        shock_end="Political_crisis",
+                        min_cor = 0.1)
 
-#layout=layout_with_fr(mygraph)
-#layout <- layout_with_fr(mygraph, weights=weights)
-#layout <- layout_with_graphopt(mygraph, charge=0.1)
-layout <- layout_with_kk(mygraph)
+# create gif animation
+min_cor=0
+saveGIF( {
+  network_incidence_graph(mydata,
+                          period_range=c(2005,2010),
+                          shocks=shocks,
+                          target="World_outcomes",
+                          min_cor = min_cor)
 
-layout = layout_on_sphere(mygraph)
-rglplot(mygraph,layout=layout)
+  network_incidence_graph(mydata,
+                          period_range=c(2005,2010),
+                          shocks=shocks,
+                          target="Banking_crisis",
+                          min_cor = min_cor)
+
+  network_incidence_graph(mydata,
+                          period_range=c(2005,2010),
+                          shocks=shocks,
+                          target="Financial_crisis",
+                          min_cor = min_cor)
+
+  network_incidence_graph(mydata,
+                          period_range=c(2005,2010),
+                          shocks=shocks,
+                          target="Sovereign_default",
+                          min_cor = min_cor)
+  },
+interval = 2
+#, movie.name="../Betin_Collodel/2. Text mining IMF_data/output/figures/Network/incidence_network.gif"
+)
+
 
 #centrality measures
 
 #degree of the network #####
 
-network_degree(mydata,shocks=shocks)
+network_degree(mydata,shocks=shocks,min_cor = 0.2)
 
 degree(mygraph)/length(shocks)
 
@@ -136,11 +161,11 @@ ggplot()+
   #lims(y=c(0,15))+
   labs(x=NULL,y=NULL)+
   theme_minimal()+
-  ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/network/degree_distribution.png")
+  ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Network/degree_distribution.png")
 
 #degree distribution #####
 
-
+min_cor=0.2
 short_dist=lapply(shocks,function(x){
  dt=network_shortdist(mydata,shocks=shocks,
                     period_range=c(mymin,mymax),
@@ -152,42 +177,81 @@ dt
 short_dist=do.call(cbind,short_dist)
 rownames(short_dist)=shocks
 
-stargazer(shortdist_banking,summary=F)
+stargazer(short_dist,summary=F)
 
-# cluster coefficient #####
 
-network_clustercoef(mydata=mydata,
-                    period_range=c(mymin,mymax),
-                    shocks=shocks,
-                    min_cor=min_cor,
-                    cluster_type = "local")
+#Summary of complexity measures
 
-#closeness coefficient ####
-network_closeness(mydata,period_range=c(mymin,mymax),shocks=shocks,min_cor = min_cor)
-network_betweenness(mydata,period_range=c(mymin,mymax),shocks=shocks,min_cor = min_cor)
-network_eigencentrality(mydata,period_range=c(mymin,mymax),shocks=shocks,min_cor = min_cor)
+buckets=list(
+  `1960-1970`=c(1960,1970),
+  `1970-1980`=c(1970,1980),
+  `1980-1995`=c(1980,1995),
+  `1995-2005`=c(1995,2005),
+  `2005-2016`=c(2005,2016)
+)
 
+summary_complexity=lapply(buckets,function(x){
+  clustercoef=network_clustercoef(mydata=mydata, period_range=c(x[1],x[2]),shocks=shocks,min_cor=min_cor, cluster_type = "local")
+  closeness=network_closeness(mydata,period_range=c(x[1],x[2]),shocks=shocks,min_cor = min_cor)
+  betweeness=network_betweenness(mydata,period_range=c(x[1],x[2]),shocks=shocks,min_cor = min_cor)
+  eigencentrality=network_eigencentrality(mydata,period_range=c(x[1],x[2]),shocks=shocks,min_cor = min_cor)
+  diameter=network_diameter(mydata,period_range=c(x[1],x[2]),shocks=shocks,min_cor = min_cor)
+  #avgknn=knn(mygraph)
+  
+  corr=mydata %>% ungroup() %>% mutate(year=year(period))%>%
+    filter(type%in%c("request","consultation","review"))%>%
+    filter(year>x[1] & year<=x[2])%>%
+    dplyr::select(shocks) %>%
+    cor() %>% mean
+  
+  
+  value=c(clustercoef,
+          mean(closeness),
+          mean(betweeness),
+          eigencentrality$centralization,
+          diameter,
+          corr
+          #mean(avgknn$knn)
+          )
+  value
+  #cbind(index,value) %>% t() %>% tibble()
+  
+})
+
+summary_complexity=do.call(rbind,summary_complexity)
+colnames(summary_complexity)=c("Cluster",
+                            "Closeness",
+                            "betweeness",
+                            "eignecentrality",
+                            "diameter",
+                            "correlation"
+                            #"nearest neighbor"
+                                  )
+
+stargazer(title="Complexity measures"
+          , summary_complexity
+          , type="latex"
+          , digits=2
+          , no.space=T
+          , align=T
+          , summary=F
+          , rownames=T
+          , table.placement = "H"
+          , column.sep.width="3pt"
+          , font.size = "footnotesize"
+          , notes.align = "l"
+          , notes.append=T
+          , out="../Betin_Collodel/2. Text mining IMF_data/output/Complexity/summary_complexity.tex"
+          )
 
 # cliques ####
-network_cliques(mydata,shocks=shocks,
-                period_range=c(1980,1990),
+cliques=network_cliques(mydata,shocks=shocks,
+                period_range=c(2007,2016),
                 min_cor = min_cor)
+cliques$largest.cliques
 
 
 
-#average nearest neighbor degree 
-knn(mygraph)
-count_triangles(mygraph,"Trade_crisis")
-
-
-a=make_ego_graph(mygraph, order = 2, nodes = shocks, mode = c("all",
-                                                            "out", "in"), mindist = 1)
-
-
-names(a)=shocks
-a
-plot(a[["Financial_crisis"]])
-plot(mygraph)
 
 
 

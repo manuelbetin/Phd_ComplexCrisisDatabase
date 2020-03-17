@@ -1,0 +1,238 @@
+---
+title: 'Output losses for financial crisis: a comparison with the literature'
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r echo = F}
+# Set periods IRFs
+periods = seq(1:5)
+```
+
+
+# Dataframe for estimation:
+```{r echo = F}
+
+# Compose dataframe for estimations:
+
+# Let's normalize the indexes we are interested in:
+
+indexes_2normalize <- c("Currency_crisis_severe","Soft_recession","Severe_recession")
+
+annual_tf_idf_norm <- annual_tf_idf %>% 
+  ungroup () %>%
+  mutate_at(vars(indexes_2normalize), funs(norm = (. - mean(.,na.rm=T))/sd(.,na.rm=T))) 
+
+# Download World Bank data:
+
+growth_df <- wb(country = "countries_only",indicator = "NY.GDP.MKTP.KD",startdate = 1954, enddate = 2016) %>% 
+  rename(ISO3_Code = iso3c, 
+         year = date,
+         gdp_growth = value) %>% 
+  select(ISO3_Code, year, gdp_growth)
+
+# Use country group classification:
+
+classification <- import("../Betin_Collodel/2. Text mining IMF_data/datasets/comparison/other_data.RData") %>% 
+  select(ISO3_Code,Income_group,group) %>% 
+  filter(!duplicated(ISO3_Code))
+
+
+# Merge final df:
+
+lp_df <- merge(annual_tf_idf_norm,
+               growth_df,
+               by = c("ISO3_Code","year")) %>% 
+  merge(classification, by=c("ISO3_Code"), all.x = TRUE) %>% 
+  select(ISO3_Code, year, Currency_crisis_severe_norm, gdp_growth, Income_group, group)
+
+# Check:
+
+head(lp_df)
+
+
+```
+
+# Estimation:
+\begin{align}
+y_{i,t+h} - y_{i,t} = \alpha_i + \Lambda CC_{i,t} + y_{t-1} + e_{i,t+h}
+\end{align}
+
+with h= 1,...,5 and $y_{t+h} - y_{t}$ the cumulative change from time $t$ to $t + h$ in 100 times the log of real GDP, $CC_{i,t}$ dummy for currency crisis and lagged output $y_{i,t-1}$ to control for country specific trends in output pre-crisis.
+
+# Local proj. with RR index:
+```{r echo = F}
+
+# Create a function with argument the country group we want to analyze:
+
+local_proj_rr <- function(country_group){
+
+rr_local <- rr %>% merge(growth_df) %>% merge(classification)
+
+if(country_group != "complete"){
+  rr_local <- rr_local %>% filter(group == country_group)
+}
+
+list_jorda_rr <- periods %>%
+  map(~ rr_local %>% mutate(gdp_growth = log(gdp_growth)) %>% group_by(ISO3_Code) %>% mutate(lag_gdp = dplyr::lag(gdp_growth,1)) %>% mutate(gdp_growth = dplyr::lead(gdp_growth,.x) - gdp_growth)) %>%
+  map(~ .x %>% mutate(CC.RR = dplyr::lead(CC.RR,1))) %>% 
+  map(~ .x %>% ungroup())
+
+results_jorda_rr <- list_jorda_rr %>% 
+  map(~ plm(gdp_growth ~ CC.RR + lag_gdp, .x, effect = "individual",model = "within")) %>% 
+  map(~ data.frame(coef_rr = .x[["coefficients"]]*100, ci = confint(.x)*100)) %>% 
+  map(~ .x %>% slice(1)) %>% 
+  bind_rows() %>% 
+  cbind(periods) %>% 
+  rename(lower_rr = ci.2.5.., 
+         upper_rr = ci.97.5..)
+
+plot_jorda_rr <- results_jorda_rr %>% 
+  ggplot(aes(periods, coef_rr)) +
+  geom_line(col = "blue") +
+  geom_line(aes(y = lower_rr), linetype = "dashed", col = "white") +
+  geom_line(aes(y = upper_rr), linetype = "dashed", col = "white") +
+  geom_ribbon(aes(ymin = lower_rr, ymax = upper_rr),alpha = 0.2) +
+  theme_bw() 
+
+list(df_results = results_jorda_rr, plot = plot_jorda_rr)
+
+}
+
+local_proj_rr("complete")[["plot"]]
+
+```
+
+
+# Local proj. with our dummy:
+```{r echo=F}
+
+local_proj_dummy <- function(country_group){
+
+if(country_group != "complete"){
+  lp_df <- lp_df %>% filter(group == country_group)
+}
+  
+  
+list_jorda_df <- periods %>%
+  map(~ lp_df %>% mutate(gdp_growth = log(gdp_growth)) %>% group_by(ISO3_Code) %>% mutate(lag_gdp = dplyr::lag(gdp_growth,1)) %>%  mutate(gdp_growth = dplyr::lead(gdp_growth,.x) - gdp_growth)) %>% 
+  map(~ .x %>% mutate(Currency_crisis_severe_norm = ifelse(Currency_crisis_severe_norm > 0,1,0))) %>% 
+  map(~ .x %>% mutate(Currency_crisis_severe_norm = dplyr::lead(Currency_crisis_severe_norm,1))) %>% 
+  map(~ .x %>% ungroup())
+
+# Run models:
+
+results_jorda <- list_jorda_df %>% 
+  map(~ plm(gdp_growth ~ Currency_crisis_severe_norm + lag_gdp, .x, effect = "individual",model = "within")) %>% 
+  map(~ data.frame(coef = .x[["coefficients"]]*100, ci = confint(.x)*100)) %>% 
+  map(~ .x %>% slice(1)) %>% 
+  bind_rows() %>% 
+  cbind(periods) %>% 
+  rename(lower = ci.2.5.., 
+         upper = ci.97.5..)
+
+# Plot IRF:
+
+plot_jorda <- results_jorda %>% 
+  ggplot(aes(periods, coef)) +
+  geom_line(col = "blue") +
+  geom_line(aes(y = lower), linetype = "dashed", col = "white") +
+  geom_line(aes(y = upper), linetype = "dashed", col = "white") +
+  geom_ribbon(aes(ymin = lower, ymax = upper),alpha = 0.2) +
+  theme_bw() +
+  xlab("")
+
+list(df_results = results_jorda, plot = plot_jorda)
+
+}
+
+
+local_proj_dummy("complete")[["plot"]]
+
+```
+# Comparison 
+```{r echo = F}
+
+results <- list(local_proj_dummy("complete"), local_proj_rr("complete"))
+
+results_df <- results %>% 
+  map("df_results") %>% 
+  bind_cols() %>% 
+  select(-periods1) %>%
+  mutate(periods = as.character(periods))
+
+
+
+irfs_dummy <- ggplot(results_df,aes(x = periods, group = 1)) +
+  geom_line(aes(y = coef, col = "Betin-Collodel - Currency Crisis"), size = 1) +
+  geom_line(aes(y = coef_rr, col = "RR - Currency Crisis"), size = 1) +
+  geom_line(aes(y = upper_rr, col = "RR - Currency Crisis"), linetype = "dashed") +
+  geom_line(aes(y = lower_rr, col = "RR - Currency Crisis"), linetype = "dashed") +
+  geom_line(aes(y = upper, col = "Betin-Collodel - Currency Crisis"), linetype = "dashed") +
+  geom_line(aes(y = lower, col = "Betin-Collodel - Currency Crisis"), linetype = "dashed") +
+  theme_bw() +
+  xlab("") +
+  ylab("") +
+  theme(legend.position = "bottom", legend.title = element_blank()) +
+  scale_y_continuous(breaks = c(3:-6)) +
+  scale_x_discrete(breaks = c(1,2,3,4,5), labels = c("T+1","T+2","T+3","T+4","T+5"), expand = c(0.05,0.05)) +
+  coord_cartesian(ylim = c(3, -6)) 
+  
+
+
+# Show:
+
+irfs_dummy
+
+```
+# Local proj. with continuos index: (WIP)
+```{r echo=F}
+
+local_proj_continuos <- function(country_group){
+  
+  if(country_group != "complete"){
+    lp_df <- lp_df %>% filter(group == country_group)
+  }
+  
+  
+  list_jorda_df <- periods %>%
+    map(~ lp_df %>% mutate(gdp_growth = log(gdp_growth)) %>% mutate(lag_gdp = dplyr::lag(gdp_growth,1)) %>%      group_by(ISO3_Code) %>% mutate(gdp_growth = dplyr::lead(gdp_growth,.x) - gdp_growth)) %>% 
+    map(~ .x %>% mutate(Currency_crisis_severe_norm = dplyr::lead(Currency_crisis_severe_norm,1))) %>% 
+    map(~ .x %>% ungroup())
+  
+  # Run models:
+  
+  results_jorda <- list_jorda_df %>% 
+    map(~ plm(gdp_growth ~ Currency_crisis_severe_norm + lag_gdp, .x, effect = "individual",model = "within")) %>% 
+    map(~ data.frame(coef = .x[["coefficients"]]*100, ci = confint(.x)*100)) %>%
+    map(~ .x %>% slice(1)) %>% 
+    bind_rows() %>% 
+    cbind(periods) %>% 
+    rename(lower = ci.2.5.., 
+           upper = ci.97.5..)
+  
+  # Plot IRF:
+  
+  plot_jorda <- results_jorda %>% 
+    ggplot(aes(periods, coef)) +
+    geom_line(col = "blue") +
+    geom_line(aes(y = lower), linetype = "dashed", col = "white") +
+    geom_line(aes(y = upper), linetype = "dashed", col = "white") +
+    geom_ribbon(aes(ymin = lower, ymax = upper),alpha = 0.2) +
+    theme_bw() +
+    xlab("") +
+    ylab("")
+  
+  list(df_results = results_jorda, plot = plot_jorda)
+  
+}
+
+
+local_proj_continuos("complete")[["plot"]]
+
+```
+
+
+
