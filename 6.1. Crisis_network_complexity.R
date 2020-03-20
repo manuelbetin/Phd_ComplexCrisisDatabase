@@ -55,7 +55,7 @@ data("PICdata")
 mydata=PICdata
 rm(PICdata)
 
-mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
+#mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData")
 
 shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisis',
          'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
@@ -63,35 +63,46 @@ shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisi
          'Severe_recession','Sovereign_default',"Currency_crisis_severe","Wars","Social_crisis")
 
 
+buckets=list(
+#  `1960-1970`=c(1960,1970),
+  `1970-1980`=c(1970,1980),
+  `1980-1995`=c(1980,1995),
+  `1995-2005`=c(1995,2005),
+  `2005-2016`=c(2005,2016)
+)
+
 # drawn network ####
 mymin=1960
 mymax=2016
 min_cor=0.25
 corr=mydata %>% ungroup() %>% mutate(year=year(period))%>%
   filter(type%in%c("request","consultation","review"))%>%
-  filter(year>mymin & year<=mymax)%>%
+  filter(year>mymin & year<=mymax)%>% na.omit()%>%
   dplyr::select(shocks) %>%
   cor()
 mygraph=graph_from_adjacency_matrix(corr,weighted=T, mode="undirected", diag=F)
 
-visnet
 mynet=network_visnet(mydata,
                period_range=c(2010,2016),
                shocks=shocks,
                min_cor = 0.05)
 #visSave(mynet,file="network.html")
 
-network_incidence_graph(mydata,
-                        period_range=c(1990,2000),
-                        shocks=shocks,
-                        target="Natural_disaster",
-                        min_cor = 0.1)
+SovDefault_incidence=lapply(buckets,function(x){
+  jpeg(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Network/incidence/Incidence_",x[1],"-",x[2],".jpg"))
+  network_incidence_graph(mydata,
+                          period_range=c(x[1],x[2]),
+                          shocks=shocks,
+                          target="Sovereign_default",
+                          min_cor = 0.2)
+  dev.off()
+})
 
 network_shortdist_graph(mydata,
-                        period_range=c(1990,2000),
+                        period_range=c(1960,2016),
                         shocks=shocks,
-                        shock_start="Natural_disaster",
-                        shock_end="Political_crisis",
+                        shock_start="Sovereign_default",
+                        shock_end="Severe_recession",
                         min_cor = 0.1)
 
 # create gif animation
@@ -182,13 +193,6 @@ stargazer(short_dist,summary=F)
 
 #Summary of complexity measures
 
-buckets=list(
-  `1960-1970`=c(1960,1970),
-  `1970-1980`=c(1970,1980),
-  `1980-1995`=c(1980,1995),
-  `1995-2005`=c(1995,2005),
-  `2005-2016`=c(2005,2016)
-)
 
 summary_complexity=lapply(buckets,function(x){
   clustercoef=network_clustercoef(mydata=mydata, period_range=c(x[1],x[2]),shocks=shocks,min_cor=min_cor, cluster_type = "local")
@@ -205,6 +209,8 @@ summary_complexity=lapply(buckets,function(x){
     cor() %>% mean
   
   
+  eigencentrality=network_eigencentrality(mydata,period_range=c(2000,2016),shocks=shocks,min_cor = min_cor)
+  network_clustercoef(mydata=mydata, period_range=c(2000,2016),shocks=shocks,min_cor=min_cor, cluster_type = "local")
   value=c(clustercoef,
           mean(closeness),
           mean(betweeness),
@@ -245,15 +251,27 @@ stargazer(title="Complexity measures"
           )
 
 # cliques ####
-cliques=network_cliques(mydata,shocks=shocks,
-                period_range=c(2007,2016),
-                min_cor = min_cor)
+
+iso=c("AUT","BEL","CHE","DEU","DNK","CYP","CZE","ESP","EST","FRA","GBR","GRC","HRV","IRL","ISL","ITA","NLD",
+      "NOR","POL","PRT","SVK","SVN")
+
+mydata$iso3c %>% unique()
+
+cliques=network_cliques(mydata %>% filter(iso3c %in% iso),shocks=shocks,
+                period_range=c(2005,2016),
+                min_cor = 0.1)
 cliques$largest.cliques
 
 
+network_shortdist_graph(mydata%>% filter(iso3c %in% iso),
+                        period_range=c(2005,2016),
+                        shocks=shocks,
+                        shock_start="Sovereign_default",
+                        shock_end="Severe_recession",
+                        min_cor = 0.1)
 
 
-
+graph=network_links(mydata,shocks,type="conditional")
 
 
 
