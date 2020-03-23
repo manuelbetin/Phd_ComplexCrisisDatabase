@@ -10,7 +10,7 @@ root_path=dirname(current_path)
 ##install common packages
 library("devtools") #make sure you have the library
 #install_github("manuelbetin/SetUpProject",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
-#install_github("manuelbetin/TextMiningCrisis",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
+install_github("manuelbetin/TextMiningCrisis",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181",build_vignettes = T)
 install_github("manuelbetin/PICindex",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
 
 packages <- c("dplyr"
@@ -37,7 +37,6 @@ packages <- c("dplyr"
 
 ## load common packages
 SetUpProject::load.my.packages(packages)
-
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 ######## INSTRUCTIONS ##########
@@ -47,6 +46,7 @@ SetUpProject::load.my.packages(packages)
 #***************************************************************************************####
 output=list()
 output[["Session_info"]]=sessionInfo()
+
 
 # Import data ####
 
@@ -82,10 +82,34 @@ corr=mydata %>% ungroup() %>% mutate(year=year(period))%>%
   cor()
 mygraph=graph_from_adjacency_matrix(corr,weighted=T, mode="undirected", diag=F)
 
-mynet=network_visnet(mydata,
-               period_range=c(2010,2016),
-               shocks=shocks,
-               min_cor = 0.05)
+
+a=network_links(mydata,shocks=shocks,
+              period_range = c(1980,2016),
+              type="conditional",
+              lag=1,
+              pval_threshold = 0.01)
+
+network_visnet(mydata,shocks=shocks,
+               period_range=c(2005,2016),
+               type="conditional",
+               min_cor=0.1,
+               lag=0,
+               pval_threshold=0.01,
+               mode="directed",
+               showarrows=T,
+               diag = T,
+               edgelabel = T,
+               main="Macroeconomic crisis",
+               submain="A complex system of shocks",
+               background = "lightgrey",
+               dragView=T,
+               dragNodes=F,
+               node.shape="dot",
+               node.font.size=25,
+               node.size=18,
+               node.color.highlight.background="red",
+               node.color.highligh.border="red")
+
 #visSave(mynet,file="network.html")
 
 SovDefault_incidence=lapply(buckets,function(x){
@@ -261,7 +285,6 @@ cliques=network_cliques(mydata %>% filter(iso3c %in% iso),shocks=shocks,
                 period_range=c(2005,2016),
                 min_cor = 0.1)
 cliques$largest.cliques
-
 
 network_shortdist_graph(mydata%>% filter(iso3c %in% iso),
                         period_range=c(2005,2016),
