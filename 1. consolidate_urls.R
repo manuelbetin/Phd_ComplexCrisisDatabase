@@ -43,6 +43,13 @@ dt=dt %>% mutate(period=as.Date(date,"%B %d %Y"),
 
 rio::export(dt,"../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/consolidated_urls_by_ctry.RData")
 
+#extraction of old files on the archives of the IMF
+dt=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/consolidated_urls_by_ctry.RData")
+
+#recent extraction on the website of the IMF
+dt2=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/recent_IMF_urls.RData")
+dt=rbind(dt,dt2)
+
 #--------------------------------------------
 # create functions to extract the type of document from the title each functions will be 
 # then use to modify the database of url by including columns when a document belong to a 
@@ -308,8 +315,13 @@ dt_non_tagged=dt %>% filter(is.na(type_doc_programs) & is.na(type_doc_consultati
                     is.na(overdue_obligations))
 
 
-a=dt_non_tagged %>% filter(period<=1980-01-01)
+#from recent extraction from the website take the iso3 that is already correct
+dt=dt %>% mutate(iso3_from_title=ifelse(str_detect(pdf,"www.imf.org"),iso3,iso3_from_title))
+
+a=dt_IMF_consultations %>% filter(year>=2016)
+
 dt=dt  %>% filter(iso3_from_title==iso3)
+
 dt_overdue=dt  %>% filter(!is.na(overdue_obligations))
 rio::export(dt_overdue,"../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/urls_imf_overdue.RData")
 
@@ -402,14 +414,12 @@ mydt = mydt %>%
                 type_hierarchy) %>% arrange(ID,period)
 
 #create a summary of the documents that we keep by country and type of document
-summary_available_documents=mydt %>% group_by(ID,type_doc_programs) %>% summarize(n=n(),
-                                                                                  first=first(period),
-                                                                                  last=last(period))
+summary_available_documents=mydt %>% group_by(ID) %>% summarize(n=n(),
+                                                      first=first(period),
+                                                      last=last(period))
 
 
 #export the final database of interest containing consultations, requests and reviews and that 
 #will provide data for non crisis and crisis period
-
 rio::export(summary_available_documents,"../Betin_Collodel/2. Text mining IMF_data/output/summary available files/summary_N_urls_Requests_Reviews_articleIV.csv")
 rio::export(mydt,"../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/urls_Requests_Reviews_articleIV.RData")
-a=mydt %>% filter(ID=="DEU")

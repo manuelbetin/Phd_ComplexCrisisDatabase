@@ -83,32 +83,37 @@ corr=mydata %>% ungroup() %>% mutate(year=year(period))%>%
 mygraph=graph_from_adjacency_matrix(corr,weighted=T, mode="undirected", diag=F)
 
 
-a=network_links(mydata,shocks=shocks,
+network_links(mydata,shocks=shocks,
               period_range = c(1980,2016),
               type="conditional",
               lag=1,
-              pval_threshold = 0.01)
+              pval_threshold = 0.01) %>%  data.frame()
+#a %>% data_frame()
 
-network_visnet(mydata,shocks=shocks,
-               period_range=c(2005,2016),
+network_visnet(mydata,
+               period_range=c(1960,2016),
+               shocks=shocks,
                type="conditional",
-               min_cor=0.1,
-               lag=0,
-               pval_threshold=0.01,
+               min_cor=0.01,
+               lag=1,
+               pval_threshold=1,
+               remove_negative=T,
                mode="directed",
                showarrows=T,
-               diag = T,
-               edgelabel = T,
+               diag=T,
+               edgelabel=T,
                main="Macroeconomic crisis",
-               submain="A complex system of shocks",
-               background = "lightgrey",
+               submain=NULL,
+               background="white",
                dragView=T,
-               dragNodes=F,
+               dragNodes=T,
                node.shape="dot",
-               node.font.size=25,
-               node.size=18,
+               node.font.size=50,
+               node.size=15,
                node.color.highlight.background="red",
-               node.color.highligh.border="red")
+               node.color.highligh.border="red",
+               edge.font.size=30,
+               navigationButtons=F)
 
 #visSave(mynet,file="network.html")
 
@@ -205,7 +210,11 @@ short_dist=lapply(shocks,function(x){
  dt=network_shortdist(mydata,shocks=shocks,
                     period_range=c(mymin,mymax),
                     root_node = x,
-                    min_cor=min_cor,min_dist=0) %>% dplyr::select(-shocks)
+                    type="conditional",
+                    mode="directed",
+                    diag=F,
+                    min_cor=min_cor,
+                    min_dist=0) %>% dplyr::select(-shocks)
   names(dt)=x
 dt
 })
@@ -217,13 +226,21 @@ stargazer(short_dist,summary=F)
 
 #Summary of complexity measures
 
-
+x=buckets[[1]]
+type="conditional"
+mode="directed"
+diag=F
 summary_complexity=lapply(buckets,function(x){
-  clustercoef=network_clustercoef(mydata=mydata, period_range=c(x[1],x[2]),shocks=shocks,min_cor=min_cor, cluster_type = "local")
-  closeness=network_closeness(mydata,period_range=c(x[1],x[2]),shocks=shocks,min_cor = min_cor)
-  betweeness=network_betweenness(mydata,period_range=c(x[1],x[2]),shocks=shocks,min_cor = min_cor)
-  eigencentrality=network_eigencentrality(mydata,period_range=c(x[1],x[2]),shocks=shocks,min_cor = min_cor)
-  diameter=network_diameter(mydata,period_range=c(x[1],x[2]),shocks=shocks,min_cor = min_cor)
+  clustercoef=network_clustercoef(mydata=mydata, period_range=c(x[1],x[2]),shocks=shocks,type=type,mode=mode,diag=diag,
+                                  min_cor=min_cor, cluster_type = "local")
+  closeness=network_closeness(mydata,period_range=c(x[1],x[2]),shocks=shocks,type=type,mode=mode,diag=diag,
+                              min_cor=min_cor)
+  betweeness=network_betweenness(mydata,period_range=c(x[1],x[2]),shocks=shocks,type=type,mode=mode,diag=diag,
+                                 min_cor=min_cor)
+  eigencentrality=network_eigencentrality(mydata,period_range=c(x[1],x[2]),shocks=shocks,type=type,mode=mode,diag=diag,
+                                          min_cor=min_cor)
+  diameter=network_diameter(mydata,period_range=c(x[1],x[2]),shocks=shocks,type=type,mode=mode,diag=diag,
+                            min_cor=min_cor)
   #avgknn=knn(mygraph)
   
   corr=mydata %>% ungroup() %>% mutate(year=year(period))%>%
@@ -233,8 +250,8 @@ summary_complexity=lapply(buckets,function(x){
     cor() %>% mean
   
   
-  eigencentrality=network_eigencentrality(mydata,period_range=c(2000,2016),shocks=shocks,min_cor = min_cor)
-  network_clustercoef(mydata=mydata, period_range=c(2000,2016),shocks=shocks,min_cor=min_cor, cluster_type = "local")
+  eigencentrality=network_eigencentrality(mydata,period_range=c(2000,2016),shocks=shocks,type="conditional",mode="directed",diag=F,
+                                          min_cor=min_cor)
   value=c(clustercoef,
           mean(closeness),
           mean(betweeness),
@@ -282,8 +299,16 @@ iso=c("AUT","BEL","CHE","DEU","DNK","CYP","CZE","ESP","EST","FRA","GBR","GRC","H
 mydata$iso3c %>% unique()
 
 cliques=network_cliques(mydata %>% filter(iso3c %in% iso),shocks=shocks,
-                period_range=c(2005,2016),
-                min_cor = 0.1)
+                period_range=c(2000,2016),
+                type="unconditional",
+                mode="directed",
+                diag=F,
+                min_cor=0.1,
+                lag=1,
+                pval_threshold=0.1,
+                remove_negative=T,
+                min_cliques=3)
+
 cliques$largest.cliques
 
 network_shortdist_graph(mydata%>% filter(iso3c %in% iso),

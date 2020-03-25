@@ -215,8 +215,6 @@ cat(crayon::green("Indexes succesfully updated."))
 
 
 
-
-
 # #################################################
 
 
