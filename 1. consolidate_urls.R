@@ -48,6 +48,7 @@ dt=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/con
 
 #recent extraction on the website of the IMF
 dt2=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/recent_IMF_urls.RData")
+dt2=dt2 %>% dplyr::select(-name_file)
 dt=rbind(dt,dt2)
 
 #--------------------------------------------
