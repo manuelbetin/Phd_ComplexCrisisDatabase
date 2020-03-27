@@ -48,7 +48,7 @@ dt=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/con
 
 #recent extraction on the website of the IMF
 dt2=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/recent_IMF_urls.RData")
-dt2=dt2 %>% dplyr::select(-name_file)
+#dt2=dt2 %>% dplyr::select(-name_file)
 dt=rbind(dt,dt2)
 
 #--------------------------------------------
@@ -69,6 +69,7 @@ find_IMFprograms=function(dt){
                    #type_doc_programs=ifelse(str_detect(keywords,'arrangement texts'),"request",type_doc_programs),
                    type_doc_programs=ifelse(str_detect(title,'letter on economic policy'),"request",type_doc_programs),
                    type_doc_programs=ifelse( str_detect(title,'stand-by arrangement') & !str_detect(title,'review'),"request",type_doc_programs),
+                   type_doc_programs=ifelse( str_detect(title,'stand-by agreement') & !str_detect(title,'review'),"request",type_doc_programs),
                    type_doc_programs=ifelse( str_detect(title,'extended arrangement') & (!str_detect(title,'review') | !str_detect(title,'request for modification') | !str_detect(title,'waiver') ),"request",type_doc_programs),
                    type_doc_programs=ifelse( str_detect(title,'extended fund facility') & (!str_detect(title,'review') | !str_detect(title,'request for modification')),"request",type_doc_programs),
                    type_doc_programs=ifelse( str_detect(title,'enhanced structural adjustment') & (!str_detect(title,'review') | !str_detect(title,'request for modification')),"request",type_doc_programs),
@@ -224,6 +225,20 @@ find_consultations=function(dt){
  dt=dt %>% mutate(type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"exchange system"),"exchange system",type_doc_consultations),
                   type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"exchange rate adjustment"),"exchange system",type_doc_consultations),
                   type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"exchange arrangement"),"exchange system",type_doc_consultations))
+ 
+ 
+ dt=dt %>% mutate(type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"economic report"),"consultations",type_doc_consultations),
+                  type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"the u.s. economy in 1949"),"consultations",type_doc_consultations),
+                  type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"the u. s. economy in 1951-52"),"consultations",type_doc_consultations),
+                  type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"the 1953-54 business contraction in the u.s. (sm/54/67)"),"consultations",type_doc_consultations),
+                  type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"analysis of certain factors operating in 1953 downturn in the u.s. economy"),"consultations",type_doc_consultations),
+                  type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"the 1954-55 business recovery in the united states (sm/55/20)"),"consultations",type_doc_consultations),
+                  type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"recent business expansion in the united states (sm/55/73)"),"consultations",type_doc_consultations),
+                  type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"united states business developments in the first half of 1958 (sm/58/57)"),"consultations",type_doc_consultations),
+                  type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"the united states economy in recession and recovery (sm/60/30)"),"consultations",type_doc_consultations),
+                  type_doc_consultations=ifelse(is.na(type_doc_consultations) & str_detect(title,"american recovery--why at half speed?"),"consultations",type_doc_consultations)
+                  )
+ 
   dt
   }
 }
@@ -319,8 +334,6 @@ dt_non_tagged=dt %>% filter(is.na(type_doc_programs) & is.na(type_doc_consultati
 #from recent extraction from the website take the iso3 that is already correct
 dt=dt %>% mutate(iso3_from_title=ifelse(str_detect(pdf,"www.imf.org"),iso3,iso3_from_title))
 
-a=dt_IMF_consultations %>% filter(year>=2016)
-
 dt=dt  %>% filter(iso3_from_title==iso3)
 
 dt_overdue=dt  %>% filter(!is.na(overdue_obligations))
@@ -338,7 +351,7 @@ rio::export(dt_IMF_programs_reviews,"../Betin_Collodel/2. Text mining IMF_data/d
 # In the present case the relevant documents are those that concerns the consultations
 
 dt_IMF_consultations=dt %>% 
-  filter(type_doc_consultations %in% c("Article IV","Article XIV","Eco developments","consultations","exchange system") | !is.na(type_doc_programs)) %>%
+  filter(type_doc_consultations %in% c("Article IV","Article XIV","Article VIII","Eco developments","consultations","exchange system") | !is.na(type_doc_programs)) %>%
   group_by(iso3_from_title,period,year,type_doc_consultations) %>% 
   summarize_all(funs(first)) %>% 
   ungroup() %>%
