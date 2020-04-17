@@ -24,7 +24,8 @@ packages <- c("dplyr"
               , "stringi"
               ,"tidyr"
               , "TextMiningCrisis"
-              , "SetUpProject"
+              , "SetUpProject",
+              "forcats"
               )
 
 ## load common packages

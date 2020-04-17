@@ -29,7 +29,12 @@ packages <- c("dplyr"
               , "plotly"
               , "TextMiningCrisis"
               , "SetUpProject",
-              "filesstrings")
+              "filesstrings",
+              "stargazer",
+              "countrycode",
+              "rnaturalearth",
+              "rnaturalearthdata",
+              "rgeos")
 
 ## load common packages
 SetUpProject::load.my.packages(packages)
@@ -54,6 +59,7 @@ usb_drive="/Volumes/Elements/IMF documents"
 delete_pdfs=F
 rm_short_docs=T
 min_words=500
+engine = pdf_text
 ##Remove comment to use all available word groups
 #keyword_list=names(key_words_crisis())
 
@@ -138,6 +144,7 @@ if(apply_tf_on_new_ctry==T){
                     keyword_list=keyword_list,
                     extract_number=x,
                     delete_pdfs = delete_pdfs,
+                    ENGINE = engine,
                     rm_short_docs=rm_short_docs,
                     min_words=100,loc_temp =path_external_usb)
   })
