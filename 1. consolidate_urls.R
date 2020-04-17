@@ -412,4 +412,4 @@ summary_available_documents=mydt %>% group_by(ID,type_doc_programs) %>% summariz
 
 rio::export(summary_available_documents,"../Betin_Collodel/2. Text mining IMF_data/output/summary available files/summary_N_urls_Requests_Reviews_articleIV.csv")
 rio::export(mydt,"../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/urls_Requests_Reviews_articleIV.RData")
-a=mydt %>% filter(ID=="DEU")
+
