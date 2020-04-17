@@ -29,7 +29,9 @@ packages <- c("dplyr"
               , "plotly"
               , "TextMiningCrisis"
               , "SetUpProject",
-              "filesstrings")
+              "filesstrings",
+              "stargazer",
+              "countrycode")
 
 ## load common packages
 SetUpProject::load.my.packages(packages)
