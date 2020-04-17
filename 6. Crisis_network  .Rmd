@@ -48,11 +48,13 @@ library(PICindex)
 library(lubridate)
 library(stringr)
 library(tidyverse)
+library(visNetwork)
 
 
 background_color=grey.colors(5)[4]
-mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
-
+mydata=data("PICdata")
+#mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
+names(mydata)
 # observe({
 # subsample_countries=SetUpProject::ctry_classif() %>% filter(Classification %in% ifelse(input$mygroup=="All",c("Developped","Emerging"),c(input$mygroup)))
 # mydata=mydata %>% filter(iso3c %in% subsample_countries$ISO3_Code)
@@ -133,12 +135,6 @@ paste0((mydata %>% filter(!is.na(Period)))$iso3c %>% unique(),collapse=", ")
 <hr>
 
 ```{r input shocks}
-
-shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisis',
-         'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
-         'Expectations','Balance_payment_crisis',
-         'Severe_recession','Sovereign_default',"Currency_crisis_severe")
-
 fluidRow(column(3,
                 checkboxGroupInput("group1", 
                               h3("Real shocks"), 
@@ -149,10 +145,11 @@ fluidRow(column(3,
                                              "Soft_recession" = "Soft_recession", 
                                              "Inflation_crisis" = "Inflation_crisis", 
                                              "Trade_crisis" = "Trade_crisis",
-                                             "Social_crisis"="Social_crisis"
+                                             "Social_crisis"="Social_crisis",
+                                             "Epidemics"="Epidemics"
                                              ),
                               selected = c("Natural_disaster", "Commodity_crisis", 
-                                            "Political_crisis","Trade_crisis",
+                                           "Political_crisis","Trade_crisis",
                                             "Social_crisis","Inflation_crisis","Severe_recession"))),
          column(3,
                 checkboxGroupInput("group2", 
@@ -192,3 +189,6 @@ fluidRow(column(3,
          )
 
 ```
+
+
+

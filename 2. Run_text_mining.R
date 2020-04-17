@@ -100,6 +100,7 @@ correct_url=function(link){
       warning(paste(path_file,": Error in path file",sep=""))
       content=NA
     }else{
+      content=ifelse(identical(content,character(0)),NA,content)
       return(content)
     }
     #content=data.frame(content)
@@ -217,8 +218,6 @@ closeAllConnections()
 cat(crayon::green("Indexes succesfully updated."))
 
 }
-
-
 
 
 
