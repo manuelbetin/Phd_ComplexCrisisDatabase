@@ -2,9 +2,11 @@
 
 # Distribution: -----
 
-rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData") %>% 
+documents_ctry <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData") %>% 
   group_by(ISO3_Code) %>% 
-  count() %>% 
+  count() 
+
+  documents_ctry %>% 
   ggplot(aes(n)) +
   geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
                  binwidth=12,
@@ -38,3 +40,22 @@ rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_i
   select(ISO3_Code, `Country name`, year, n) %>% 
   rename(ISO3 = ISO3_Code,`First document` = year, `N. of documents` = n) %>% 
   stargazer(summary = F, out = "../Betin_Collodel/2. Text mining IMF_data/output/tables/Corpus/ctry_detail.tex")
+
+
+# Globe map -----
+
+
+world <- ne_countries(scale = "medium", returnclass = "sf") %>% 
+  rename(ISO3_Code = wb_a3) %>% 
+  merge(documents_ctry, by = "ISO3_Code")
+
+ggplot(data = world,) +
+  geom_sf(aes(fill = n),col = "black") +
+  scale_fill_gradient(low='white', high='#F8766D',name = "Number of documents") +
+  theme_bw()
+
+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/ctry_detail.png")
+
+ 
+
+
