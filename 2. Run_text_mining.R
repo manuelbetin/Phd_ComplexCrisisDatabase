@@ -31,7 +31,10 @@ packages <- c("dplyr"
               , "SetUpProject",
               "filesstrings",
               "stargazer",
-              "countrycode")
+              "countrycode",
+              "rnaturalearth",
+              "rnaturalearthdata",
+              "rgeos")
 
 ## load common packages
 SetUpProject::load.my.packages(packages)
