@@ -1,7 +1,11 @@
-# Description: construction table with cleaned corpus detail
+# Description: construction table and graphs with final corpus detail
 
-mydata <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData") 
-unique(mydata$type_doc)
+# Remove problematic documents:
+
+mydata <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData") %>% 
+  filter(!is.na(Wars) & !is.na(Currency_crisis_severe))
+
+unique(mydata$type)
 
 # We identify three big groups: programs related, consultations and technical assistance.
 
@@ -10,11 +14,12 @@ group_data <- mydata %>%
   mutate(family = case_when(type == "request"|type == "review"|type == "cancelation"|
                             type == "modification" ~ "Program related",
                            type == "technical assistance" ~ "Technical assistance",
-                           type == "consultation" ~ "Consultations")) 
+                           type == "consultation" ~ "Consultations",
+         is.na(type) ~ "Consultations"))
 
+unique(group_data$family)
 
 group_data %>% 
-  filter(!is.na(family)) %>% 
   group_by(family) %>% 
   count() %>% 
   ungroup() %>% 
@@ -31,5 +36,24 @@ group_data %>%
 ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/corpus_detail.png")
 
 
-# Build correspondent graph with subgroups by family.
+# Build correspondent graph with subgroups by family ----
 
+group_data %>% 
+  group_by(family, type_doc) %>%
+  count() %>% 
+  ungroup() %>% 
+  mutate(type_doc = fct_reorder(type_doc, n)) %>% 
+  ggplot(aes(type_doc, n, fill = family)) +
+  geom_col(width = .3) +
+  facet_wrap(~ family, ncol = 1, scales = "free_y") +
+  theme_bw() +
+  coord_flip() +
+  xlab("") +
+  ylab("") +
+  theme(legend.position = "none") 
+
+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/corpus_detail2.png")
+
+  
+
+  
