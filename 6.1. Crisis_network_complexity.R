@@ -91,7 +91,7 @@ network_links(mydata,shocks=shocks,
 #a %>% data_frame()
 
 network_visnet(mydata,
-               period_range=c(2000,2016),
+               period_range=c(1990,2002),
                shocks=shocks,
                type="conditional",
                min_cor=0.2,
@@ -115,7 +115,8 @@ network_visnet(mydata,
                edge.font.size=30,
                navigationButtons=F)
 
-#visSave(mynet,file="network.html")
+
+  #visSave(mynet,file="network.html")
 
 SovDefault_incidence=lapply(buckets,function(x){
   jpeg(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Network/incidence/Incidence_",x[1],"-",x[2],".jpg"))

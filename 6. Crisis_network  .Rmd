@@ -52,7 +52,8 @@ library(visNetwork)
 
 
 background_color=grey.colors(5)[4]
-mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
+mydata=data("PICdata")
+#mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
 names(mydata)
 # observe({
 # subsample_countries=SetUpProject::ctry_classif() %>% filter(Classification %in% ifelse(input$mygroup=="All",c("Developped","Emerging"),c(input$mygroup)))
