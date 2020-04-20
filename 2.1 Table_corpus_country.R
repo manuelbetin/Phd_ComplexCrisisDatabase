@@ -49,7 +49,7 @@ world <- ne_countries(scale = "medium", returnclass = "sf") %>%
   rename(ISO3_Code = wb_a3) %>% 
   merge(documents_ctry, by = "ISO3_Code")
 
-ggplot(data = world,) +
+ggplot(data = world) +
   geom_sf(aes(fill = n),col = "black") +
   scale_fill_gradient(low='white', high='#F8766D',name = "Number of documents") +
   theme_bw()
