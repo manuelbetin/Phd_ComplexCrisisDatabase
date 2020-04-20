@@ -1,4 +1,6 @@
-# Description: construction table with documents by country and distribution graph 
+######### Description: the script generates a table with the number of documents by country
+######### and the year of first document, the distribution graph and corresponding map.
+######### All the output saved in Dropbox folder.
 
 # Distribution: -----
 
