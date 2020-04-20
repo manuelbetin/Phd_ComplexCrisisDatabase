@@ -13,25 +13,33 @@ mydata <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged
 
 mydata %>% 
   filter(ISO3_Code == "FRA") %>% 
-  ggplot(aes(year, Social_crisis, group =1, col = ISO3_Code)) +
-  geom_line() +
-  geom_point() +
-  geom_rect(aes(xmin = 2016, xmax = 2019, ymin = -Inf, ymax = Inf),fill = "red", alpha = 0.02) +
+  ggplot(aes(year, Social_crisis, group =1)) +
+  geom_line(col = "#00BFC4") +
+  geom_point(col = "#00BFC4") +
+  geom_rect(aes(xmin = 2016, xmax = 2019, ymin = -Inf, ymax = Inf),fill = "red", alpha = 0.01) +
   theme_bw() +
+  xlab("") +
+  ylab("") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(legend.position = "none")
+
+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Non_traditional_events/FRA_gilet_jaune.png")
 
 # Hong Kong protests:
 
 mydata %>% 
   filter(ISO3_Code == "CHN") %>% 
-  ggplot(aes(year, Social_crisis, group =1, col = ISO3_Code)) +
-  geom_line() +
-  geom_point() +
-  geom_rect(aes(xmin = 2018, xmax = 2019, ymin = -Inf, ymax = Inf),fill = "red", alpha = 0.02) +
+  ggplot(aes(year, Social_crisis, group =1)) +
+  geom_line(col = "#00BFC4") +
+  geom_point(col = "#00BFC4") +
+  geom_rect(aes(xmin = 2018, xmax = 2019, ymin = -Inf, ymax = Inf),fill = "red", alpha = 0.01) +
   theme_bw() +
+  xlab("") +
+  ylab("") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(legend.position = "none")
+
+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Non_traditional_events/CHN_hong_kong_protests.png")
 
 
 
@@ -41,26 +49,31 @@ mydata %>%
 
 mydata %>% 
   filter(ISO3_Code == "COL" & year >= 1980) %>% 
-  ggplot(aes(year, Migration, group =1, col = ISO3_Code)) +
-  geom_line() +
-  geom_point() +
-  geom_rect(aes(xmin = 2018, xmax = 2019, ymin = -Inf, ymax = Inf),fill = "red", alpha = 0.02) +
+  ggplot(aes(year, Migration, group =1)) +
+  geom_line(col = "#7CAE00") +
+  geom_point(col = "#7CAE00") +
+  geom_rect(aes(xmin = 2018, xmax = 2019, ymin = -Inf, ymax = Inf),fill = "red", alpha = 0.01) +
   theme_bw() + 
   xlab("") +
+  ylab("") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(legend.position = "none")
+
+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Non_traditional_events/COL_migration.png")
 
 # Lebanon refugee crisis fronm Syria
 
 mydata %>% 
   filter(ISO3_Code == "LBN" & year >= 1980) %>% 
-  ggplot(aes(year, Migration, group =1, col = ISO3_Code)) +
-  geom_line() +
-  geom_point() +
-  geom_rect(aes(xmin = 2012, xmax = 2019, ymin = -Inf, ymax = Inf),fill = "red", alpha = 0.02) +
+  ggplot(aes(year, Migration, group =1)) +
+  geom_line(col = "#7CAE00") +
+  geom_point(col = "#7CAE00") +
+  geom_rect(aes(xmin = 2010, xmax = 2019, ymin = -Inf, ymax = Inf),fill = "red", alpha = 0.01) +
   theme_bw() + 
   xlab("") +
+  ylab("") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(legend.position = "none")
 
+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Non_traditional_events/LBN_migration.png")
 
