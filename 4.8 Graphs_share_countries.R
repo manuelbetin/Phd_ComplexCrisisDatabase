@@ -35,7 +35,7 @@ mydata %>%
 
 ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/Share_CC.png")
 
-# Graph 1
+# Graph 2
 # Share of country experiencing currency crisis and inflation crisis, 1950-2020: (5-years moving average)
 # Correlation
 
