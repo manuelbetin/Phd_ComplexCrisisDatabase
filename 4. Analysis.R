@@ -119,6 +119,11 @@ source("4.5. Analysis_clusters_shocks.r")
 
 #source("4.6. Analysis_timing_tf.r")
 
+# Transformation functions #####
+
+source("4.7. Analysis_transformation_function.R")
+
+
 # save output ####
 
 save(output,file="../Betin_Collodel/2. Text mining IMF_data/output/Analysis/Output_Analysis.RData")

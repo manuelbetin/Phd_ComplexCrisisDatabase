@@ -1,14 +1,14 @@
 ---
-title: "Output losses for financial crisis: a comparison with the literature"
-output: html_notebook
+title: 'Output losses for financial crisis: a comparison with the literature'
+output:
+  html_document:
+    df_print: paged
 ---
 
 
 ```{r echo = F}
 # Set periods IRFs
 periods = seq(1:5)
-
-
 ```
 
 
@@ -20,7 +20,6 @@ periods = seq(1:5)
 # Let's normalize the indexes we are interested in:
 
 indexes_2normalize <- c("Currency_crisis_severe","Soft_recession","Severe_recession")
-
 
 annual_tf_idf_norm <- annual_tf_idf %>% 
   ungroup () %>%
@@ -103,8 +102,6 @@ list(df_results = results_jorda_rr, plot = plot_jorda_rr)
 }
 
 local_proj_rr("complete")[["plot"]]
-
-
 
 ```
 
