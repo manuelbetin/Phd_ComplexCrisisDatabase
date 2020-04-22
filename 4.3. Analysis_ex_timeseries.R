@@ -60,31 +60,35 @@ dir.create("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series
 dir.create("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Natural_disaster")
 dir.create("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Epidemics")
 
-
+names(mydata)
+ctry="FRA"
 output[["TS_index_fig_example"]]=lapply(ctry,function(x){
-  # my_ts_index[["Currency"]]=plot_index_crisis(mydata,x,var1="Reduction_reserves_norm",var2="Currency_crisis_norm",var3="Currency_crisis_severe_norm")#+
-  # ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Currency/ts_index_Currency_",x,".png"))
-  # 
-  # my_ts_index[["Spread"]]=plot_index_crisis(mydata,x,var1="Contagion_norm",var2="Expectations_norm",var3="World_outcomes_norm")#+
-  # ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Spread/ts_index_Spread_",x,".png"))
-  # 
-  # my_ts_index[["Fiscal_outcomes"]]=plot_index_crisis(mydata,x,var1="Sovereign_default_norm",var2="Fiscal_outcomes_norm",var3="Fiscal_consolidation_norm")#+
-  # ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Fiscal_outcomes/ts_index_Fiscal_outcomes_",x,".png"))
-  # 
-  # my_ts_index[["Financial"]]=plot_index_crisis(mydata,x,var1="Banking_crisis_norm",var2="Financial_crisis_norm",var3="Contagion_norm")#+
-  # ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Financial/ts_index_Financial_",x,".png"))
-  # 
-  # my_ts_index[["Reforms"]]=plot_index_crisis(mydata,x,var1="Political_crisis_norm",var2="Uncertainty_reforms_norm",var3="Social_crisis_norm")#+
-  # ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Reforms/ts_index_Reforms_",x,".png"))
-  # 
+  my_ts_index[["Currency"]]=plot_index_crisis(mydata,x,var1="Currency_crisis_severe_norm",var2="Currency_crisis_severe_norm",var3="Currency_crisis_severe_norm")#+
+  ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Currency/ts_index_Currency_",x,".png"))
+
+  my_ts_index[["Spread"]]=plot_index_crisis(mydata,x,var1="Contagion_norm",var2="Expectations_norm",var3="World_outcomes_norm")#+
+  ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Spread/ts_index_Spread_",x,".png"))
+
+  my_ts_index[["Fiscal_outcomes"]]=plot_index_crisis(mydata,x,var1="Sovereign_default_norm",var2="Sovereign_default_norm",var3="Sovereign_default_norm")#+
+  ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Fiscal_outcomes/ts_index_Fiscal_outcomes_",x,".png"))
+
+  my_ts_index[["Financial"]]=plot_index_crisis(mydata,x,var1="Banking_crisis_norm",var2="Financial_crisis_norm",var3="Contagion_norm")#+
+  ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Financial/ts_index_Financial_",x,".png"))
+
+  my_ts_index[["Political"]]=plot_index_crisis(mydata,x,var1="Political_crisis_norm",var2="Political_crisis_norm",var3="Social_crisis_norm")#+
+  ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Reforms/ts_index_Reforms_",x,".png"))
+
   # my_ts_index[["Monetary_policy"]]=plot_index_crisis(mydata,x,var1="Tightening_monetary_policy_norm",var2="Losening_monetary_policy_norm",var3="Inflation_crisis_norm")#+
   # ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Monetary_policy/ts_index_Monetary_policy_",x,".png"))
 
-  
-   my_ts_index[["Natural_disaster"]]=plot_index_crisis(mydata,x,var1="Natural_disaster_norm",var2="Natural_disaster_norm",var3="Natural_disaster_norm")#+
+   my_ts_index[["Natural_disaster"]]=plot_index_crisis(mydata,x,var1="Natural_disaster_norm",var2="Trade_crisis_norm",var3="Commodity_crisis_norm")#+
    ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Natural_disaster/ts_index_Natural_disaster_",x,".png"))
   
   my_ts_index[["Epidemics"]]=plot_index_crisis(mydata,x,var1="Epidemics_norm",var2="Epidemics_norm",var3="Natural_disaster_norm")#+
   ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/Epidemics/ts_index_Epidemics_",x,".png"))
   
+  my_ts_index
 })
+
+
+output[["TS_index_fig_example"]]

@@ -9,8 +9,8 @@ setwd(current_path)
 root_path=current_path
 ##install common packages
 library("devtools") #make sure you have the library
-#install_github("manuelbetin/SetUpProject",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
-#install_github("manuelbetin/TextMiningCrisis",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
+install_github("manuelbetin/SetUpProject",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
+install_github("manuelbetin/TextMiningCrisis",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
 install_github("manuelbetin/PICindex",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
 
 packages <- c("dplyr"
@@ -95,7 +95,7 @@ source("4.2. Analysis_timing_shocks.r")
 
 # Plot time series of evolution ------
 
-ctry=c("IND")
+ctry=c("MEX")
 #c("MEX","ARG","USA","URY","IDN","THA","DEU","GRC")
 
 #,"ARG","THA","MEX","USA","TUR","FRA","BRA","IDN")

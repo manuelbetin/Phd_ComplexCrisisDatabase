@@ -37,4 +37,3 @@ output[["Timing_crisis_fig"]]=lapply(1:length(subsamples),function(i){
 
 names(output[["Timing_crisis_fig"]])=names(subsamples)
 
-output[["Timing_crisis_fig"]]$Commodity

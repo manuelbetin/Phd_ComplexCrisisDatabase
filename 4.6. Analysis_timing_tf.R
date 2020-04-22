@@ -26,3 +26,18 @@ output[["timing_tf"]]=list(Requests=Request
                            , Midtermreview=Midtermreview
                            , Lastreview=Lastreview
                            )
+
+
+tfplot=tf_barplot(mydata
+                   #vars_type = c("economic_shock","non_economic_shock","debt_outcomes"),
+                   #vars_nature = c("exogeneous","endogeneous")
+)
+
+
+### tf-idf by type of crisis ------------------
+
+mytf_plot=tf_barplot(mydata,vars_type=c("economic_shock","non_economic_shock","debt_outcomes"))
+
+mytf_plot$tf_fig_avg+ggsave("2.graphs/tagged docs/tf-idf/tf_avg.png")
+
+mytf_plot$tf_fig_avg_prop+ggsave("2.graphs/tagged docs/tf-idf/tf_avg_prop.png")
