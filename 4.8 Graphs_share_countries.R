@@ -2,6 +2,7 @@
 ######## Graph 1: share of countries with currency crisis, Graph 2: correlation with inflation crisis
 ######## To do: automate correlation in graph 2
 
+
 # Average by year:
 
 mydata <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData") %>% 
@@ -18,7 +19,7 @@ get_prob <- function(x){
 # Graph 1
 # Share of country experiencing currency crisis, 1950-2020: (5-years moving average)
 
-share_cc_graph <- mydata %>% 
+mydata %>% 
   mutate_at(vars(Epidemics:World_outcomes), get_prob) %>% 
   ungroup() %>% 
   group_by(year) %>% 
@@ -34,11 +35,13 @@ share_cc_graph <- mydata %>%
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(legend.position = "none")
 
+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/Share_Currency.png")
+
 # Graph 2
 # Share of country experiencing currency crisis and inflation crisis, 1950-2020: (5-years moving average)
 # Correlation
 
-share_cc_infl_graph <- mydata %>% 
+mydata %>% 
   mutate_at(vars(Epidemics:World_outcomes), get_prob) %>% 
   ungroup() %>% 
   group_by(year) %>% 
@@ -56,12 +59,12 @@ share_cc_infl_graph <- mydata %>%
   theme(legend.position = "none", legend.title = element_blank()) 
 
 
-grid.arrange(share_cc_graph, share_cc_infl_graph, ncol = 2)
+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/Share_Currency_Inflation.png")
 
 # Graph 3 
 # Share of countries experiencing Migration crisis, 1950-2000: (5-years moving average)
 
-share_migration_graph <- mydata %>% 
+mydata %>% 
   mutate_at(vars(Epidemics:World_outcomes), get_prob) %>% 
   ungroup() %>% 
   group_by(year) %>% 
@@ -77,12 +80,14 @@ share_migration_graph <- mydata %>%
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(legend.position = "none")
 
+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/Share_Migration.png")
+
 
 # Graph 4 
 # Share of countries experiencing Social crisis, 1950-2000: (5-years moving average)
 
 
-share_social_graph <- mydata %>% 
+mydata %>% 
   mutate_at(vars(Epidemics:World_outcomes), get_prob) %>% 
   ungroup() %>% 
   group_by(year) %>% 
@@ -98,6 +103,8 @@ share_social_graph <- mydata %>%
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(legend.position = "none")
 
-grid.arrange(share_social_graph, share_migration_graph, ncol = 2)
+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/Share_Social.png")
+
+  
 
 
