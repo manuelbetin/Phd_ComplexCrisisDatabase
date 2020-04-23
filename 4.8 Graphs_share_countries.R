@@ -69,7 +69,7 @@ share_migration_graph <- mydata %>%
   summarise(share_migration = mean(Migration, na.rm = T)) %>%
   mutate(share_migration_ma = zoo::rollmean(share_migration, 5, align = "center", fill = NA)) %>% 
   ggplot(aes(year)) +
-  geom_col(aes(y= share_migration),col = "grey60") +
+  geom_col(aes(y= share_migration),col = "grey40") +
   geom_line(aes(y= share_migration_ma),col = "#7CAE00") +
   theme_bw() +
   ylab("") +
@@ -90,7 +90,7 @@ share_social_graph <- mydata %>%
   summarise(share_social = mean(Social_crisis, na.rm = T)) %>%
   mutate(share_social_ma = zoo::rollmean(share_social, 5, align = "center", fill = NA)) %>% 
   ggplot(aes(year, col="share")) +
-  geom_col(aes(y = share_social),col ="grey60") +
+  geom_col(aes(y = share_social),col ="grey40") +
   geom_line(aes(y = share_social_ma),col ="#00BFC4") +
   theme_bw() +
   ylab("Share of countries (%)") +
