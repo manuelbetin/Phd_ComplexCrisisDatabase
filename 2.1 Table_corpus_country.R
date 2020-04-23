@@ -1,4 +1,6 @@
-# Description: construction table with documents by country and distribution graph 
+######### Description: the script generates a table with the number of documents by country
+######### and the year of first document, the distribution graph and corresponding map.
+######### All the output saved in Dropbox folder.
 
 # Distribution: -----
 
@@ -49,10 +51,11 @@ world <- ne_countries(scale = "medium", returnclass = "sf") %>%
   rename(ISO3_Code = wb_a3) %>% 
   merge(documents_ctry, by = "ISO3_Code")
 
-ggplot(data = world,) +
+ggplot(data = world) +
   geom_sf(aes(fill = n),col = "black") +
-  scale_fill_gradient(low='white', high='#F8766D',name = "Number of documents") +
-  theme_bw()
+  scale_fill_gradient(low='white', high='green4',name = "Number of documents") +
+  theme_bw() 
+
 
 ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/ctry_detail.png")
 
