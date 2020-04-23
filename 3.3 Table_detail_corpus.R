@@ -42,18 +42,19 @@ group_data %>%
   mutate(type_doc = fct_reorder(type_doc, n)) %>% 
   ggplot(aes(type_doc, n, fill = family)) +
   geom_col(width = .3) +
-  geom_text(aes(label=n), vjust= 0.5,  hjust = -0.2, size=3)+
+  geom_text(aes(label=n), vjust= 0.5,  hjust = -0.2, size=4)+
   facet_wrap(~ family, ncol = 1, scales = "free_y") +
   theme_bw() +
   coord_flip() +
   xlab("") +
   ylab("") +
   theme(legend.position = "none") +
-  theme(axis.text=element_text(size=10)) +
-  theme(strip.text = element_text(face="bold", size=10))
+  theme(axis.text=element_text(size=13)) +
+  theme(strip.text = element_text(face="bold", size=13))
         
 
-ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/corpus_detail2.png")
+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/corpus_detail.png",
+       dpi = "retina")
 
   
 
