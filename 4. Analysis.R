@@ -28,7 +28,8 @@ packages <- c("dplyr"
               ,"GGally"
               , "TextMiningCrisis"
               , "SetUpProject"
-              , "PICindex"
+              , "PICindex",
+              "gridExtra"
               )
 
 ## load common packages

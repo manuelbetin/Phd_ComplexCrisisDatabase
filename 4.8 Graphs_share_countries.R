@@ -18,28 +18,27 @@ get_prob <- function(x){
 # Graph 1
 # Share of country experiencing currency crisis, 1950-2020: (5-years moving average)
 
-mydata %>% 
+share_cc_graph <- mydata %>% 
   mutate_at(vars(Epidemics:World_outcomes), get_prob) %>% 
   ungroup() %>% 
   group_by(year) %>% 
   filter(year >= 1946) %>% 
   summarise(share_cc = mean(Currency_crisis_severe, na.rm = T)) %>%
-  mutate(share_cc = zoo::rollmean(share_cc, 5, align = "center", fill = NA)) %>% 
-  ggplot(aes(year, share_cc, col="share")) +
-  geom_line() +
+  mutate(share_cc_ma = zoo::rollmean(share_cc, 5, align = "center", fill = NA)) %>% 
+  ggplot(aes(year)) +
+  geom_col(aes(y = share_cc), fill = "grey40") +
+  geom_line(aes(y=share_cc_ma, col = "share")) +
   theme_bw() +
   ylab("Share of countries (%)") +
   xlab("") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(legend.position = "none")
 
-ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/Share_CC.png")
-
 # Graph 2
 # Share of country experiencing currency crisis and inflation crisis, 1950-2020: (5-years moving average)
 # Correlation
 
-mydata %>% 
+share_cc_infl_graph <- mydata %>% 
   mutate_at(vars(Epidemics:World_outcomes), get_prob) %>% 
   ungroup() %>% 
   group_by(year) %>% 
@@ -51,53 +50,54 @@ mydata %>%
   geom_line() +
   theme_bw() +
   xlab("") +
-  ylab("Share of countries (%)") +
+  ylab("") +
   annotate(geom="text", x=1965, y=0.6, label="italic(Cor): .89", parse = T) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  theme(legend.position = "bottom", legend.title = element_blank()) 
+  theme(legend.position = "none", legend.title = element_blank()) 
 
-ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/Correlation_CC_Inflation_Crisis.png")
 
+grid.arrange(share_cc_graph, share_cc_infl_graph, ncol = 2)
 
 # Graph 3 
 # Share of countries experiencing Migration crisis, 1950-2000: (5-years moving average)
 
-mydata %>% 
+share_migration_graph <- mydata %>% 
   mutate_at(vars(Epidemics:World_outcomes), get_prob) %>% 
   ungroup() %>% 
   group_by(year) %>% 
   filter(year >= 1946) %>% 
   summarise(share_migration = mean(Migration, na.rm = T)) %>%
-  mutate(share_migration = zoo::rollmean(share_migration, 5, align = "center", fill = NA)) %>% 
-  ggplot(aes(year, share_migration, col="share")) +
-  geom_line(col = "#7CAE00") +
+  mutate(share_migration_ma = zoo::rollmean(share_migration, 5, align = "center", fill = NA)) %>% 
+  ggplot(aes(year)) +
+  geom_col(aes(y= share_migration),col = "grey60") +
+  geom_line(aes(y= share_migration_ma),col = "#7CAE00") +
   theme_bw() +
-  ylab("Share of countries (%)") +
+  ylab("") +
   xlab("") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(legend.position = "none")
 
-ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/Share_Migration.png")
 
 # Graph 4 
 # Share of countries experiencing Social crisis, 1950-2000: (5-years moving average)
 
 
-mydata %>% 
+share_social_graph <- mydata %>% 
   mutate_at(vars(Epidemics:World_outcomes), get_prob) %>% 
   ungroup() %>% 
   group_by(year) %>% 
   filter(year >= 1946) %>% 
   summarise(share_social = mean(Social_crisis, na.rm = T)) %>%
-  mutate(share_social = zoo::rollmean(share_social, 5, align = "center", fill = NA)) %>% 
-  ggplot(aes(year, share_social, col="share")) +
-  geom_line(col ="#00BFC4") +
+  mutate(share_social_ma = zoo::rollmean(share_social, 5, align = "center", fill = NA)) %>% 
+  ggplot(aes(year, col="share")) +
+  geom_col(aes(y = share_social),col ="grey60") +
+  geom_line(aes(y = share_social_ma),col ="#00BFC4") +
   theme_bw() +
   ylab("Share of countries (%)") +
   xlab("") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   theme(legend.position = "none")
 
-ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/Share_Social.png")
+grid.arrange(share_social_graph, share_migration_graph, ncol = 2)
 
 
