@@ -53,8 +53,9 @@ world <- ne_countries(scale = "medium", returnclass = "sf") %>%
 
 ggplot(data = world) +
   geom_sf(aes(fill = n),col = "black") +
-  scale_fill_gradient(low='white', high='#F8766D',name = "Number of documents") +
-  theme_bw()
+  scale_fill_gradient(low='white', high='green4',name = "Number of documents") +
+  theme_bw() 
+
 
 ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/ctry_detail.png")
 
