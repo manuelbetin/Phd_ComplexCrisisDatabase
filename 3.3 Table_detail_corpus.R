@@ -48,7 +48,10 @@ group_data %>%
   coord_flip() +
   xlab("") +
   ylab("") +
-  theme(legend.position = "none") 
+  theme(legend.position = "none") +
+  theme(axis.text=element_text(size=10)) +
+  theme(strip.text = element_text(face="bold", size=10))
+        
 
 ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/corpus_detail2.png")
 
