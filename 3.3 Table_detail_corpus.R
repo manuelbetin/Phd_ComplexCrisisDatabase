@@ -11,7 +11,7 @@ mydata <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged
 
 unique(mydata$type)
 
-# We identify three big groups: programs related, consultations and technical assistance.
+# We identify two big groups: country reports and program related documents.
 
 
 group_data <- mydata %>% 
@@ -21,36 +21,28 @@ group_data <- mydata %>%
                            type == "consultation" ~ "Country reports",
          is.na(type) ~ "Country reports"))
 
-unique(group_data$family)
 
-group_data %>% 
+# Detail corpus graph: ----
+
+# Total country reports and program related docs:
+
+total <- group_data %>%
   group_by(family) %>% 
   count() %>% 
-  ungroup() %>% 
-  mutate(family = factor(family, levels = c("Program related","Country reports"))) %>%
-  ggplot(aes(family, n, fill = family)) +
-  geom_col(width = .2) +
-  geom_text(aes(label=n), vjust=0.5, size=3.5)+
-  coord_flip() +
-  theme_bw() +
-  xlab("") +
-  ylab("") +
-  theme(legend.position = "none")
+  mutate(type_doc = "Total") %>% 
+  ungroup()
 
-
-ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/corpus_detail.png")
-
-
-# Build correspondent graph with subgroups by family ----
+# Granular ranking:
 
 group_data %>% 
   group_by(family, type_doc) %>%
   count() %>% 
-  ungroup() %>% 
+  ungroup() %>%
+  rbind(total) %>% 
   mutate(type_doc = fct_reorder(type_doc, n)) %>% 
   ggplot(aes(type_doc, n, fill = family)) +
   geom_col(width = .3) +
-  geom_text(aes(label=n), vjust= 0.5, size=3)+
+  geom_text(aes(label=n), vjust= 0.5,  hjust = -0.2, size=3)+
   facet_wrap(~ family, ncol = 1, scales = "free_y") +
   theme_bw() +
   coord_flip() +
