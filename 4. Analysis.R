@@ -69,6 +69,9 @@ LoI_tf_idf=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagge
 #Complete information combining tf, url metadata and quantititve measures
 mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
 
+ctry_classif=SetUpProject::ctry_classif()%>% rename(iso3c=ISO3_Code)
+ctry_groups=SetUpProject::ctry_groups()%>% rename(iso3c=ISO3_Code)
+
 #typology of categories: exogeneous/endogeneous and Economic/non economic shocks
 
 stargazer::stargazer(title="Typology of indexes"
@@ -85,10 +88,14 @@ stargazer::stargazer(title="Typology of indexes"
           , out="../Betin_Collodel/2. Text mining IMF_data/output/Typology indexes/Typology_indexes.tex"
           )
 
+shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisis',
+         'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
+         'Expectations','Balance_payment_crisis',"Epidemics","Migration",
+         'Severe_recession','Sovereign_default',"Currency_crisis_severe","Wars","Social_crisis")
+
 # evolution of tf-idf across decades and radar chart ####
 
-
-source("4.1. Analysis_tf_idf_decades.r")
+#source("4.1. Analysis_tf_idf_decades.r")
 
 # Timing and sequence of the crisis ####
 
@@ -105,10 +112,6 @@ source("4.3. Analysis_ex_timeseries.r")
 # Compute the composite crisis index ####
 
 #list of shocks to consider
-shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisis',
-         'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
-         'Expectations','Balance_payment_crisis',
-         'Severe_recession','Sovereign_default',"Currency_crisis_severe","Wars","Social_crisis")
 
 source("4.4. Analysis_composite_crisis_index.r")
 
@@ -123,6 +126,10 @@ source("4.5. Analysis_clusters_shocks.r")
 # Transformation functions #####
 
 source("4.7. Analysis_transformation_function.R")
+
+# share of country in default
+
+source("4.8. Graphs_share_countries.R")
 
 
 # save output ####

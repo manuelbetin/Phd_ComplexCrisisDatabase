@@ -220,11 +220,7 @@ cat(crayon::green("Indexes succesfully updated."))
 }
 
 
-
-
-
 # #################################################
-
 
 
 #consolidate into a single database the tf matrix of all countries

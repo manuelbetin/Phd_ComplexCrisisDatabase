@@ -4,18 +4,19 @@ res=mydata %>% #filter(iso3c=="URY") %>%
   group_by(review_number_new) %>% filter(!is.na(review_number_new) & review_number_new!="review" ) %>%
   summarize_at(vars(myvars),funs(mean(.,na.rm=T))) %>% gather(key='vars',value='value',-review_number_new)
 
-subsamples=list(Exchange_rate=c("Currency_crisis_norm","Reduction_reserves_norm","Balance_payment_crisis_norm",
-                                "Expectations_norm")
-              , Output=c("Soft_recession_norm","Severe_recession_norm","Expansion_norm")
-              , Financial=c("Banking_crisis_norm","Contagion_norm","Financial_crisis_norm","World_outcomes_norm")
+subsamples=list(Exchange_rate=c("Currency_crisis_severe_norm","Reduction_reserves_norm","Balance_payment_crisis_norm",
+                                "Expectations_norm","Inflation_crisis_norm")
+              , Output=c("Soft_recession_norm","Severe_recession_norm","Expansion_norm","Trade_crisis_norm")
+              , Financial=c("Banking_crisis_severe_norm","Contagion_norm","Financial_crisis_norm","World_outcomes_norm")
               , Debt=c("Fiscal_outcomes_norm","Sovereign_default_norm","Fiscal_consolidation_norm")
-              , Commodity=c("Commodity_crisis_norm","Natural_disaster_norm","trade_crisis_norm","Epidemics_norm")
-              , Monetary_pol=c("Tightening_monetary_policy_norm",'Losening_monetary_policy_norm')
+              , Commodity=c("Commodity_crisis_norm","Natural_disaster_norm","trade_crisis_norm","Epidemics_norm","Migration_norms","Wars_norms")
+              #, Monetary_pol=c("Tightening_monetary_policy_norm",'Losening_monetary_policy_norm')
               , Political=c("Political_crisis_norm","Social_crisis_norm")
-              , Structure=c("Short_term_debt_norm","Concessional_lending_norm","floating_rate_debt_norm","foreign_debt_norm")
-              , Reforms=c("Trade_reforms_norm","Financial_reforms_norm","Labor_market_reforms_norm","Tax_reforms_norm","Banking_reforms_norm")
+              #, Structure=c("Short_term_debt_norm","Concessional_lending_norm","floating_rate_debt_norm","foreign_debt_norm")
+              #, Reforms=c("Trade_reforms_norm","Financial_reforms_norm","Labor_market_reforms_norm","Tax_reforms_norm","Banking_reforms_norm")
   )
 
+names(mydata)
 vars=unlist(subsamples)
 categories=data.frame(vars)
 categories$category=str_remove(rownames(categories),"\\d")
@@ -37,3 +38,4 @@ output[["Timing_crisis_fig"]]=lapply(1:length(subsamples),function(i){
 
 names(output[["Timing_crisis_fig"]])=names(subsamples)
 
+output[["Timing_crisis_fig"]]$Output

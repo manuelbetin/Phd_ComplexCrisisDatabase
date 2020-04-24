@@ -8,13 +8,13 @@ All[["Composite"]]+labs(title="Composite")+ggsave("../Betin_Collodel/2. Text min
 All[["All"]][["economic_crisis"]]=plot_PIC_ts(mydata,shocks=c("World_outcomes","Severe_recession","Soft_recession"))
 All[["economic_crisis"]]+labs(title="Economic")+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Systemic index/Economic_crisis.png")
 
-All[["Financial_crisis"]]=plot_PIC_ts(mydata,shocks=c("Financial_crisis","Banking_crisis_severe","Contagion","Expectations"))
+All[["Financial_crisis"]]=plot_PIC_ts(mydata,shocks=c("Financial_crisis","Banking_crisis_severe","Contagion","Expectations","Currency"))
 All[["Financial_crisis"]]+labs(title="Financial")+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Systemic index/Financial_crisis.png")
 
 All[["Fiscal_crisis"]]=plot_PIC_ts(mydata,shocks=c("Sovereign_default","Sovereign_default","Sovereign_default"))
 All[["Fiscal_crisis"]]+labs(title="Fiscal")+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Systemic index/Fiscal_crisis.png")
 
-All[["Exogeneous"]]=plot_PIC_ts(mydata,shocks=c("Trade_crisis","Natural_disaster","Commodity_crisis"))
+All[["Exogeneous"]]=plot_PIC_ts(mydata,shocks=c("Trade_crisis","Natural_disaster","Commodity_crisis","Epidemics","Migration"))
 All[["Exogeneous"]]+labs(title="Exogeneous")+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Systemic index/Exogeneous_crisis.png")
 
 All[["Currency"]]=plot_PIC_ts(mydata,shocks=c("Currency_crisis_severe","Inflation_crisis","Balance_payment_crisis","Contagion",
@@ -23,6 +23,7 @@ All[["Currency"]]+labs(title="Currency")+ggsave("../Betin_Collodel/2. Text minin
 
 All[["Epidemics"]]=plot_PIC_ts(mydata,shocks=c("Epidemics"))
 All[["Epidemics"]]+labs(title="Epidemics")+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Systemic index/Epidemics.png")
+
 
 
 # Composit index by type of countries #####
