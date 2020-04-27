@@ -1,6 +1,5 @@
-######## Description: the script generates graph for the probability part 
-######## Graph 1: share of countries with currency crisis, Graph 2: correlation with inflation crisis
-######## To do: automate correlation in graph 2
+######## Description: the script generates graphs and tables for the probability part.
+
 
 # Average by year:
 mydata <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData") %>% 
