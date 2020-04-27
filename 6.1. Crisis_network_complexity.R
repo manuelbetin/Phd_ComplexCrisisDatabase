@@ -55,11 +55,17 @@ data("PICdata")
 mydata=PICdata
 rm(PICdata)
 
+mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf_database.RData")
+
+# mydata <- mydata %>%
+#   group_by(iso3c,year) %>% 
+#   summarise_if(is.numeric, mean, na.rm = TRUE) %>% mutate(period=as.Date(paste0("01/01/",year),format="%d/%m/%Y"))
+
 #mydata=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData")
 
 shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisis',
          'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
-         'Expectations','Balance_payment_crisis',
+         'Expectations','Balance_payment_crisis',"Migration","Housing_crisis","Epidemics",
          'Severe_recession','Sovereign_default',"Currency_crisis_severe","Wars","Social_crisis")
 
 
@@ -76,7 +82,7 @@ mymin=1960
 mymax=2016
 min_cor=0.25
 corr=mydata %>% ungroup() %>% mutate(year=year(period))%>%
-  filter(type%in%c("request","consultation","review"))%>%
+  #filter(type%in%c("request","consultation","review"))%>%
   filter(year>mymin & year<=mymax)%>% na.omit()%>%
   dplyr::select(shocks) %>%
   cor()
@@ -91,12 +97,12 @@ network_links(mydata,shocks=shocks,
 #a %>% data_frame()
 
 network_visnet(mydata,
-               period_range=c(1990,2002),
+               period_range=c(1960,2019),
                shocks=shocks,
                type="conditional",
-               min_cor=0.2,
-               lag=1,
-               pval_threshold=0.1,
+               min_cor=0.4,
+               lag=0,
+               pval_threshold=0.05,
                remove_negative=T,
                mode="directed",
                showarrows=T,
@@ -115,6 +121,7 @@ network_visnet(mydata,
                edge.font.size=30,
                navigationButtons=F)
 
+names(mydata)
 
   #visSave(mynet,file="network.html")
 
@@ -123,8 +130,7 @@ SovDefault_incidence=lapply(buckets,function(x){
   network_incidence_graph(mydata,
                           period_range=c(x[1],x[2]),
                           shocks=shocks,
-                          target="Sovereign_default",
-                          min_cor = 0.2)
+                          target="Sovereign_default",mode="directed")
   dev.off()
 })
 
@@ -301,12 +307,12 @@ mydata$iso3c %>% unique()
 
 cliques=network_cliques(mydata %>% filter(iso3c %in% iso),shocks=shocks,
                 period_range=c(2000,2016),
-                type="unconditional",
+                type="conditional",
                 mode="directed",
                 diag=F,
                 min_cor=0.1,
                 lag=1,
-                pval_threshold=0.1,
+                pval_threshold=0.05,
                 remove_negative=T,
                 min_cliques=3)
 
@@ -318,9 +324,6 @@ network_shortdist_graph(mydata%>% filter(iso3c %in% iso),
                         shock_start="Sovereign_default",
                         shock_end="Severe_recession",
                         min_cor = 0.1)
-
-
-graph=network_links(mydata,shocks,type="conditional")
 
 
 
