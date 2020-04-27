@@ -56,7 +56,7 @@ plot_share_country=function(mydata,shocks,ymin=0,ymax=1,rollmean=5,lowerbound=0,
       geom_bar(stat="identity",aes(y = var),fill ="darkgrey",color="darkgrey",width = 0.5,position = position_dodge(width = 1),alpha=0.2) +
       geom_line(aes(y = var_ma),col ="darkblue",size=1) +
       geom_point(aes(y=max_var),col="red",size=2)+
-      geom_text(aes(y=0.95,x=year,label=ifelse(year %in% c(1950,1960,1970,1980,1990,2000,2010,2019),paste0("N=",N),"")),color="black",size=3,angle = 90,alpha=0.9)+
+      geom_text(aes(y=0.95,x=year,label=ifelse(year %in% c(1950,1960,1970,1980,1990,2000,2010,2019),paste0("N=",N),"")),color="black",size=5,angle = 90,alpha=0.9)+
       theme_bw()+
       labs(y="Share of countries (%)",
            x=NULL,
@@ -64,10 +64,10 @@ plot_share_country=function(mydata,shocks,ymin=0,ymax=1,rollmean=5,lowerbound=0,
       lims(y=c(ymin,ymax))+
       scale_x_continuous(breaks=seq(1945,2020,5))+ #set y ticks
       theme(panel.grid.minor = element_blank(),
-            axis.text.x = element_text(size =11,angle=90),
+            axis.text.x = element_text(size =14,angle=90),
             axis.title.x = element_text(size = 11),
-            axis.title.y = element_text(size=11),
-            axis.text.y = element_text(size=11),
+            axis.title.y = element_text(size=14),
+            axis.text.y = element_text(size=114),
             plot.title=element_text(face="bold",colour ="black",size=15, hjust =0.5),
             plot.subtitle =element_text(size =7, hjust = 0.5),
             legend.position="none")
