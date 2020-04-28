@@ -1,18 +1,22 @@
-# Centrality of the shocks ----
+################### Description: script to analyze how each crisis moves 
+################### within the macroeconomic system during the last 70 years i.e. centrality of the shocks.
 
 library(igraph)
+library(gganimate)
 
-# Import data:
 
+# Pre-process: ------
+
+# Import
 
 mydata <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData") %>% 
   mutate(year = as.numeric(year))%>% 
   mutate_at(vars(Epidemics:World_outcomes), funs(norm = (. - mean(.,na.rm=T))/sd(.,na.rm=T))) %>% 
   ungroup() 
 
-vars_norm <- vars_select(names(mydata_norm), ends_with('norm'))
+# Select normalized variable and create time buckets
 
-# Creation edges:
+vars_norm <- vars_select(names(mydata_norm), ends_with('norm'))
 
 buckets <- list(
   `1950:1975` = 1950:1975, 
@@ -20,7 +24,7 @@ buckets <- list(
   `1990:2005` = 1990:2005,
   `2005:2019` = 2005:2020)
 
-# Creation different adjancies matrices:
+# Creation different adjancies matrices: -----
 
 # Regression lag-1 variable - first step, list with 4 buckets elements
 # For each bucket, each variable lagged and all other variables.
@@ -60,6 +64,7 @@ reg[[4]] %>%
     map(x, ~ lm(.x ~ value, x) %>% summary())
   })
 
+# Correlation adjacency matrix:
 
 
 corr <- buckets %>% 
@@ -69,9 +74,8 @@ corr <- buckets %>%
 
 
 
-# Calculation eigencentrality:
+# Calculation eigencentrality by time bucket: -----
 
-library(igraph)
 
 network <- corr %>% 
   map(~ graph_from_adjacency_matrix(.x, mode = "undirected",diag = F, weighted = T))
@@ -103,9 +107,8 @@ centality %>%
 
 
 
-# Animation:
+# Same thing with animation:
 
-library(gganimate)
 animated_df <- centality %>%
   map(~ .x %>% mutate(category = fct_reorder(category, eigencentality))) %>% 
   bind_rows(.id = "Time span")
