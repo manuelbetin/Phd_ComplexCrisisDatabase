@@ -20,11 +20,54 @@ buckets <- list(
   `1990:2005` = 1990:2005,
   `2005:2019` = 2005:2020)
 
+# Creation different adjancies matrices:
+
+# Regression lag-1 variable - first step, list with 4 buckets elements
+# For each bucket, each variable lagged and all other variables.
+
+reg <- buckets %>% 
+  map(~ mydata %>% filter(year %in% .x)) %>% 
+  map(~ .x %>% mutate_if(is.numeric,get_prob)) %>% 
+  map(~ .x %>% select(Epidemics:World_outcomes)) %>% 
+  map(~ .x %>% mutate_all(funs(lag = dplyr::lag(.,1)))) %>% 
+  map(~ .x %>% gather("lag","value", Epidemics_lag:World_outcomes_lag)) %>% 
+  map(~ split(.x,.x$lag)) %>% 
+  modify_depth(2, ~ .x %>% select(-lag)) 
+
+# We have to figure out how to regress each lagged variable on all others.
+
+
+reg[[1]] %>% 
+  map(function(x){
+    map(x, ~ lm(.x ~ value, x) %>% summary())
+  })
+
+
+reg[[2]] %>% 
+  map(function(x){
+    map(x, ~ lm(.x ~ value, x))
+  })
+
+
+reg[[3]] %>% 
+  map(function(x){
+    map(x, ~ lm(.x ~ value, x))
+  })
+
+
+reg[[4]] %>% 
+  map(function(x){
+    map(x, ~ lm(.x ~ value, x) %>% summary())
+  })
+
+
 
 corr <- buckets %>% 
-  map(~ mydata %>% filter(year == .x)) %>% 
+  map(~ mydata %>% filter(year %in% .x)) %>% 
   map(~ .x %>% select(vars_norm)) %>% 
   map(~ .x %>% cor(use = "complete.obs"))
+
+
 
 # Calculation eigencentrality:
 
@@ -48,9 +91,6 @@ centality <- network %>%
   map(~ .x %>% mutate(type = case_when(category == "Wars"| category == "Natural disaster" | category == "Epidemics" | category == "Migration" | category == "Social crisis" ~ "Non economic",
                                        TRUE ~ "Economic")))
 
-
-
-
 centality %>%
   map(~ .x %>% mutate(category = fct_reorder(category, eigencentality))) %>% 
   map(~ .x %>% ggplot(aes(category, eigencentality, fill= type)) +
@@ -63,40 +103,25 @@ centality %>%
 
 
 
+# Animation:
+
+library(gganimate)
+animated_df <- centality %>%
+  map(~ .x %>% mutate(category = fct_reorder(category, eigencentality))) %>% 
+  bind_rows(.id = "Time span")
+
+plot <- animated_df %>% 
+        ggplot(aes(category, eigencentality, fill= type)) +
+        geom_col() +
+        coord_flip() +
+        theme_bw() +
+        ylab("") +
+        xlab("") +
+        labs(fill = "Type of shock:")
+
+plot + transition_states(`Time span`, state_length = 6, transition_length = 4)
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-only_normalized <- data_for_pca %>% 
-  select(ISO3_Code, year, vars_norm) 
-
-pr.out <- prcomp(na.omit(only_normalized),scale = F)
-
-pr.var =pr.out$sdev ^2 
-(pr.var[1]/sum(pr.var))*100
-
-pr.var
-str(pr.out)  
-pr.out$rotation= -pr.out$rotation 
-
-pr.out$x=-pr.out$x 
-
-
-
-biplot (pr.out , scale =0)
-
-pr.out$rotation
-pca_indexes$var$contrib
 
