@@ -34,13 +34,14 @@ get_timeserie=function(mydata,ctry,shocks,lowerbound=0,path=NULL){
   }
   figs=lapply(shocks,function(x){
      myfig=mydata %>% 
-      filter(ISO3_Code == ctry) %>%  ungroup() %>%
+      filter(ISO3_Code == ctry) %>% ungroup() %>%
       mutate(proba=ifelse(get_prob(get(x))==1,year,NA),
-             max=max(get(x),na.rm=T)) %>%
+             max=ifelse(max(get(x),na.rm=T)==get(x),get(x),NA)) %>%
       ggplot(aes(year, get(x) , group =1)) +
       geom_vline(aes(xintercept=proba),color="lightgrey",size=4) +
       geom_line(col = "darkblue",alpha=0.6) +
       geom_point(col = "darkblue",size=1) +
+      geom_point(aes(y=max),col = "red",size=2) +
       geom_text(aes(x=proba,y=max(get(x),na.rm=T)*2/3,label=proba),angle = 90,size=3)+
       theme_bw()+
        labs(y="Share of countries (%)",
