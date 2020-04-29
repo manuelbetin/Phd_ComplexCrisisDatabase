@@ -159,3 +159,129 @@ ctries=ctry_groups %>% filter(Income_group %in% c(" Low income"," Lower middle i
 get_intensity(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
               shocks,path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Intensity/LowIncome")
 
+
+
+get_first_priority=function(mydata,ctries=NULL,shocks,lowerbound=0,path=NULL){
+  #' @title plot time series of priorities shock
+  #' @describeIn ggplot figure showing the first priority for 
+  #' each year
+  #' @param mydata the tf.idf database 
+  #' @param ctry the country of interest
+  #' @param shocks a vector with the name of the shock of interest (from lexicon() 
+  #' categories)
+  #' @param lowerbound the threshold value for the tf.idf to be considered
+  #' as a crisis
+  #' @param path the path of the directory to save the figures
+  #' 
+  #' @return ggplot object
+  #' @author Umberto collodel
+  #' @export
+  
+  if(!is.null(ctries)){
+    cond_mean=function(x){
+      mean(ifelse(x<=lowerbound,NA,x),na.rm=T)
+    }
+    mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
+      group_by(ISO3_Code,year)%>%
+      summarise_at(vars(shocks),cond_mean) %>%
+      gather(key="shock",value="value",-c("ISO3_Code","year")) %>% ungroup() %>%
+      group_by(ISO3_Code,year) %>%
+      mutate(max_value=max(value,na.rm=T),
+             top_x = value %in% head(sort(value, decreasing = TRUE), 2)) %>%
+      mutate(tot_value=round(max_value/sum(value,na.rm=T)*100,2)) %>%
+      filter(max_value==value) %>%
+      filter(ISO3_Code%in%ctries) %>% arrange(-year) %>%
+      ggplot()+
+      # geom_text(aes(x=year,y=10,label=paste0(year,": ",gsub("_"," ",shock)," (",tot_value," % of total shocks)"),
+      #               vjust=-"left",hjust="left",group=ISO3_Code),
+      #           angle=0,size=2)+
+      geom_text(aes(x=year,y=mean(tot_value),label=paste0(gsub("_"," ",shock)," (",tot_value," %)"),
+                    vjust=-"left",hjust="left"),
+                angle=0,size=2)+
+      
+      theme_minimal()+
+      labs(y=NULL,
+           x=NULL,
+           title=NULL)+
+      scale_fill_grey()+ 
+      theme(panel.grid.minor = element_blank(),
+            axis.text.x = element_blank(),
+            axis.title.x = element_text(size = 11),
+            axis.title.y = element_text(size=11),
+            axis.text.y = element_text(size=11),
+            plot.title=element_text(face="bold",colour ="black",size=15, hjust =0.5),
+            plot.subtitle =element_text(size =7, hjust = 0.5),
+            legend.position="right",
+            legend.title = element_blank())  +
+      coord_flip()
+  }else{
+    cond_mean=function(x){
+      mean(ifelse(x<=lowerbound,NA,x),na.rm=T)
+    }
+    myfig=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
+      group_by(year)%>%
+      summarise_at(vars(shocks),cond_mean) %>%
+      gather(key="shock",value="value",-c("year")) %>% ungroup() %>%
+      group_by(year) %>%
+      mutate(max_value=max(value,na.rm=T)) %>%
+      mutate(tot_value=round(max_value/sum(value,na.rm=T)*100,2)) %>%
+      filter(max_value==value) %>%
+      arrange(-year) %>% filter(year>1945) %>%
+      ggplot()+
+      # geom_text(stat="identity",aes(x=year,y=10,label=paste0(year,": ",gsub("_"," ",shock)," (",tot_value," % of total shocks)"),
+      #              hjust="left",vjust=0.4),
+      #           angle=45,size=2)+
+      geom_text(aes(x=year,y=mean(tot_value),label=paste0(year,": ",gsub("_"," ",shock)," (",tot_value," %)"),
+                    vjust="left",hjust="left"),
+                angle=0,size=2.5)+
+      geom_point(aes(x=year,y=tot_value),size=1,color="black")+
+      theme_minimal()+
+      labs(y=NULL,
+           x=NULL,
+           title=NULL)+
+      scale_fill_grey()+ 
+      theme(panel.grid.minor.y = element_blank(),
+            panel.grid.major.y = element_blank(),
+            axis.text.x = element_text(size=11),
+            axis.title.x = element_text(size = 11),
+            axis.title.y = element_text(size=11),
+            axis.text.y = element_blank(),
+            plot.title=element_text(face="bold",colour ="black",size=15, hjust =0.5),
+            plot.subtitle =element_text(size =7, hjust = 0.5),
+            legend.position="right",
+            legend.title = element_blank()) +
+      coord_flip()
+  }
+  if(!is.null(path)){
+    myfig + ggsave(filename=paste0("Intensity_shocks",".png"),device = 'png',path=path)
+  }else{
+    myfig
+  }
+}  
+  
+
+shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisis',
+         'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
+         'Expectations','Balance_payment_crisis',"Epidemics","Migration",
+         'Severe_recession',"Currency_crisis_severe","Wars","Social_crisis")
+
+get_first_priority(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
+                   path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Priority")
+
+ctries=ctry_groups %>% filter(Income_group==" High income")
+get_first_priority(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
+                   path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Priority/HighIncome")
+  
+ctries=ctry_groups %>% filter(Income_group==" Upper middle income")
+get_first_priority(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
+                   path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Priority/MiddleIncome")
+
+ctries=ctry_groups %>% filter(Income_group %in% c(" Low income"," Lower middle income"))
+get_first_priority(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
+                   path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Priority/LowIncome")
+
+
+
+x=c(1,2,3,4)
+top_n(x,1)
+
