@@ -56,6 +56,30 @@ group_data %>%
 ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/corpus_detail.png",
        dpi = "retina")
 
-  
 
+by_year <- group_data %>% 
+  group_by(family, year) %>% 
+  count() 
   
+family <- c("Country reports","Program related")
+color <- c("#F8766D","#00BFC4")
+
+family %>% 
+map2(color,function(x,y){
+  group_data %>% 
+  group_by(family,type_doc, year) %>% 
+  count() %>%
+  filter(family == x) %>% 
+  ggplot(aes(year,n)) +
+  geom_col(fill = y) +
+  facet_wrap(~ type_doc) +
+  theme_bw() +
+  xlab("") +
+  ylab("") +
+  theme(legend.position = "bottom") +
+  theme(axis.text=element_text(size=13)) +
+  theme(strip.text = element_text(face="bold", size=13)) +
+  labs(fill = "")}
+)
+
+
