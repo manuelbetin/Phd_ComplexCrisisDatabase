@@ -41,8 +41,8 @@ ggplot(data = world) +
   geom_sf(aes(fill = n),col = "black") +
   scale_fill_gradient(low='white', high='green4',name = "Number of documents") +
   theme_minimal() +
-  theme(legend.title = element_text(size = 14),
-        legend.text = element_text(size = 14))
+  theme(legend.title = element_text(size = 15),
+        legend.text = element_text(size = 15))
   
 
 
