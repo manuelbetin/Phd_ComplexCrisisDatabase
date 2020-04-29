@@ -1,6 +1,6 @@
-######## Description: the script generates a histogram with the division of the 
-######## corpus into two big families, country reports and programs. A second graph
-######## shows for each family the granular ranking of different types of documents.
+######## Description: the script generates 
+######## 1) a histogram with the division of the corpus into two big families, country reports and programs, and granular ranking all in the same facet.
+######## 2) number of documents for each year and family
 ######## To add: table with short explanation each type of document, whether dismissed or not, simple
 ######## structure.
 
@@ -81,5 +81,8 @@ map2(color,function(x,y){
   theme(strip.text = element_text(face="bold", size=13)) +
   labs(fill = "")}
 )
+
+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/corpus_evolution_time.png",
+       dpi = "retina")
 
 
