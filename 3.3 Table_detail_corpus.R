@@ -73,7 +73,7 @@ map2(color,function(x,y){
   ggplot(aes(year,n)) +
   geom_col(fill = y) +
   facet_wrap(~ type_doc) +
-  theme_bw() +
+  theme_minimal() +
   xlab("") +
   ylab("") +
   theme(legend.position = "bottom") +

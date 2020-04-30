@@ -192,5 +192,4 @@ table_income_group %>%
   rename(`Income Group` = Income_group, Year = year, `Share of countries` = max_var, `Category` = Type_index) %>% 
   stargazer(summary = F, rownames = F, out = "../Betin_Collodel/2. Text mining IMF_data/output/tables/Probability/max_share_detail.tex")
   
-?stargazer
 
