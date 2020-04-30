@@ -1,8 +1,6 @@
 ######## Description: the script generates 
 ######## 1) a histogram with the division of the corpus into two big families, country reports and programs, and granular ranking all in the same facet.
-######## 2) number of documents for each year and family
-######## To add: table with short explanation each type of document, whether dismissed or not, simple
-######## structure.
+######## 2) number of documents for each year, family and type doc
 
 # Remove problematic documents:
 
@@ -57,6 +55,8 @@ ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/corpus_d
        dpi = "retina")
 
 
+# Evolution graphs: -----
+
 by_year <- group_data %>% 
   group_by(family, year) %>% 
   count() 
@@ -64,7 +64,7 @@ by_year <- group_data %>%
 family <- c("Country reports","Program related")
 color <- c("#F8766D","#00BFC4")
 
-family %>% 
+evolution_graphs <- family %>% 
 map2(color,function(x,y){
   group_data %>% 
   group_by(family,type_doc, year) %>% 
@@ -77,12 +77,17 @@ map2(color,function(x,y){
   xlab("") +
   ylab("") +
   theme(legend.position = "bottom") +
-  theme(axis.text=element_text(size=13)) +
+  theme(axis.text=element_text(size=14), axis.text.x = element_text(size =14,angle=90)) +
   theme(strip.text = element_text(face="bold", size=13)) +
   labs(fill = "")}
 )
 
-ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/corpus_evolution_time.png",
-       dpi = "retina")
+names(evolution_graphs) <- family
+
+evolution_graphs %>% 
+map(~ ggsave(paste0( "../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/corpus_evolution/",.x,".png"),
+      plot = .x,
+      dpi = "retina")
+)
 
 
