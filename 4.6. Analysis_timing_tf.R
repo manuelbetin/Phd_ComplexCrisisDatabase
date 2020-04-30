@@ -197,7 +197,7 @@ get_first_priority=function(mydata,ctries=NULL,shocks,lowerbound=0,path=NULL){
       #           angle=0,size=2)+
       geom_text(aes(x=year,y=mean(tot_value),label=paste0(gsub("_"," ",shock)," (",tot_value," %)"),
                     vjust=-"left",hjust="left"),
-                angle=0,size=2)+
+                angle=0,size=4)+
       
       theme_minimal()+
       labs(y=NULL,
@@ -265,7 +265,7 @@ shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisi
          'Expectations','Balance_payment_crisis',"Epidemics","Migration",
          'Severe_recession',"Currency_crisis_severe","Wars","Social_crisis")
 
-get_first_priority(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
+get_first_priority(mydata,shocks=shocks,
                    path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Priority")
 
 ctries=ctry_groups %>% filter(Income_group==" High income")
@@ -280,8 +280,4 @@ ctries=ctry_groups %>% filter(Income_group %in% c(" Low income"," Lower middle i
 get_first_priority(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
                    path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Priority/LowIncome")
 
-
-
-x=c(1,2,3,4)
-top_n(x,1)
 

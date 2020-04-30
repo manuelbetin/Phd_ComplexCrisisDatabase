@@ -123,7 +123,6 @@ output[["comparison_dataframe"]] <-output[["comparison_dataframe"]] %>%
 comparison_dataframe <- output[["comparison_dataframe"]]
 
 
-
 # Source modules ----
 
 # Call invisibly all files that start with 5.1
