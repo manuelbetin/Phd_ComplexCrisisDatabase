@@ -175,50 +175,56 @@ names(Fig_Eval_Benchmark)=names(Eval_benchmarks)
 
 Fig_Eval_Benchmark[["Currency_crisis_severe"]]$Corr
 
+# currency crisis
 var="Currency_crisis_severe"
-Fig_Eval_Benchmark[[var]]$Fig$MEX + 
-  ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+Fig_Eval_Benchmark[[var]]$Fig$MEX
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
 
-Fig_Eval_Benchmark[[var]]$Fig$URY + 
-  ggsave(filename=paste0("Comparison_benchmark_",var,"_","URY",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
-
+Fig_Eval_Benchmark[[var]]$Fig$URY
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","URY",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[["Expectations"]]$Corr
 var="Expectations"
-Fig_Eval_Benchmark[[var]]$Fig$MEX + 
-  ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+Fig_Eval_Benchmark[[var]]$Fig$MEX 
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
 
-Fig_Eval_Benchmark[[var]]$Fig$FRA + 
-  ggsave(filename=paste0("Comparison_benchmark_",var,"_","FRA",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+Fig_Eval_Benchmark[[var]]$Fig$FRA
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","FRA",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
 
 
-Fig_Eval_Benchmark[[var]]$Fig$ITA + 
-  ggsave(filename=paste0("Comparison_benchmark_",var,"_","ITA",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+Fig_Eval_Benchmark[[var]]$Fig$ITA
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","ITA",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
 
-Fig_Eval_Benchmark[["Sovereign_default"]]$Corr
+#sovereign defaut
+
 var="Sovereign_default"
-Fig_Eval_Benchmark[[var]]$Fig$MEX + 
-  ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+Fig_Eval_Benchmark[[var]]$Fig$MEX
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
 
-Fig_Eval_Benchmark[[var]]$Fig$GRC + 
-  ggsave(filename=paste0("Comparison_benchmark_",var,"_","GRC",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+Fig_Eval_Benchmark[[var]]$Fig$GRC
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","GRC",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
 
-Fig_Eval_Benchmark[[var]]$Fig$ARG + 
-  ggsave(filename=paste0("Comparison_benchmark_",var,"_","ARG",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+Fig_Eval_Benchmark[[var]]$Fig$ARG
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","ARG",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
 
-Fig_Eval_Benchmark[[var]]$Fig$PRT + 
-  ggsave(filename=paste0("Comparison_benchmark_",PRT,"_","MEX",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+Fig_Eval_Benchmark[[var]]$Fig$PRT
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","PRT",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
 
-Fig_Eval_Benchmark[[var]]$Fig$IRL + 
-  ggsave(filename=paste0("Comparison_benchmark_",var,"_","IRL",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+Fig_Eval_Benchmark[[var]]$Fig$IRL
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","IRL",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[["Banking_crisis"]]$Corr
+
 var="Banking_crisis"
-Fig_Eval_Benchmark[[var]]$Fig$MEX + 
-  ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+Fig_Eval_Benchmark[[var]]$Fig$MEX
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
 
-Fig_Eval_Benchmark[[var]]$Fig$ISL + 
-  ggsave(filename=paste0("Comparison_benchmark_",var,"_","ISL",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+Fig_Eval_Benchmark[[var]]$Fig$ISL
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","ISL",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
 
-Fig_Eval_Benchmark[[var]]$Fig$ITA + 
-  ggsave(filename=paste0("Comparison_benchmark_",var,"_","ITA",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+Fig_Eval_Benchmark[[var]]$Fig$ITA 
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","ITA",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+
+Fig_Eval_Benchmark[[var]]$Fig$USA
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","USA",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+

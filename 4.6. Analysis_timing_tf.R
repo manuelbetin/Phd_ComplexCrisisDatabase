@@ -11,7 +11,7 @@ library(forcats)
 
 
 #Probability of events 
-get_timeserie=function(mydata,shocks,period_range=c(1960,2019),lowerbound=0,path=NULL){
+get_probability=function(mydata,shocks,period_range=c(1960,2019),lowerbound=0,path=NULL){
   #' @title plot event study of crisis by country
   #' @describeIn ggplot figure showing the share of countries with
   #' positive tf.idf for the selected shock and the corresponding
@@ -62,21 +62,21 @@ get_timeserie=function(mydata,shocks,period_range=c(1960,2019),lowerbound=0,path
 }
 
 
-get_timeserie(mydata,shocks,period_range=c(1960,1980),path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/All")
-get_timeserie(mydata,shocks,period_range=c(1980,2000),path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/All")
-get_timeserie(mydata,shocks,period_range=c(2000,2020),path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/All")
-get_timeserie(mydata,shocks,period_range=c(1960,2020),path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/All")
+get_probability(mydata,shocks,period_range=c(1960,1980),path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/All")
+get_probability(mydata,shocks,period_range=c(1980,2000),path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/All")
+get_probability(mydata,shocks,period_range=c(2000,2020),path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/All")
+get_probability(mydata,shocks,period_range=c(1960,2020),path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/All")
 
 ctries=ctry_groups %>% filter(Income_group==" High income")
-get_timeserie(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
+get_probability(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
               shocks,period_range=c(1960,2020),path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/HighIncome")
 
 ctries=ctry_groups %>% filter(Income_group==" Upper middle income")
-get_timeserie(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
+get_probability(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
               shocks,period_range=c(1960,2020),path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/MiddleIncome")
 
 ctries=ctry_groups %>% filter(Income_group %in% c(" Low income"," Lower middle income"))
-get_timeserie(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
+get_probability(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
               shocks,period_range=c(1960,2020),path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/LowIncome")
 
 
@@ -258,9 +258,8 @@ get_first_priority=function(mydata,ctries=NULL,shocks,lowerbound=0,path=NULL){
     myfig
   }
 }  
-  
-
-shocks=c('Natural_disaster','Commodity_crisis','Political_crisis','Banking_crisis',
+#"Sovereign_default",'Natural_disaster',
+shocks=c("Natural_disaster",'Commodity_crisis','Political_crisis','Banking_crisis',
          'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
          'Expectations','Balance_payment_crisis',"Epidemics","Migration",
          'Severe_recession',"Currency_crisis_severe","Wars","Social_crisis")
@@ -279,5 +278,93 @@ get_first_priority(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
 ctries=ctry_groups %>% filter(Income_group %in% c(" Low income"," Lower middle income"))
 get_first_priority(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
                    path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Priority/LowIncome")
+
+
+
+get_first_priority=function(mydata,ctries=NULL,shocks,lowerbound=0,path=NULL){
+  #' @title plot time series of priorities shock
+  #' @describeIn ggplot figure showing the first priority for 
+  #' each year
+  #' @param mydata the tf.idf database 
+  #' @param ctry the country of interest
+  #' @param shocks a vector with the name of the shock of interest (from lexicon() 
+  #' categories)
+  #' @param lowerbound the threshold value for the tf.idf to be considered
+  #' as a crisis
+  #' @param path the path of the directory to save the figures
+  #' 
+  #' @return ggplot object
+  #' @author Umberto collodel
+  #' @export
+  
+  cond_mean=function(x){
+    mean(ifelse(x<=lowerbound,NA,x),na.rm=T)
+  }
+  
+ 
+   dt=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
+    group_by(year)%>%
+    summarise_at(vars(shocks),cond_mean) %>%
+    gather(key="shock",value="value",-c("year")) %>% ungroup() %>%
+    group_by(year) %>%
+    mutate(max_value=max(value,na.rm=T)) %>%
+    mutate(tot_value=round(max_value/sum(value,na.rm=T)*100,2)) %>%
+    filter(max_value==value) %>%
+    arrange(-year) %>% filter(year>1945) %>%
+    mutate(shock_1=ifelse(year %% 2==1,"",shock),
+           mylabel1=ifelse(year %% 2==1,"",paste0(gsub("_"," ",shock))),
+           mylabel2=ifelse(year %% 2==0,"",paste0(gsub("_"," ",shock))),
+           myprioritylabel1=ifelse(year %% 2==1,"",paste0(" (",tot_value," %)")),
+           myprioritylabel2=ifelse(year %% 2==0,"",paste0(" (",tot_value," %)")),
+           myyearlabel1=ifelse(year %% 2==1,"",as.character(year)),
+           myyearlabel2=ifelse(year %% 2==0,"",as.character(year)),
+           year1=ifelse(year %% 2==1,NA,20),
+           year2=ifelse(year %% 2==0,NA,-20)) %>% arrange(tot_value)
+  
+
+    myfig=ggplot(dt)+
+      geom_text(aes(x=year,y=year1,label=mylabel1,
+                    vjust="-0.2",hjust="left",color=mylabel1),
+                angle=60,size=3.5)+
+      geom_text(aes(x=year,y=year2,label=mylabel2,
+                    vjust="left",hjust="right",color=mylabel2),
+                angle=60,size=3.5)+
+      geom_text(aes(x=year,y=0,label=myyearlabel1,
+                    vjust=-0.4,hjust=-0.7),color="black",
+                angle=90,size=2.5)+
+      geom_text(aes(x=year,y=0,label=myyearlabel2,
+                    vjust=-0.4,hjust=1.5),color="black",
+                angle=90,size=2.5)+
+      #geom_hline(aes(yintercept=0))+
+      geom_line(aes(x=year,y=0),color="darkgrey")+
+      geom_col(aes(x=year,y=year1-1),width = 0.05,color="darkgrey")+
+      geom_col(aes(x=year,y=year2+1),width = 0.05,color="darkgrey")+
+      scale_color_grey()+
+      theme_minimal()+
+      labs(y=NULL,
+           x=NULL,
+           title=NULL)+
+      ylim(c(-70,70))+
+      xlim(c(1940,2030))+
+      scale_fill_grey()+
+      theme(panel.grid.minor.y = element_blank(),
+            panel.grid.major.y = element_blank(),
+            axis.text.x = element_text(size=11),
+            axis.title.x = element_text(size = 11),
+            axis.title.y = element_text(size=11),
+            axis.text.y = element_blank(),
+            plot.title=element_text(face="bold",colour ="black",size=15, hjust =0.5),
+            plot.subtitle =element_text(size =7, hjust = 0.5),
+            legend.position="none",
+            legend.title = element_blank())
+    
+    myfig
+  if(!is.null(path)){
+    myfig + ggsave(filename=paste0("TS_priority_shocks",".png"),device = 'png',path=path)
+  }else{
+    myfig
+  }
+}  
+
 
 
