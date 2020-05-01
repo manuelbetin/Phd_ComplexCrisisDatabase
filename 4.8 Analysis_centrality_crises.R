@@ -141,6 +141,9 @@ corr_final %>%
 
 # Calculation eigencentrality by time bucket: -----
 
+corr_final <- final %>% 
+      modify_depth(2, ~ .x %>% select(vars_norm)) %>% 
+      modify_depth(2, ~ .x %>% cor(use = "complete.obs"))
 
 network <- corr_final %>% 
   modify_depth(2, ~ graph_from_adjacency_matrix(.x, mode = "undirected",diag = F, weighted = T))
@@ -179,6 +182,24 @@ centrality %>%
         scale_color_grey() +
         ylab("Eigencentrality"))
 
+
+centrality %>% 
+  map(~ .x) %>% 
+  map(~ bind_rows(.x, .id = "period")) %>% 
+  map(~ .x %>% group_by(category) %>% summarise(sum_eigen = sum(eigencentrality))) %>% 
+  map(~ .x %>% mutate(category = fct_reorder(category,sum_eigen))) %>% 
+  map(~ .x %>% ggplot(aes(category, sum_eigen)) +
+               geom_col(col = "white") +
+        theme_minimal() +
+        xlab("") +
+        coord_flip() +
+        theme(axis.text.x = element_text(size =14), axis.text.y = element_text(size = 14), 
+              axis.title.y = element_text(size = 14),
+              legend.title = element_blank()) +
+        scale_fill_grey() +
+        scale_color_grey() +
+        ylab("Eigencentrality")) 
+  
 # Interesting that for middle income it seems not stable over time. Investigate more on this:
 
 centrality %>% 
