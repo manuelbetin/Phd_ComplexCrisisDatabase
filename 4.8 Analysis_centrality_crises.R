@@ -1,8 +1,12 @@
 ################### Description: script to analyze how each crisis moves 
 ################### within the macroeconomic system during the last 70 years i.e. centrality of the shocks.
+################### Three issues to discuss: 
+################### 1)did the network become more complicated?
+################### 2)centrality 
 ################### 
 library(igraph)
 library(gganimate)
+library(networkD3)
 
 
 # Pre-process: ------
@@ -33,6 +37,7 @@ merge(classification)
 
 mydata_income <- income_groups %>% 
   map(~ mydata %>% filter(Income_group == .x)) 
+
 
 names(mydata_income) <- income_groups
 
@@ -116,9 +121,59 @@ corr <- mydata%>%
   map(~ .x %>% select(vars_norm)) %>% 
   map(~ .x %>% cor(use = "complete.obs"))
 
-corr_final <- final %>%  
-  modify_depth(2, ~ .x %>% select(vars_norm)) %>% 
-  modify_depth(2, ~ .x %>% cor(use = "complete.obs"))
+
+set_threshold <- function(x,min_cor = 0.2){
+  ifelse(x > min_cor, x, 0)
+}
+
+vector_min_cor <- c(0.2,0.3,0.4)
+
+corr_final <- vector_min_cor %>% 
+  map(function(y){
+    final %>%  
+    modify_depth(2, ~ .x %>% select(vars_norm)) %>% 
+    modify_depth(2, ~ .x %>% cor(use = "complete.obs")) %>% 
+    modify_depth(2, ~ .x[lower.tri(.x, diag = F)]) %>% 
+    modify_depth(2, ~ data.frame(links = .x) %>% mutate_all(set_threshold,y) %>% filter(links != 0)) %>% 
+    modify_depth(2, ~ .x %>% count()) %>% 
+    map(~ bind_rows(.x,.id = "period")) %>% 
+    bind_rows(.id = "group")}
+    ) %>% 
+  map2(vector_min_cor, ~ .x %>% mutate(min_cor = .y)) %>% 
+  bind_rows()
+  
+  
+
+corr_final %>%
+  filter(min_cor == 0.2) %>% 
+  ggplot(aes(period, n, col = group, group = 1)) +
+  geom_line() +
+  facet_wrap(~ group) +
+  theme_minimal() +
+  scale_color_grey() +
+  xlab("") +
+  ylab("Number of edges") +
+  theme(legend.position = "none", 
+        axis.text=element_text(size=14), axis.text.x = element_text(size =14,angle=90),
+        axis.title.y = element_text(size=14),
+        strip.text = element_text(face="bold", size=14))
+  
+
+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Complexity/Evolution/complexity_evolution.png",
+       dpi = "retina")
+
+
+
+# Table
+
+
+corr_final %>% 
+  spread("period","n") %>% 
+  rename(`Income group` = group, `Min. Corr.` = min_cor) %>% 
+  stargazer(summary = F, out = "../Betin_Collodel/2. Text mining IMF_data/output/tables/Complexity/Evolution/complexity_evolution.tex")
+
+# Table 
+
 
 
 
@@ -128,6 +183,13 @@ corr_final <- final %>%
 network <- corr_final %>% 
   modify_depth(2, ~ graph_from_adjacency_matrix(.x, mode = "undirected",diag = F, weighted = T))
 
+
+network_plot <- network %>% 
+  modify_depth(2, ~ plot(.x))
+
+  
+  
+  
 
 centrality <- network %>% 
   modify_depth(2, ~ eigen_centrality(.x)$vector) %>% 
@@ -141,9 +203,39 @@ centrality <- network %>%
 
 # Let's try to do it similar to Manu's intensity:
 
- 
+centrality %>% 
+  map(~ .x) %>% 
+  map(~ bind_rows(.x, .id = "period")) %>% 
+  map(~ .x %>% 
+        ggplot(aes(fill=period, y=eigencentrality, x=category)) + 
+        geom_bar(position="stack", stat="identity", col = "black", alpha = 0.9) +
+        theme_minimal() +
+        theme(axis.text.x = element_text(size =14,angle=90), axis.text.y = element_text(size = 14), 
+        axis.title.y = element_text(size = 14),
+        legend.title = element_blank()) +
+        scale_fill_grey() +
+        scale_color_grey() +
+        ylab("Eigencentrality"))
 
+# Interesting that for middle income it seems not stable over time. Investigate more on this:
 
+centrality %>% 
+  map(~ .x) %>% 
+  map(~ bind_rows(.x, .id = "period")) %>% 
+  map(~ .x %>% group_by(category) %>% summarise(sum_eigen =sum(eigencentrality))) %>% 
+  bind_rows(.id = "Income group") %>% 
+  ggplot(aes(x = sum_eigen, fill = `Income group`, alpha = 0.5)) +
+  geom_density() +
+  theme_minimal()
+  
+
+centrality %>% 
+  map(~ .x) %>% 
+  map(~ bind_rows(.x, .id = "period")) %>% 
+  map(~ .x %>% group_by(category) %>% summarise(sum_eigen =sum(eigencentrality))) %>% 
+  bind_rows(.id = "Income group") %>% 
+  group_by(`Income group`) %>% 
+  summarise(stability = mean(sum_eigen, na.rm = T))
 
 # Same thing with animation:
 
