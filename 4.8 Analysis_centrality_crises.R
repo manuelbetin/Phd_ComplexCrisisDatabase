@@ -54,7 +54,8 @@ buckets <- list(
   `2013:2020` = 2013:2020
 )
 
-# Nested list:
+# Lists:
+# List with elements time buckets dfs
 
 mydata <- mydata %>% mutate(bucket = case_when(year >= 1950 & year <= 1976 ~ "1950:1976",
                                          year >= 1976 & year <= 1992 ~ "1976:1992",
@@ -62,7 +63,8 @@ mydata <- mydata %>% mutate(bucket = case_when(year >= 1950 & year <= 1976 ~ "19
                                          year >= 2003 & year <= 2019 ~ "2003:2019"))
 
 mydata <- split(mydata,mydata$bucket)
-                  
+    
+# Nested list: first element income group, second time bucket
 
 final <- mydata_income %>% 
   map(~ .x %>% mutate(bucket = case_when(year >= 1950 & year <= 1976 ~ "1950:1976",
@@ -75,58 +77,19 @@ final <- mydata_income %>%
 
 
 
-# Creation different adjancies matrices: -----
+# Complexity of network over time and income group: -----
 
-# Regression lag-1 variable - first step, list with 4 buckets elements
-# For each bucket, each variable lagged and all other variables.
-
-reg <- buckets %>% 
-  map(~ mydata %>% filter(year %in% .x)) %>% 
-  map(~ .x %>% mutate_if(is.numeric,get_prob)) %>% 
-  map(~ .x %>% select(Epidemics:World_outcomes)) %>% 
-  map(~ .x %>% mutate_all(funs(lag = dplyr::lag(.,1)))) %>% 
-  map(~ .x %>% gather("lag","value", Epidemics_lag:World_outcomes_lag)) %>% 
-  map(~ split(.x,.x$lag)) %>% 
-  modify_depth(2, ~ .x %>% select(-lag)) 
-
-# We have to figure out how to regress each lagged variable on all others.
-
-
-reg[[1]] %>% 
-  map(function(x){
-    map(x, ~ lm(.x ~ value, x) %>% summary())
-  })
-
-
-reg[[2]] %>% 
-  map(function(x){
-    map(x, ~ lm(.x ~ value, x))
-  })
-
-
-reg[[3]] %>% 
-  map(function(x){
-    map(x, ~ lm(.x ~ value, x))
-  })
-
-
-reg[[4]] %>% 
-  map(function(x){
-    map(x, ~ lm(.x ~ value, x) %>% summary())
-  })
-
-# Correlation adjacency matrix:
-
-corr <- mydata%>% 
-  map(~ .x %>% select(vars_norm)) %>% 
-  map(~ .x %>% cor(use = "complete.obs"))
-
+# Set function - in correlation matrix exclude all values less than a minimum
 
 set_threshold <- function(x,min_cor = 0.2){
   ifelse(x > min_cor, x, 0)
 }
 
+# Param for vectorization over different minima - change at need
+
 vector_min_cor <- c(0.2,0.3,0.4)
+
+# Dataframe creation:
 
 corr_final <- vector_min_cor %>% 
   map(function(y){
@@ -142,7 +105,7 @@ corr_final <- vector_min_cor %>%
   map2(vector_min_cor, ~ .x %>% mutate(min_cor = .y)) %>% 
   bind_rows()
   
-  
+# Plot for a single value of minimum correlation:
 
 corr_final %>%
   filter(min_cor == 0.2) %>% 
@@ -164,7 +127,7 @@ ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Complexity/Evol
 
 
 
-# Table
+# Table:
 
 
 corr_final %>% 
@@ -172,7 +135,6 @@ corr_final %>%
   rename(`Income group` = group, `Min. Corr.` = min_cor) %>% 
   stargazer(summary = F, out = "../Betin_Collodel/2. Text mining IMF_data/output/tables/Complexity/Evolution/complexity_evolution.tex")
 
-# Table 
 
 
 
