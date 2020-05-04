@@ -53,7 +53,8 @@ vars_norm <- vars_select(names(mydata), ends_with('norm'))
 mydata <- mydata %>% mutate(bucket = case_when(year >= 1950 & year <= 1976 ~ "1950:1976",
                                          year >= 1976 & year <= 1992 ~ "1976:1992",
                                          year >= 1992 & year <= 2003 ~ "1992:2003",
-                                         year >= 2003 & year <= 2019 ~ "2003:2019"))
+                                         year >= 2003 & year <= 2013 ~ "2003:2012",
+                                         year >= 2013 & year <= 2019 ~ "2013:2019"))
 
 mydata <- split(mydata,mydata$bucket)
     
@@ -70,7 +71,8 @@ final <- mydata_income %>%
 
 
 
-# Complexity of network over time and income group: -----
+# Network evolution general characteristics: -----
+###### Degree - number of links in the network
 
 # Set function - in correlation matrix exclude all values less than a minimum
 
@@ -119,7 +121,6 @@ ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Complexity/Evol
        dpi = "retina")
 
 
-
 # Table:
 
 
@@ -127,6 +128,16 @@ corr_final %>%
   spread("period","n") %>% 
   rename(`Income group` = group, `Min. Corr.` = min_cor) %>% 
   stargazer(summary = F, out = "../Betin_Collodel/2. Text mining IMF_data/output/tables/Complexity/Evolution/complexity_evolution.tex")
+
+
+#### Average path length
+
+corr_final <- final %>%  
+      modify_depth(2, ~ .x %>% select(vars_norm)) %>% 
+      modify_depth(2, ~ .x %>% cor(use = "complete.obs")) %>% 
+      modify_depth(2, ~ data.frame(links = .x) %>% mutate_all(set_threshold) %>% as.matrix()) %>% 
+      modify_depth(2, ~ graph_from_adjacency_matrix(.x)) %>%
+      modify_depth(2, ~ mean_distance(.x, directed = F))
 
 
 
@@ -156,14 +167,15 @@ centrality %>%
         ylab("") +
         xlab("") +
         labs(fill = "Eigencentrality") +
-        theme(axis.text.x = element_text(size =14,angle=90), axis.text.y = element_text(size = 14), 
+        theme(axis.text.x = element_text(size =14,angle=90, vjust=0.5, hjust=1), axis.text.y = element_text(size = 14), 
               axis.title.y = element_text(size = 14),
-              legend.position = "bottom") +
+              legend.position = "none") +
         scale_fill_gradient(low = "white",high = "red") +
-        guides(alpha = F)
-
+        coord_fixed(ratio = .6)
 
 ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Complexity/Eigencentrality/Eigencentrality_All.png",
+       height = 4,
+       width = 5,
        dpi = "retina")
 
 # Calculation eigencentrality by income group and time bucket: -----
@@ -192,24 +204,31 @@ heatmap_eigencentrality <- centrality %>%
   map(~ bind_rows(.x, .id = "period")) %>% 
   map(~ .x %>% 
         ggplot(aes(period, category, fill= eigencentrality, alpha = eigencentrality)) +
-        geom_tile() +
+        geom_tile(col = "black") +
         theme_minimal() +
         ylab("") +
         xlab("") +
         labs(fill = "Eigencentrality") +
-        theme(axis.text.x = element_text(size =14,angle=90), axis.text.y = element_text(size = 14), 
+        theme(axis.text.x = element_text(size =14,angle=90,vjust=0.5, hjust=1), axis.text.y = element_text(size = 14), 
               axis.title.y = element_text(size = 14),
-              legend.position = "bottom") +
+              legend.position = "none") +
         scale_fill_gradient(low = "white",high = "red") +
-        guides(alpha = F)
+        coord_fixed(ratio = .6)
 )
 
 heatmap_eigencentrality %>% 
   map2(names(heatmap_eigencentrality), ~ ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Complexity/Eigencentrality/Eigencentrality_",.y,".png"),
                plot = .x,
+               height = 4,
+               width = 5,
                dpi = "retina"))
 
 
+
+# Distribution network. ranking is not the same with highly distributed network and uniform one.
+# Unfortunately, the analogy of snapshots to a motion picture also reveals the main difficulty with this approach: the time steps employed are very rarely suggested by the network and are instead arbitrary. 
+# Using extremely small time steps between each snapshot preserves resolution, but may actually obscure wider trends which only become visible over longer timescales. 
+# Conversely, using larger timescales loses the temporal order of events within each snapshot
   
   
 # Interesting that for middle income it seems not stable over time. Investigate more on this:
