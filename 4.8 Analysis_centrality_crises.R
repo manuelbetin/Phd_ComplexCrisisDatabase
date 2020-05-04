@@ -42,20 +42,13 @@ mydata_income <- income_groups %>%
 names(mydata_income) <- income_groups
 
 
-# Select normalized variable and create time buckets
+# Select normalized variable 
 
 vars_norm <- vars_select(names(mydata), ends_with('norm'))
 
-buckets <- list(
-  `1950:1976` = 1950:1976, 
-  `1976:1992` = 1976:1992,
-  `1992:2003` = 1992:2003,
-  `2003:2013` = 2003:2013,
-  `2013:2020` = 2013:2020
-)
 
 # Lists:
-# List with elements time buckets dfs
+# All countries, list with elements time buckets dfs
 
 mydata <- mydata %>% mutate(bucket = case_when(year >= 1950 & year <= 1976 ~ "1950:1976",
                                          year >= 1976 & year <= 1992 ~ "1976:1992",
@@ -137,9 +130,43 @@ corr_final %>%
 
 
 
+# Calculation eigencentrslity by time bucket (all countries): ------
+
+network <- mydata %>% 
+  map(~ .x %>% select(vars_norm)) %>% 
+  map(~ .x %>% cor(use = "complete.obs")) %>% 
+  map(~ .x %>% graph_from_adjacency_matrix(mode = "undirected", diag = F, weighted = T))
 
 
-# Calculation eigencentrality by time bucket: -----
+centrality <- network %>%
+  map(~ eigen_centrality(.x)$vector) %>% 
+  map(~ .x %>% stack()) %>% 
+  map(~ .x %>% rename(eigencentrality = values, category = ind)) %>% 
+  map(~ .x %>% select(category, everything())) %>% 
+  map(~ .x %>% arrange(-eigencentrality)) %>% 
+  map(~ .x %>% mutate(category = str_remove(category,"_norm"))) %>% 
+  map(~ .x %>% mutate(category = str_replace_all(category,"_"," ")))
+
+
+centrality %>% 
+  bind_rows(.id = "period") %>% 
+        ggplot(aes(period, category, fill= eigencentrality, alpha = eigencentrality)) +
+        geom_tile(col = "black") +
+        theme_minimal() +
+        ylab("") +
+        xlab("") +
+        labs(fill = "Eigencentrality") +
+        theme(axis.text.x = element_text(size =14,angle=90), axis.text.y = element_text(size = 14), 
+              axis.title.y = element_text(size = 14),
+              legend.position = "bottom") +
+        scale_fill_gradient(low = "white",high = "red") +
+        guides(alpha = F)
+
+
+ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Complexity/Eigencentrality/Eigencentrality_All.png",
+       dpi = "retina")
+
+# Calculation eigencentrality by income group and time bucket: -----
 
 corr_final <- final %>% 
       modify_depth(2, ~ .x %>% select(vars_norm)) %>% 
@@ -147,14 +174,6 @@ corr_final <- final %>%
 
 network <- corr_final %>% 
   modify_depth(2, ~ graph_from_adjacency_matrix(.x, mode = "undirected",diag = F, weighted = T))
-
-
-network_plot <- network %>% 
-  modify_depth(2, ~ plot(.x))
-
-  
-  
-  
 
 centrality <- network %>% 
   modify_depth(2, ~ eigen_centrality(.x)$vector) %>% 
@@ -166,39 +185,32 @@ centrality <- network %>%
   modify_depth(2, ~ .x %>% mutate(category = str_replace_all(category,"_"," ")))
 
 
-# Let's try to do it similar to Manu's intensity:
+# Heatmap plot:
 
-centrality %>% 
+heatmap_eigencentrality <- centrality %>% 
   map(~ .x) %>% 
   map(~ bind_rows(.x, .id = "period")) %>% 
   map(~ .x %>% 
-        ggplot(aes(fill=period, y=eigencentrality, x=category)) + 
-        geom_bar(position="stack", stat="identity", col = "black", alpha = 0.9) +
+        ggplot(aes(period, category, fill= eigencentrality, alpha = eigencentrality)) +
+        geom_tile() +
         theme_minimal() +
-        theme(axis.text.x = element_text(size =14,angle=90), axis.text.y = element_text(size = 14), 
-        axis.title.y = element_text(size = 14),
-        legend.title = element_blank()) +
-        scale_fill_grey() +
-        scale_color_grey() +
-        ylab("Eigencentrality"))
-
-
-centrality %>% 
-  map(~ .x) %>% 
-  map(~ bind_rows(.x, .id = "period")) %>% 
-  map(~ .x %>% group_by(category) %>% summarise(sum_eigen = sum(eigencentrality))) %>% 
-  map(~ .x %>% mutate(category = fct_reorder(category,sum_eigen))) %>% 
-  map(~ .x %>% ggplot(aes(category, sum_eigen)) +
-               geom_col(col = "white") +
-        theme_minimal() +
+        ylab("") +
         xlab("") +
-        coord_flip() +
-        theme(axis.text.x = element_text(size =14), axis.text.y = element_text(size = 14), 
+        labs(fill = "Eigencentrality") +
+        theme(axis.text.x = element_text(size =14,angle=90), axis.text.y = element_text(size = 14), 
               axis.title.y = element_text(size = 14),
-              legend.title = element_blank()) +
-        scale_fill_grey() +
-        scale_color_grey() +
-        ylab("Eigencentrality")) 
+              legend.position = "bottom") +
+        scale_fill_gradient(low = "white",high = "red") +
+        guides(alpha = F)
+)
+
+heatmap_eigencentrality %>% 
+  map2(names(heatmap_eigencentrality), ~ ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Complexity/Eigencentrality/Eigencentrality_",.y,".png"),
+               plot = .x,
+               dpi = "retina"))
+
+
+  
   
 # Interesting that for middle income it seems not stable over time. Investigate more on this:
 
