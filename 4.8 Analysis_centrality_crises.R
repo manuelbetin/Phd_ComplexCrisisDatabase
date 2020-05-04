@@ -132,12 +132,41 @@ corr_final %>%
 
 #### Average path length
 
-corr_final <- final %>%  
+avg_path_length <- vector_min_cor %>% 
+  map(function(y){
+  final %>%  
       modify_depth(2, ~ .x %>% select(vars_norm)) %>% 
       modify_depth(2, ~ .x %>% cor(use = "complete.obs")) %>% 
-      modify_depth(2, ~ data.frame(links = .x) %>% mutate_all(set_threshold) %>% as.matrix()) %>% 
-      modify_depth(2, ~ graph_from_adjacency_matrix(.x)) %>%
-      modify_depth(2, ~ mean_distance(.x, directed = F))
+      modify_depth(2, ~ ifelse(.x < y, 0, .x)) %>% 
+      modify_depth(2, ~ graph_from_adjacency_matrix(.x, mode = "undirected", diag = F, weighted = T)) %>%
+      modify_depth(2, ~ mean_distance(.x, unconnected = F)) %>% 
+      map(~ bind_rows(.x)) %>% 
+      bind_rows(.id = "Income group")}) %>% 
+  map2(vector_min_cor, ~ .x %>% mutate(min_cor = .y)) %>% 
+  bind_rows()
+
+avg_path_length %>% 
+  mutate_if(is.double, round, 2) %>%
+  rename(`Min. Corr` = min_cor) %>% 
+  select(`Income group`,`Min. Corr`,everything()) %>% 
+  arrange(`Income group`) %>% 
+  stargazer(summary = F, out = "../Betin_Collodel/2. Text mining IMF_data/output/tables/Complexity/Evolution/average_path_length.tex")
+
+#### Degree distribution
+
+degree_distribution <- final %>%  
+  modify_depth(2, ~ .x %>% select(vars_norm)) %>% 
+  modify_depth(2, ~ .x %>% cor(use = "complete.obs")) %>% 
+  modify_depth(2, ~ hist(.x[.x>0 & .x <1], plot = F)$counts) %>% 
+  modify_depth(2, ~ kurtosis(.x)) %>% 
+  map(~ bind_rows(.x)) %>% 
+  bind_rows(.id = "Income group")
+  
+degree_distribution %>% 
+  mutate_if(is.double, round, 2) %>% 
+  arrange(`Income group`) %>% 
+  stargazer(summary = F, out = "../Betin_Collodel/2. Text mining IMF_data/output/tables/Complexity/Evolution/degree_distribution.tex")
+
 
 
 
