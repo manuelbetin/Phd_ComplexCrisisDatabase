@@ -5,7 +5,8 @@
 mydata <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData") %>% 
   mutate(year = as.numeric(year)) %>% 
   group_by(ISO3_Code, year) %>%
-  summarise_if(is.double, mean, na.rm = TRUE)
+  summarise_if(is.double, mean, na.rm = TRUE) %>%
+  filter(year<2020)
 
 library(forcats)
 
@@ -32,6 +33,7 @@ get_probability=function(mydata,shocks,period_range=c(1960,2019),lowerbound=0,pa
   get_prob <- function(x){
     ifelse(x > lowerbound,1,0)
   }
+  
   
  myfig=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
     mutate_at(vars(shocks), get_prob) %>% 
@@ -79,7 +81,6 @@ get_probability(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
               shocks,period_range=c(1960,2020),path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/LowIncome")
 
 
-
 # Intensity of events ####
 
 get_intensity=function(mydata,shocks,lowerbound=0,path=NULL){
@@ -102,20 +103,21 @@ get_intensity=function(mydata,shocks,lowerbound=0,path=NULL){
     mean(ifelse(x<=lowerbound,NA,x),na.rm=T)
   }
   
-  buckets=list("2013-2020"=c(2013,2020),
-               "2003-2013"=c(2003,2013),
-               "1992-2003"=c(1992,2003),
-               "1976-1992"=c(1976,1992),
-               "1950-1976"=c(1950,1976))
+  # buckets=list("2013-2020"=c(2013,2020),
+  #              "2003-2013"=c(2003,2013),
+  #              "1992-2003"=c(1992,2003),
+  #              "1976-1992"=c(1976,1992),
+  #              "1950-1976"=c(1950,1976))
+  # 
+  buckets=list("1950-2020"=c(1950,2020))
   
  data= lapply(buckets,function(x){
     data1=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
       filter(year >= x[1] & year<=x[2]) %>% ungroup()%>%
       summarise_at(vars(shocks),cond_mean) %>%
       gather(key="shock") %>% mutate(shock = fct_reorder(shock,value))%>%
-      mutate(value=value/sum(value),
+      mutate(value=value/sum(value,na.rm=T),
              bucket=paste0(x[1],"-",x[2])) #%>%
-    
   })
  data=do.call(rbind,data)
   
@@ -325,12 +327,63 @@ stargazer::stargazer(title="Intensity: Summary of priorities"
 
 # Duration of events ####
 
-shocks=c("Sovereign_default","Natural_disaster",'Commodity_crisis','Political_crisis','Banking_crisis',
+shocks=c("Soft_recession","Sovereign_default","Natural_disaster",'Commodity_crisis','Political_crisis','Banking_crisis',
          'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
-         'Expectations','Balance_payment_crisis',"Epidemics","Migration",
+         'Expectations','Balance_payment_crisis',"Epidemics","Migration","Housing_crisis",
          'Severe_recession',"Currency_crisis_severe","Wars","Social_crisis")
 
-get_duration=function(mydata,shocks,lowerbound=0,path=NULL){
+get_duration=function(mydata,shocks){
+  ctries=mydata$ISO3_Code %>% unique()
+  all=lapply(ctries,function(ctry){
+   # var="Sovereign_default"
+    dt=lapply(shocks,function(var){
+      dt=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>% 
+        filter(ISO3_Code==ctry & year>=1945) %>% ungroup() %>%
+        group_by(year)%>%
+        summarise_at(vars(shocks),cond_mean) %>%
+        mutate_at(vars(shocks),get_prob)%>% dplyr::select(year,var) %>%
+        mutate(var:=ifelse(is.na(get(var)),0,get(var))) %>%
+        arrange(year) 
+      dt=dt %>% na.omit()
+      epi=0
+      dt$episode=0
+      count=0
+      for(i in 1:(dim(dt)[1]-1)){
+        if(i+count<dim(dt)[1]-1){
+          i=i+count
+          if(dt[[i,var]]>0){
+            count=1
+            epi=epi+1
+            dt[i,"episode"]=epi
+            dt[i,var]=count
+            if(i+count<dim(dt)[1]-1){
+              while(dt[[ifelse(i+count>=dim(dt)[1],dim(dt)[1],i+count),var]]==1 & count<20){
+                count=count+1
+                dt[i,var]=count
+                dt[i,"episode"]=epi
+              }
+            }
+          }
+        }
+      }
+      dt=dt %>% filter(episode>0)
+      dt=dt[,1:2]
+      summary(dt[,var],na.rm=T) %>% data.frame()
+    })
+    names(dt)=shocks
+    dt=do.call(rbind,dt) %>% dplyr::select(shocks=Var2,stat=Freq) %>%
+      mutate(statistic=substr(stat,1,7),
+                   stat=as.numeric(substr(stat,9,13)))
+    dt$ISO3_Code=ctry
+    print(ctry)
+    dt
+  })
+  all=do.call(rbind,all)
+  all=data.frame(all)
+  return(all)
+}
+
+get_duration_fig=function(mydata,shocks,lowerbound=0,path=NULL){
   #' @title barplot of duration of crisis
   #' @description ggplot figure showing the average duration 
   #' of episodes
@@ -345,60 +398,28 @@ get_duration=function(mydata,shocks,lowerbound=0,path=NULL){
   #' @author Umberto collodel
   #' @export
   
-  cond_mean=function(x){
-    mean(ifelse(x<=lowerbound,NA,x),na.rm=T)
-  }
+  avg_duration=get_duration(mydata,shocks)
   
-  get_prob <- function(x){
-    ifelse(x > lowerbound,1,0)
-  }
-  
-  dt=lapply(shocks,function(var){
-    mydt=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>% mutate(year=as.Date(paste0(year,"-01","-01",format="%Y-%m-%d"))) %>%
-      group_by(ISO3_Code,year)%>%
-      summarise_at(vars(shocks),cond_mean) %>%
-      mutate_at(vars(shocks),get_prob)%>% dplyr::select(year,var) %>%
-      mutate(var:=ifelse(is.na(get(var)),0,get(var))) %>%
-      arrange(ISO3_Code,var, year) %>% 
-      group_by(ISO3_Code,var) %>% na.omit() %>%
-      mutate(previous = lag(year, 1),
-             duration = year - lag(year, 1),
-             duration=round(duration/365,0)) %>%
-      filter(var==1) %>% ungroup() %>% #filter(duration<=20) %>%
-      summarize(!!var:=round(mean(duration,na.rm=T),1),
-                !!paste0(var,"_median"):=round(median(duration,na.rm=T),1),
-                !!paste0(var,"_min"):=round(min(duration,na.rm=T),1),
-                !!paste0(var,"_perc95"):=round(quantile(duration,p=0.95,na.rm=T),1),
-                !!paste0(var,"_max"):=round(max(duration,na.rm=T),1))
-    mydt=mydt %>% t()
-    colnames(mydt)=var
-    rownames(mydt)=c("mean_duration","median_duration","min_duration","Perc_95_duration","max_duration")
-    mydt
-  })
-  names(dt)=shocks
-  
-  dt2=do.call(cbind,dt)
-  dt2=dt2 %>%t()%>% data.frame()
-  dt2$shocks=rownames(dt2)
-  dt2$duration=dt2$.
-  dt2=dt2%>% mutate(mean_duration = as.numeric(gsub(" days","",as.character(mean_duration))),
-                       median_duration = as.numeric(gsub(" days","",as.character(median_duration))),
-                       min_duration = as.numeric(gsub(" days","",as.character(min_duration))),
-                       Perc_95_duration = as.numeric(gsub(" days","",as.character(Perc_95_duration))),
-                       max_duration = as.numeric(gsub(" days","",as.character(max_duration))),
-                    shocks = fct_reorder(shocks,mean_duration))
-  
-  myfig=ggplot(dt2)+
-    geom_errorbar(aes(x=shocks,ymin = min_duration, ymax = Perc_95_duration),color="grey")+
-    #geom_bar(stat="identity",aes(x=shocks,y=mean_duration),fill="darkgrey",col = "black",alpha=0.6)+
-    geom_point(aes(x=shocks,y=mean_duration),fill = "red",alpha=0.6,shape=21)+
-    geom_text(aes(x=shocks,y=Perc_95_duration,label=Perc_95_duration),color = "grey",alpha=1,vjust=-1)+
-    geom_text(aes(x=shocks,y=mean_duration,label=mean_duration),color = "black",alpha=1,vjust=-1)+
+  avg_dur=avg_duration %>%
+    group_by(shocks,statistic) %>%
+    summarize(mean=mean(stat,na.rm=T)) %>%
+    spread(key=statistic,value=mean) %>%
+    ungroup()
+  colnames(avg_dur)=c("shocks","p25","p75","max","mean","median","min")
+  avg_dur=avg_dur%>% ungroup() %>% mutate(shocks = fct_reorder(shocks,mean)) 
+
+  myfig=ggplot(avg_dur)+
+    geom_errorbar(aes(x=shocks,ymin = min, ymax = max),color="grey")+
+    #geom_bar(stat="identity",aes(x=shocks,y=mean),fill="darkgrey",col = "black",alpha=0.6)+
+    geom_point(aes(x=shocks,y=mean),fill = "red",alpha=0.6,shape=21)+
+    geom_text(aes(x=shocks,y=max,label=round(max,1)),color = "grey",alpha=1,vjust=-1)+
+    geom_text(aes(x=shocks,y=min,label=round(min,1)),color = "grey",alpha=1,vjust=1)+
+    geom_text(aes(x=shocks,y=mean,label=round(mean,1)),color = "black",alpha=1,vjust=-1)+
     theme_bw()+
     labs(y="N. years",
          x=NULL,
          title=NULL)+
-    lims(y=c(-1,max(dt2$Perc_95_duration)+5))+
+    lims(y=c(-1,max(avg_dur$max)+5))+
     theme(panel.grid.minor = element_blank(),
           axis.text.x = element_text(size =11,angle=90),
           axis.title.x = element_text(size = 11),
@@ -415,21 +436,94 @@ get_duration=function(mydata,shocks,lowerbound=0,path=NULL){
   }
 }  
 
-
-get_duration(mydata,shocks=shocks,
+get_duration_fig(mydata,shocks=shocks,
                    path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Duration")
 
 ctries=ctry_groups %>% filter(Income_group==" High income")
-get_duration(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
+get_duration_fig(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
                    path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Duration/HighIncome")
 
 ctries=ctry_groups %>% filter(Income_group==" Upper middle income")
-get_duration(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
+get_duration_fig(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
                    path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Duration/MiddleIncome")
 
 ctries=ctry_groups %>% filter(Income_group %in% c(" Low income"," Lower middle income"))
-get_duration(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
+get_duration_fig(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
                    path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Duration/LowIncome")
 
 
+# summary table with all dimensions
 
+severity_summary_table=function(mydata,ctry="FRA"){
+  
+  get_prob <- function(x){
+    ifelse(x > lowerbound,1,0)
+  }
+  
+  probability=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
+    filter(ISO3_Code%in%ctry& year>=1945) %>%
+    filter(year >= period_range[1] & year<=period_range[2]) %>% ungroup()%>%
+    mutate_at(vars(shocks), get_prob) %>% 
+    summarise_at(vars(shocks),mean,na.rm=T) %>%
+    gather(key="shocks") %>% dplyr::rename(probability=value)
+  
+  cond_mean=function(x){
+    mean(ifelse(x<lowerbound,NA,x),na.rm=T)
+  }
+  
+  intensity=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
+    filter(ISO3_Code%in%ctry& year>=1945) %>% ungroup() %>%
+    summarise_at(vars(shocks),cond_mean) %>%
+    gather(key="shocks")%>% dplyr::rename(intensity=value) %>%
+    mutate(intensity=as.numeric(intensity),
+           priority=intensity/sum(intensity,na.rm=T))
+  
+  duration=get_duration(mydata %>% filter(ISO3_Code%in%ctry),shocks)
+  duration=duration %>%
+    group_by(shocks,statistic) %>%
+    summarize(mean=mean(stat,na.rm=T)) %>%
+    spread(key=statistic,value=mean) %>%
+    ungroup()
+  colnames(duration)=c("shocks","p25","p75","max","mean","median","min")
+  duration=duration%>% ungroup() %>%
+    dplyr::select(shocks,duration=mean) %>%
+    mutate(shocks=str_remove_all(shocks," "))
+  
+  summary_crisis=probability %>% left_join(intensity,by="shocks")
+  summary_crisis=summary_crisis %>% left_join(duration,by="shocks")
+  
+  summary_crisis=summary_crisis %>% mutate(probability_rank=rank(probability),
+                                           intensity_rank=rank(intensity),
+                                           duration_rank=rank(duration),
+                                           area=probability_rank*intensity_rank*duration_rank) %>%
+    arrange(-area)
+  
+  return(summary_crisis)
+}
+
+ctries=mydata$ISO3_Code %>% unique()
+severity=severity_summary_table(mydata,ctries)
+
+severity=severity %>% mutate(probability=round(probability,2),
+                             priority=round(priority,2),
+                             duration=round(duration,2)) %>% 
+  dplyr::select(-intensity) %>% rename(persistence=duration)
+
+stargazer::stargazer(title="Severity: summary table"
+                     , severity
+                     , type="latex"
+                     , digits=2
+                     , no.space=T
+                     , align=T
+                     , summary=F
+                     , rownames=T
+                     , table.placement = "H"
+                     , column.sep.width="3pt"
+                     , font.size = "footnotesize"
+                     , out="../Betin_Collodel/2. Text mining IMF_data/output/figures/severity/Severity_summary.tex"
+)
+
+
+a=severity_summary_table(mydata,"ARG")
+a=severity_summary_table(mydata,"FRA")
+a=severity_summary_table(mydata,"USA")

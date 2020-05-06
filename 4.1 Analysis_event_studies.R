@@ -147,7 +147,6 @@ var="Housing_crisis"
 get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
 
 
-
 # Sovereign default in argentina
 ctry="ARG"
 var="Sovereign_default"
@@ -159,6 +158,11 @@ ctry="GRC"
 var="Sovereign_default"
 get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
 
+
+#Sovereign default in Greece
+ctry="FRA"
+var="Social_crisis"
+get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
 
 
 
