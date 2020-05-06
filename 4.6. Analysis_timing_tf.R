@@ -11,6 +11,11 @@ mydata <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged
 library(forcats)
 
 
+shocks=c("Soft_recession","Sovereign_default","Natural_disaster",'Commodity_crisis','Political_crisis','Banking_crisis',
+         'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
+         'Expectations','Balance_payment_crisis',"Epidemics","Migration","Housing_crisis",
+         'Severe_recession',"Currency_crisis_severe","Wars","Social_crisis")
+
 # Probability of events  ####
 get_probability=function(mydata,shocks,period_range=c(1960,2019),lowerbound=0,path=NULL){
   #' @title plot event study of crisis by country
@@ -34,16 +39,16 @@ get_probability=function(mydata,shocks,period_range=c(1960,2019),lowerbound=0,pa
     ifelse(x > lowerbound,1,0)
   }
   
-  
  myfig=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
+   filter(year >= period_range[1] & year<=period_range[2]) %>% ungroup()%>%
     mutate_at(vars(shocks), get_prob) %>% 
-    filter(year >= period_range[1] & year<=period_range[2]) %>% ungroup()%>%
     summarise_at(vars(shocks),mean,na.rm=T) %>%
     gather(key="shock") %>% mutate(shock = fct_reorder(shock,value))%>%
     ggplot() +
     geom_bar(stat="identity",aes(x=shock,y=value),fill="darkgrey",col = "black",alpha=0.6) +
+    geom_text(aes(x=shocks,y=value,label=round(value,2)),color = "grey",alpha=1,vjust=-1)+
     theme_bw()+
-    labs(y="Share of countries (%)",
+    labs(y="Share of countries",
          x=NULL,
          title=NULL)+
    lims(y=c(0,1))+
@@ -103,13 +108,13 @@ get_intensity=function(mydata,shocks,lowerbound=0,path=NULL){
     mean(ifelse(x<=lowerbound,NA,x),na.rm=T)
   }
   
-  # buckets=list("2013-2020"=c(2013,2020),
-  #              "2003-2013"=c(2003,2013),
-  #              "1992-2003"=c(1992,2003),
-  #              "1976-1992"=c(1976,1992),
-  #              "1950-1976"=c(1950,1976))
-  # 
-  buckets=list("1950-2020"=c(1950,2020))
+  buckets=list("2013-2020"=c(2013,2020),
+               "2003-2013"=c(2003,2013),
+               "1992-2003"=c(1992,2003),
+               "1976-1992"=c(1976,1992),
+               "1950-1976"=c(1950,1976))
+
+  #buckets=list("1950-2020"=c(1950,2020))
   
  data= lapply(buckets,function(x){
     data1=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
@@ -247,10 +252,10 @@ get_first_priority=function(mydata,shocks,lowerbound=0,path=NULL){
   }
 }  
 
-#"Sovereign_default",'Natural_disaster',
-shocks=c("Natural_disaster",'Commodity_crisis','Political_crisis','Banking_crisis',
+#excludes Sovereign_default
+shocks=c("Soft_recession","Natural_disaster",'Commodity_crisis','Political_crisis','Banking_crisis',
          'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
-         'Expectations','Balance_payment_crisis',"Epidemics","Migration",
+         'Expectations','Balance_payment_crisis',"Epidemics","Migration","Housing_crisis",
          'Severe_recession',"Currency_crisis_severe","Wars","Social_crisis")
 
 get_first_priority(mydata,shocks=shocks,
@@ -306,9 +311,9 @@ get_priority_table=function(mydata,shocks,lowerbound=0,path=NULL){
     return(dt)
 }
 
-shocks=c("Sovereign_default","Natural_disaster",'Commodity_crisis','Political_crisis','Banking_crisis',
+shocks=c("Soft_recession","Sovereign_default","Natural_disaster",'Commodity_crisis','Political_crisis','Banking_crisis',
          'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
-         'Expectations','Balance_payment_crisis',"Epidemics","Migration",
+         'Expectations','Balance_payment_crisis',"Epidemics","Migration","Housing_crisis",
          'Severe_recession',"Currency_crisis_severe","Wars","Social_crisis")
 
 stargazer::stargazer(title="Intensity: Summary of priorities"
@@ -383,6 +388,39 @@ get_duration=function(mydata,shocks){
   return(all)
 }
 
+
+duration_table=get_duration(mydata,shocks)
+
+avg_dur=duration_table %>%
+  group_by(shocks,statistic) %>%
+  summarize(mean=mean(stat,na.rm=T)) %>%
+  spread(key=statistic,value=mean) %>%
+  ungroup()
+colnames(avg_dur)=c("shocks","p25","p75","max","mean","median","min")
+avg_dur=avg_dur%>% ungroup() %>% mutate(shocks = fct_reorder(shocks,mean)) 
+avg_dur=avg_dur %>% dplyr::select(shocks,mean,min,p25,median,p75,max) %>% mutate(shocks=str_remove_all(shocks," "))
+avg_dur=avg_dur %>% mutate(mean=round(mean,2),
+                           min=round(min,2),
+                           p25=round(p25,2),
+                           median=round(median,2),
+                           p75=round(p75,2),
+                           max=round(max,2)) %>% arrange(-mean)
+
+stargazer::stargazer(title="Persistence: summary table"
+                     , avg_dur
+                     , type="latex"
+                     , digits=2
+                     , no.space=T
+                     , align=T
+                     , summary=F
+                     , rownames=T
+                     , table.placement = "H"
+                     , column.sep.width="3pt"
+                     , font.size = "footnotesize"
+                     , out="../Betin_Collodel/2. Text mining IMF_data/output/figures/duration/duration_summary.tex"
+)
+
+
 get_duration_fig=function(mydata,shocks,lowerbound=0,path=NULL){
   #' @title barplot of duration of crisis
   #' @description ggplot figure showing the average duration 
@@ -454,7 +492,7 @@ get_duration_fig(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
 
 # summary table with all dimensions
 
-severity_summary_table=function(mydata,ctry="FRA"){
+severity_summary_table=function(mydata,ctry="FRA",shocks){
   
   get_prob <- function(x){
     ifelse(x > lowerbound,1,0)
@@ -524,6 +562,30 @@ stargazer::stargazer(title="Severity: summary table"
 )
 
 
-a=severity_summary_table(mydata,"ARG")
+lapply(ctries,function(x){
+  severity_summary_table(mydata,x)
+  stargazer::stargazer(title=paste0("Severity: summary table ",x)
+                       , severity
+                       , type="latex"
+                       , digits=2
+                       , no.space=T
+                       , align=T
+                       , summary=F
+                       , rownames=T
+                       , table.placement = "H"
+                       , column.sep.width="3pt"
+                       , font.size = "footnotesize"
+                       , out=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/severity/Severity_summary_",x,".tex")
+  )
+  
+})
+
 a=severity_summary_table(mydata,"FRA")
 a=severity_summary_table(mydata,"USA")
+a=severity_summary_table(mydata,"MEX")
+
+
+
+
+
+
