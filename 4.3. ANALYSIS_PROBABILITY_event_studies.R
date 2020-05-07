@@ -76,39 +76,70 @@ get_timeserie=function(mydata,ctry,shocks,lowerbound=0,path=NULL){
   figs
 }
     
-# SARS and COVID19
-ctry="CHN"
+# SARS and COVID19 and malaria
+ctry=c("CHN","HTI")
 var="Epidemics"
-get_timeserie(mydata,ctry,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var))
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var)))
+
+footnote=c("Blue lines corresponds to the tf.idf index and measure the intensity of epidemics crisis in China and Haiti 
+           Grey shaded highligh positive tf.idf corresponding to the occurence of a epidemic crisis. China as recurrent
+           episodes of epidemics since 1995 with the SARS outbreak in 2003-2004, the respiratory syndrom in 2008 and
+           the recent COVID 19 outbreak. Haity has a long history of epidemics with severe episodes all along its history and 
+in particular the AIDS outbreak in the 1970s and the Cholera outbreak in 2009-2010.
+           ")
+
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Time series by country/",var,"/",var,"_footnote.tex"))
+
 
 # France and China social protests
 
 ctry=c("CHN","FRA")
 var="Social_crisis"
 ctry %>% 
-map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",.x)))
+map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var)))
+
+footnote=c("Blue lines corresponds to the tf.idf index and measure the intensity of Social crisis in France and China. 
+           Grey shaded highligh positive tf.idf corresponding to the occurence of a Social crisis. The highest social 
+           crisis of both countries occured in the recent period. The gilet jaune crisis in France generated a large 
+           spike in Dicember 2019. In China the Honk Kong protests appear as the major social event for China.")
+
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Time series by country/",var,"/",var,"_footnote.tex"))
 
 
 #Natural disasters in Haiti and Mexico
 ctry=c("HTI","MEX")
 var="Natural_disaster"
 ctry %>% 
-  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",.x)))
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var)))
 
 
 #Migration in COlombia, Germany, Italy and Lebanon
 ctry=c("COL","DEU","ITA","LBN")
 var="Migration"
 ctry %>% 
-  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",.x)))
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var)))
 
+footnote=c("Blue lines corresponds to the tf.idf index and measure the intensity of migration crisis in Germany and Lebanon. 
+           Grey shaded highligh positive tf.idf corresponding to the occurence of a migration crisis. The highest migration  
+           crisis of both countries occured in the recent period. Germany displays a steady increase of the index since 2015
+           and the first inflows of refugees related to the Syrian war. Also following the Syrian war,Lebanon display a first
+           spike in 2011 at the start of the conflict with a rebounce in 2015 and 2016.")
+
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Time series by country/",var,"/",var,"_footnote.tex"))
 
 #Trade crisis US-China 
 ctry=c("CHN","USA")
 var="Trade_crisis"
 ctry %>% 
-  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",.x)))
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var)))
 
+footnote=c("Blue lines corresponds to the tf.idf index and measure the intensity of trade crisis in The United States and China. 
+           Grey shaded highligh positive tf.idf corresponding to the occurence of a trade crisis. The highest trade 
+           crisis of both countries started in the 2016 following the restriction imposed by Trump and the excalating tension
+           between the two countries.")
+
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Time series by country/",var,"/",var,"_footnote.tex"))
 
 #Financial crisis 
 ctry="USA"
@@ -120,15 +151,25 @@ get_timeserie(mydata,ctry,var,path=paste0(path_data_directory,"/output/figures/T
 ctry=c("GRC","USA")
 var="Severe_recession"
 ctry %>% 
-  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",.x)))
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var)))
 
+footnote=c("Blue lines corresponds to the tf.idf index and measure the intensity of severe recessions in Greece and The United States. 
+           Grey shaded highligh positive tf.idf corresponding to the occurence of a severe recession.")
 
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Time series by country/",var,"/",var,"_footnote.tex"))
 
 # Housing crisis in USA and Spain
 ctry=c("ESP","USA")
 var="Housing_crisis"
 ctry %>% 
-  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",.x)))
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var)))
+
+footnote=c("Blue lines corresponds to the tf.idf index and measure the intensity of housing crisis in The United States and Spain. 
+           Grey shaded highligh positive tf.idf corresponding to the occurence of a housing crisis. The highest social 
+           crisis of both countries occured in the recent period. The gilet jaune crisis in France generated a large 
+           spike in Dicember 2019. In China the Honk Kong protests appear as the major social event for China.")
+
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Time series by country/",var,"/",var,"_footnote.tex"))
 
 
 # Sovereign default in argentina and Greece:
@@ -136,14 +177,36 @@ ctry=c("ARG","GRC")
 
 var="Sovereign_default"
 ctry %>% 
-  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",.x)))
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var)))
 
 
+footnote=c("Blue lines corresponds to the tf.idf index and measure the intensity of sovereign debt crisis in Argentina and Greece 
+           Grey shaded highligh positive tf.idf corresponding to the occurence of a sovereign debt crisis. Argentina displays
+           a long history of debt distress  with five major episodes spanning over several years and spiking locally in 1964, 1991,
+           2005 and 2017-2018. The major events of debt crisis in Greece occur in 2010 and 2015 and related to the euro area
+           sovereign debt crisis period. Low intense occurence also occured during the early 2000 and 1980 but with significantly 
+           lower intensity.")
 
-#Sovereign default in Greece
-ctry="FRA"
-var="Social_crisis"
-get_timeserie(mydata,ctry,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var))
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Time series by country/",var,"/",var,"_footnote.tex"))
+
+
+#Natural disaster 
+
+ctry=c("JPN","LKA")
+var="Natural_disaster"
+#get_timeserie(mydata,"LKA","Natural_disaster")
+
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var)))
+
+footnote=c("Blue lines corresponds to the tf.idf index and measure the intensity of natural disasters in Japan and Sri Lanka. 
+           Grey shaded highligh positive tf.idf corresponding to the occurence of a natural disasters. Japan has a long history
+           of natural disaster due to its geographical situation among major recent event we observe the spike related to the 
+           Kobe earthquake and the Fukushima Tsunami and Nuclear consequences in 2011-2012. Sri Lanka shows a constant 
+           vulnerability to natural disaster with an event happening almost every year since 1970. Among the largest events
+           we fine the 2004 tsunami and the 2017 flood that severily hit the country. ")
+
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Time series by country/",var,"/",var,"_footnote.tex"))
 
 
 

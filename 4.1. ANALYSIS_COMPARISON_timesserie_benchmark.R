@@ -75,11 +75,11 @@ fig=lapply(ctries,function(ctry){
       scale_x_continuous(breaks=seq(1945,2020,5))+ #set y ticks
       scale_color_grey()+
       theme(panel.grid.minor = element_blank(),
-            axis.text.x = element_text(size =11,angle=90),
+            axis.text.x = element_text(size =15,angle=90),
             axis.title.x = element_text(size = 11),
             legend.title = element_blank(),
-            axis.title.y = element_text(size=11),
-            axis.text.y = element_text(size=11),
+            axis.title.y = element_text(size=15),
+            axis.text.y = element_text(size=15),
             plot.title=element_text(face="bold",colour ="black",size=15, hjust =0.5),
             plot.subtitle =element_text(size =7, hjust = 0.5),
             legend.position="bottom")
@@ -170,10 +170,15 @@ names(Fig_Eval_Benchmark)=names(Eval_benchmarks)
 
 #specific comparisons
 
-Fig_Eval_Benchmark[["Currency_crisis_severe"]]$Corr
-
-# currency crisis
+#--------------------------------------------------
+# Currency crisis
 var="Currency_crisis_severe"
+
+footnote=c("The darkgrey line represents the normalize difference in long term government bond spread,
+           lightgrey line show the tf.idf index of sovereign debt crisis")
+
+cat(footnote, file = paste0(path_data_directory,"/output/figures/Comparison/",var,"/",var,"_footnote.tex"))
+
 Fig_Eval_Benchmark[[var]]$Fig$MEX
 ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
@@ -181,20 +186,37 @@ Fig_Eval_Benchmark[[var]]$Fig$URY
 ggsave(filename=paste0("Comparison_benchmark_",var,"_","URY",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[["Expectations"]]$Corr
+
+
+#--------------------------------------------------
+# Expectation
+
 var="Expectations"
+
+footnote=c("The darkgrey line represents the normalize difference in long term government bond spread,
+           lightgrey line show the tf.idf index of sovereign debt crisis")
+
+cat(footnote, file = paste0(path_data_directory,"/output/figures/Comparison/",var,"/",var,"_footnote.tex"))
+
 Fig_Eval_Benchmark[[var]]$Fig$MEX 
 ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[[var]]$Fig$FRA
 ggsave(filename=paste0("Comparison_benchmark_",var,"_","FRA",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
-
 Fig_Eval_Benchmark[[var]]$Fig$ITA
 ggsave(filename=paste0("Comparison_benchmark_",var,"_","ITA",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
+#--------------------------------------------------
 #sovereign defaut
 
 var="Sovereign_default"
+
+footnote=c("The darkgrey line represents the normalize amount of debt in default and or restructuring from Beers and Maravella (2017),
+           lightgrey line show the tf.idf index of sovereign debt crisis")
+
+cat(footnote, file = paste0(path_data_directory,"/output/figures/Comparison/",var,"/",var,"_footnote.tex"))
+
 Fig_Eval_Benchmark[[var]]$Fig$MEX
 ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
@@ -212,7 +234,17 @@ ggsave(filename=paste0("Comparison_benchmark_",var,"_","IRL",".png"),device = 'p
 
 Fig_Eval_Benchmark[["Banking_crisis"]]$Corr
 
+#--------------------------------------------------
+# Banking crisis
+
+
+footnote=c("The darkgrey line represents the binary variable for Banking crisis from Laven and Valencia (2012),
+           lightgrey line show the tf.idf index of banking crisis")
+
 var="Banking_crisis"
+
+cat(footnote, file = paste0(path_data_directory,"/output/figures/Comparison/",var,"/",var,"_footnote.tex"))
+
 Fig_Eval_Benchmark[[var]]$Fig$MEX
 ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
