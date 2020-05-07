@@ -1,9 +1,6 @@
 ################### Description: script to analyze how each crisis moves 
-################### within the macroeconomic system during the last 70 years i.e. centrality of the shocks.
-################### Three issues to discuss: 
-################### 1)did the network become more complicated?
-################### 2)centrality 
-################### 
+################### within the macroeconomic system during the last 70 years i.e. centrality of the shocks and
+################### evolution of whole system
 library(igraph)
 library(gganimate)
 library(networkD3)
