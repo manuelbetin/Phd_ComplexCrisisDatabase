@@ -26,6 +26,22 @@ SetUpProject::load.my.packages(packages)
 
  #--------------------------------------------
 
+## Documentation
+#' @title consolidate urls of IMF documents
+#' @aliases consolidate_urls.R
+#' @description Use dataset of urls downloaded from the scrapping of the IMF archives 
+#' and consolidate the country specific file and then clean the urls based on the metadata available. This script perform the text
+#' analysis on the title of the document to find the type of document, country and details
+#' relevant for the filtering of the relevant documents to be downloaded. This code is 
+#' the first step of the selection of document and could be update or corrected to find
+#' other alternative documents or to make sure some type of documents have not been forgotted
+#' @author Manuel Bétin
+#' @return A dataset containing the urls for different categories of documents in
+#' urls_Requests_Reviews_articleIV.RData
+
+#--------------------------------------------
+
+
 # consolidate all urls by country into a single file
 files=list.files("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/urls_by_ctry")
 
@@ -48,10 +64,10 @@ dt=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/con
 
 #recent extraction on the website of the IMF
 dt2=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/recent_IMF_urls.RData")
-#dt2=dt2 %>% dplyr::select(-name_file)
 dt=rbind(dt,dt2)
 
 #--------------------------------------------
+## functions #####
 # create functions to extract the type of document from the title each functions will be 
 # then use to modify the database of url by including columns when a document belong to a 
 # category
@@ -300,8 +316,7 @@ create_file_name=function(dt){
   dt
   }
 
-# apply functions by piping all functions
-#a=dt %>% filter(iso3=="USA")
+## apply functions by piping all functions ####
 
 dt=dt %>% 
   find_IMFprograms() %>%

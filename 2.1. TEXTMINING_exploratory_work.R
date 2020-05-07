@@ -4,6 +4,8 @@ library(tidytext)
 library(tidyverse)
 library(pdftools)
 
+
+
 # Absolute path maintained for pure explanation purpose. Change to location of file name in the hard disk.
 
 # Proposition of netting for global depreciations (terms present in our keyword category, but

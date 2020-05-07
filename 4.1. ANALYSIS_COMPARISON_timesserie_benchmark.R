@@ -1,5 +1,12 @@
-##### *********************************************************************************************#####
-##### set up#####
+
+
+#' @title Comparison with benchmark 
+#' @description figures comparing the time series 
+#' of the indexes of the paper with traditional
+#' benchmark variables
+#' @author Manuel Betin, Umberto Collodel
+#' @return figures in Comparison folder
+
 ##clean environment
 rm(list = ls())
 
@@ -9,9 +16,8 @@ setwd(current_path)
 root_path=current_path
 
 ##install common packages
-library("devtools") #make sure you have the library
-#install_github("manuelbetin/SetUpProject",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
-#install_github("manuelbetin/TextMiningCrisis",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
+devtools::install_github("manuelbetin/SetUpProject",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
+devtools::install_github("manuelbetin/TextMiningCrisis",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
 
 packages <- c("dplyr"
               ,"ggplot2"
@@ -32,18 +38,10 @@ packages <- c("dplyr"
               "wbstats"
 )
 
+path_data_directory="../Betin_Collodel/2. Text mining IMF_data"
+
 ## load common packages
 SetUpProject::load.my.packages(packages)
-
-#----------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------
-######## INSTRUCTIONS ##########
-
-# Description:
-# The script builds a dataframe with the created tf-idf and other databases of crisis.
-# It sources the modules for the different tabs of the shiny app and executes it.
-
-#***************************************************************************************####
 
 output=list()
 output[["Session_info"]]=sessionInfo()
@@ -102,9 +100,8 @@ Corr_compare_benchmark=function(mydata,vars){
   dt
 }
 
-
 # Average value of tf-idf per year:
-mydata <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData") %>% 
+mydata <- rio::import(paste0(path_data_directory,"/datasets/tagged docs/tf_idf.RData")) %>% 
   mutate(year = as.numeric(year)) %>% 
   group_by(ISO3_Code, year) %>%
   summarise_if(is.double, mean, na.rm = TRUE)
@@ -114,7 +111,7 @@ myvars=c("bond.spread","XR_rate_BIS","oil_price","GDPV_XDC_cycle","TTRADE","Trou
          "NGDP_WEO","GGXWDG_GDP","GDP_original","SMC.RR","CC.RR","SD_E.RR","SD.BM","SD.debt.Tot.BM","BC.LV",
          "Phase_B","Phase_B2")
 
-Other_data=import("../Betin_Collodel/2. Text mining IMF_data/datasets/comparison/other_data.RData")
+Other_data=import(paste0(path_data_directory,"/datasets/comparison/other_data.RData"))
 names(Other_data)
 Other <- Other_data %>%
   dplyr::select(ISO3_Code,year,myvars)%>%
@@ -178,53 +175,53 @@ Fig_Eval_Benchmark[["Currency_crisis_severe"]]$Corr
 # currency crisis
 var="Currency_crisis_severe"
 Fig_Eval_Benchmark[[var]]$Fig$MEX
-ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[[var]]$Fig$URY
-ggsave(filename=paste0("Comparison_benchmark_",var,"_","URY",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","URY",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[["Expectations"]]$Corr
 var="Expectations"
 Fig_Eval_Benchmark[[var]]$Fig$MEX 
-ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[[var]]$Fig$FRA
-ggsave(filename=paste0("Comparison_benchmark_",var,"_","FRA",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","FRA",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 
 Fig_Eval_Benchmark[[var]]$Fig$ITA
-ggsave(filename=paste0("Comparison_benchmark_",var,"_","ITA",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","ITA",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 #sovereign defaut
 
 var="Sovereign_default"
 Fig_Eval_Benchmark[[var]]$Fig$MEX
-ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[[var]]$Fig$GRC
-ggsave(filename=paste0("Comparison_benchmark_",var,"_","GRC",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","GRC",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[[var]]$Fig$ARG
-ggsave(filename=paste0("Comparison_benchmark_",var,"_","ARG",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","ARG",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[[var]]$Fig$PRT
-ggsave(filename=paste0("Comparison_benchmark_",var,"_","PRT",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","PRT",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[[var]]$Fig$IRL
-ggsave(filename=paste0("Comparison_benchmark_",var,"_","IRL",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","IRL",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[["Banking_crisis"]]$Corr
 
 var="Banking_crisis"
 Fig_Eval_Benchmark[[var]]$Fig$MEX
-ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","MEX",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[[var]]$Fig$ISL
-ggsave(filename=paste0("Comparison_benchmark_",var,"_","ISL",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","ISL",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[[var]]$Fig$ITA 
-ggsave(filename=paste0("Comparison_benchmark_",var,"_","ITA",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","ITA",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 
 Fig_Eval_Benchmark[[var]]$Fig$USA
-ggsave(filename=paste0("Comparison_benchmark_",var,"_","USA",".png"),device = 'png',path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Comparison/",var))
+ggsave(filename=paste0("Comparison_benchmark_",var,"_","USA",".png"),device = 'png',path=paste0(path_data_directory,"/output/figures/Comparison/",var))
 

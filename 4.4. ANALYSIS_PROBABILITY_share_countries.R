@@ -1,13 +1,18 @@
-######## Description: the script generates graphs and tables for the probability part.
+#' @title figures with share of countries in crisis
+#' @description produce the figures showing the time 
+#' series of the proportion of countries experiencing
+#' the selected crisis across years
+#' @author Manuel Betin, Umberto Collodel
+#' @return figures and tables in the folder Probability
+
+path_data_directory="../Betin_Collodel/2. Text mining IMF_data"
 
 
 # Average by year:
-mydata <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData") %>% 
+mydata <- rio::import(paste0(path_data_directory,"/datasets/tagged docs/tf_idf.RData")) %>% 
   mutate(year = as.numeric(year)) %>% 
   group_by(ISO3_Code, year) %>%
   summarise_if(is.double, mean, na.rm = TRUE)
-
-# Plots -----
 
 plot_share_country=function(mydata,shocks,ymin=0,ymax=1,rollmean=5,lowerbound=0,dotpercentile=0.99,path=NULL){
   #' @title plot share of countries experiencing the shocks
@@ -87,7 +92,7 @@ plot_share_country=function(mydata,shocks,ymin=0,ymax=1,rollmean=5,lowerbound=0,
 }
 
 fig_ctry_shares=plot_share_country(mydata,shocks,rollmean = 3,lowerbound = 0.0,
-                                  path = "../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/All")  
+                                  path = paste0(path_data_directory,"/output/figures/Probability/All"))
 names(fig_ctry_shares)=shocks
 
 #selected shocks for low income groups
@@ -95,21 +100,21 @@ ctries=ctry_groups %>% filter(Income_group %in% c(" Low income"," Lower middle i
 Share_lowIncome=plot_share_country(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
                   shocks=shocks,
                   rollmean = 3,
-                  path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/LowIncome")  
+                  path=paste0(path_data_directory,"/output/figures/Probability/LowIncome"))  
 
 #selected shocks for high income groups
 ctries=ctry_groups %>% filter(Income_group==" High income")
 Share_HighIncome=plot_share_country(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
                                   shocks=shocks,
                                   rollmean = 3,
-                                  path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/HighIncome")  
+                                  path=paste0(path_data_directory,"/output/figures/Probability/HighIncome")) 
 
 #selected shocks for middle income groups
 ctries=ctry_groups %>% filter(Income_group==" Upper middle income")
 Share_UpperMiddleIncome=plot_share_country(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
                                    shocks=shocks,
                                    rollmean = 3,
-                                   path="../Betin_Collodel/2. Text mining IMF_data/output/figures/Probability/MiddleIncome")  
+                                   path=paste0(path_data_directory,"/output/figures/Probability/MiddleIncome"))  
 
 
 # Table with max for every shock and income group: -----
@@ -169,7 +174,7 @@ table_share_country=function(mydata,shocks,lowerbound=0,max=0.99,path=NULL){
 
 income_groups <- c("High income","Upper middle income","Low income")
 
-classification <- import("../Betin_Collodel/2. Text mining IMF_data/datasets/comparison/other_data.RData") %>% 
+classification <- import(paste0(path_data_directory,"/datasets/comparison/other_data.RData")) %>% 
   select(ISO3_Code,Income_group,group) %>% 
   filter(!duplicated(ISO3_Code)) %>% 
   mutate(Income_group = ifelse(Income_group == "Lower middle income","Low income",Income_group))
@@ -190,6 +195,6 @@ table_income_group %>%
   select(Type_index, Income_group, year, max_var) %>%
   mutate(Type_index = str_replace_all(Type_index,"_"," ")) %>% 
   rename(`Income Group` = Income_group, Year = year, `Share of countries` = max_var, `Category` = Type_index) %>% 
-  stargazer(summary = F, rownames = F, out = "../Betin_Collodel/2. Text mining IMF_data/output/tables/Probability/max_share_detail.tex")
+  stargazer(summary = F, rownames = F, out = paste0(path_data_directory,"/output/tables/Probability/max_share_detail.tex"))
   
 

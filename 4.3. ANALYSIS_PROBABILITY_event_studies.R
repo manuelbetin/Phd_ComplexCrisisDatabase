@@ -1,8 +1,17 @@
-######## Description: the script generates graph for the time series of some less standard events
+#' @title Figures event studies of crisis
+#' @description produce the figures of the 
+#' time series of the index for a selected 
+#' group of countries and crisis.
+#' @author Manuel Betin, Umberto Collodel
+#' @return figures in the folder 
+#' Time series by country
+
+path_data_directory="../Betin_Collodel/2. Text mining IMF_data"
+
 
 # Average data over year:
 
-mydata <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData") %>% 
+mydata <- rio::import(paste0(path_data_directory,"/datasets/tagged docs/tf_idf.RData")) %>% 
   mutate(year = as.numeric(year)) %>% 
   group_by(ISO3_Code, year) %>%
   summarise_if(is.double, mean, na.rm = TRUE)
@@ -70,48 +79,48 @@ get_timeserie=function(mydata,ctry,shocks,lowerbound=0,path=NULL){
 # SARS and COVID19
 ctry="CHN"
 var="Epidemics"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
+get_timeserie(mydata,ctry,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var))
 
 # France and China social protests
 
 ctry=c("CHN","FRA")
 var="Social_crisis"
 ctry %>% 
-map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
+map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",.x)))
 
 
 #Natural disasters in Haiti and Mexico
 ctry=c("HTI","MEX")
 var="Natural_disaster"
 ctry %>% 
-  map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",.x)))
 
 
 #Migration in COlombia, Germany, Italy and Lebanon
 ctry=c("COL","DEU","ITA","LBN")
 var="Migration"
 ctry %>% 
-  map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",.x)))
 
 
 #Trade crisis US-China 
 ctry=c("CHN","USA")
 var="Trade_crisis"
 ctry %>% 
-  map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",.x)))
 
 
 #Financial crisis 
 ctry="USA"
 var="Financial_crisis"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
+get_timeserie(mydata,ctry,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var))
 
 
 # recession in Greece and USA
 ctry=c("GRC","USA")
 var="Severe_recession"
 ctry %>% 
-  map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",.x)))
 
 
 
@@ -119,7 +128,7 @@ ctry %>%
 ctry=c("ESP","USA")
 var="Housing_crisis"
 ctry %>% 
-  map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",.x)))
 
 
 # Sovereign default in argentina and Greece:
@@ -127,14 +136,14 @@ ctry=c("ARG","GRC")
 
 var="Sovereign_default"
 ctry %>% 
-  map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",.x)))
 
 
 
 #Sovereign default in Greece
 ctry="FRA"
 var="Social_crisis"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
+get_timeserie(mydata,ctry,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var))
 
 
 

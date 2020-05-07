@@ -27,11 +27,21 @@ packages <- c("dplyr"
 ## load common packages
 SetUpProject::load.my.packages(packages)
 
+#--------------------------------------------
+
+#' @title download the urls of the most recent IMF publication
+#' @aliases consolidate_recent_urls
+#' @description apply the scrapping of the IMF website to get the 
+#' urls of the recently published documents
+#' @author Manuel Betin
+#' @return a dataset containing the title, country, date and metadata of the 
+#' recently published documents
+
+#--------------------------------------------
+
 #IMF_links=get_imf_country_reports()
+#rio::export(IMF_links,"../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/recent_IMF_urls.RData")
 
-rio::export(IMF_links,"../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/recent_IMF_urls.RData")
-#IMF_links=rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/urls docs/recent_IMF_urls.RData")
-
-mydt=get_imf_country_reports(npages=1)
-run_tf_by_chunk(mydt,keyword_list = names(lexicon()),ENGINE=pdf_text,delete_pdfs = F)
-get_sentences(corpus$ITAEA2020001,c("Official_support"))
+mydt=get_imf_country_reports(npages=3)
+#run_tf_by_chunk(mydt,keyword_list = names(lexicon()),ENGINE=pdf_text,delete_pdfs = F)
+#get_sentences(corpus$ITAEA2020001,c("Official_support"))

@@ -137,3 +137,19 @@ map2(names(evolution_graphs),~ ggsave(paste0( "../Betin_Collodel/2. Text mining 
 )
 
 
+#typology of categories: exogeneous/endogeneous and Economic/non economic shocks
+
+stargazer::stargazer(title="Typology of indexes"
+                     , lexicon_typology()
+                     , type="latex"
+                     , digits=2
+                     , no.space=T
+                     , align=T
+                     , summary=F
+                     , rownames=T
+                     , table.placement = "H"
+                     , column.sep.width="3pt"
+                     , font.size = "footnotesize"
+                     , out="../Betin_Collodel/2. Text mining IMF_data/output/Typology indexes/Typology_indexes.tex"
+)
+

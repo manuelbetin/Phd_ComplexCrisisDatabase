@@ -1,4 +1,12 @@
 
+#' @title figures transformation function
+#' @description figures explaining the transformation
+#' function of the expert judgment from data to words
+#' @author Manuel Betin
+#' @return figures of the comparison functions
+
+path_data_directory="../Betin_Collodel/2. Text mining IMF_data"
+
 x <- seq(-4, 6, 0.01)
 fx <- (x <= -2) * 4 +
   (x > -2 & x <= 0) * 3 +
@@ -16,7 +24,8 @@ ggplot()+
              linetype="dotted",
              color=c("black","black","red","black","black","black")) +
   labs(x="GDP growth rate (%)",y="T(g)")+
-  theme_light() + ggsave("../Betin_Collodel/2. Text mining IMF_data/output/Transformation function/Transformation_function_GDP.png")
+  theme_light() +
+  ggsave(paste0(path_data_directory,"/output/Transformation function/Transformation_function_GDP.png"))
 
 
 x <- seq(-0.4, 0.6, 0.01)
@@ -36,4 +45,5 @@ ggplot()+
              linetype="dotted",
              color=c("black","black","red","black","black","black")) +
   labs(x="Exchange rate growth rate (%)",y="T(g)")+
-  theme_light() + ggsave("../Betin_Collodel/2. Text mining IMF_data/output/Transformation function/Transformation_function_currency.png")
+  theme_light() +
+  ggsave(paste0(path_data_directory,"/output/Transformation function/Transformation_function_currency.png"))

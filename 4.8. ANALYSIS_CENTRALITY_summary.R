@@ -1,6 +1,13 @@
-################### Description: script to analyze how each crisis moves 
-################### within the macroeconomic system during the last 70 years i.e. centrality of the shocks and
-################### evolution of whole system
+#' @title summary figures of probability
+#' @description script to analyze how each crisis moves 
+#' within the macroeconomic system during the last 70 years 
+#' i.e. centrality of the shocks and evolution of whole system
+#' @author Manuel Betin, Umberto Collodel
+#' @return figures in the folder Probability
+
+path_data_directory="../Betin_Collodel/2. Text mining IMF_data"
+
+
 library(igraph)
 library(gganimate)
 library(networkD3)
@@ -11,7 +18,7 @@ library(networkD3)
 
 # Import: 
 
-mydata <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData") %>% 
+mydata <- rio::import(paste0(path_data_directory,"/datasets/tagged docs/tf_idf.RData")) %>% 
   mutate(year = as.numeric(year))%>% 
   select(-Soft_recession, -Banking_crisis) %>% 
   mutate_at(vars(Epidemics:World_outcomes), funs(norm = (. - mean(.,na.rm=T))/sd(.,na.rm=T))) %>% 
@@ -22,7 +29,7 @@ mydata <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged
 
 income_groups <- c("High income","Upper middle income","Low income")
 
-classification <- import("../Betin_Collodel/2. Text mining IMF_data/datasets/comparison/other_data.RData") %>% 
+classification <- import(paste0(path_data_directory,"/datasets/comparison/other_data.RData")) %>% 
   select(ISO3_Code,Income_group,group) %>% 
   filter(!duplicated(ISO3_Code)) %>% 
   mutate(Income_group = ifelse(Income_group == "Lower middle income","Low income",Income_group))
@@ -114,7 +121,7 @@ corr_final %>%
         strip.text = element_text(face="bold", size=14))
   
 
-ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Complexity/Evolution/complexity_evolution.png",
+ggsave(paste0(path_data_directory,"/output/figures/Complexity/Evolution/complexity_evolution.png"),
        dpi = "retina")
 
 
@@ -124,7 +131,7 @@ ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Complexity/Evol
 corr_final %>% 
   spread("period","n") %>% 
   rename(`Income group` = group, `Min. Corr.` = min_cor) %>% 
-  stargazer(summary = F, out = "../Betin_Collodel/2. Text mining IMF_data/output/tables/Complexity/Evolution/complexity_evolution.tex")
+  stargazer(summary = F, out = paste0(path_data_directory,"/output/tables/Complexity/Evolution/complexity_evolution.tex"))
 
 
 #### Average path length
@@ -147,7 +154,7 @@ avg_path_length %>%
   rename(`Min. Corr` = min_cor) %>% 
   select(`Income group`,`Min. Corr`,everything()) %>% 
   arrange(`Income group`) %>% 
-  stargazer(summary = F, out = "../Betin_Collodel/2. Text mining IMF_data/output/tables/Complexity/Evolution/average_path_length.tex")
+  stargazer(summary = F, out = paste0(path_data_directory,"/output/tables/Complexity/Evolution/average_path_length.tex"))
 
 #### Degree distribution
 
@@ -172,7 +179,7 @@ degree_distribution %>%
   rename(`Min. Corr` = min_cor) %>% 
   select(`Income group`,`Min. Corr`,everything()) %>% 
   arrange(`Income group`) %>% 
-  stargazer(summary = F, out = "../Betin_Collodel/2. Text mining IMF_data/output/tables/Complexity/Evolution/degree_distribution.tex")
+  stargazer(summary = F, out = paste0(path_data_directory,"/output/tables/Complexity/Evolution/degree_distribution.tex"))
 
 
 
@@ -209,7 +216,7 @@ centrality %>%
         scale_fill_gradient(low = "white",high = "red") +
         coord_fixed(ratio = .6)
 
-ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Complexity/Eigencentrality/Eigencentrality_All.png",
+ggsave(paste0(path_data_directory,"/output/figures/Complexity/Eigencentrality/Eigencentrality_All.png"),
        height = 4,
        width = 5,
        dpi = "retina")
@@ -253,7 +260,7 @@ heatmap_eigencentrality <- centrality %>%
 )
 
 heatmap_eigencentrality %>% 
-  map2(names(heatmap_eigencentrality), ~ ggsave(paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Complexity/Eigencentrality/Eigencentrality_",.y,".png"),
+  map2(names(heatmap_eigencentrality), ~ ggsave(paste0(path_data_directory,"/output/figures/Complexity/Eigencentrality/Eigencentrality_",.y,".png"),
                plot = .x,
                height = 4,
                width = 5,
