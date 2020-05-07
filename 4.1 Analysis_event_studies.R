@@ -34,9 +34,9 @@ get_timeserie=function(mydata,ctry,shocks,lowerbound=0,path=NULL){
   }
   figs=lapply(shocks,function(x){
      myfig=mydata %>% 
-      filter(ISO3_Code == ctry) %>%  ungroup() %>%
+      filter(ISO3_Code == ctry) %>% ungroup() %>%
       mutate(proba=ifelse(get_prob(get(x))==1,year,NA),
-             max=max(get(x),na.rm=T)) %>%
+             max=ifelse(max(get(x),na.rm=T)==get(x),get(x),NA)) %>%
       ggplot(aes(year, get(x) , group =1)) +
       geom_vline(aes(xintercept=proba),color="lightgrey",size=7) +
       geom_line(col = "darkblue",alpha=0.6, size = 1.2) +
@@ -122,15 +122,19 @@ ctry %>%
   map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
 
 
-
 # Sovereign default in argentina and Greece:
 ctry=c("ARG","GRC")
+
 var="Sovereign_default"
 ctry %>% 
   map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
 
 
 
+#Sovereign default in Greece
+ctry="FRA"
+var="Social_crisis"
+get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
 
 
 

@@ -26,6 +26,7 @@ packages <- c("dplyr"
               ,"tidyr"
               ,"network"
               ,"GGally"
+              ,"forcats"
               , "TextMiningCrisis"
               , "SetUpProject"
               , "PICindex",
@@ -75,7 +76,7 @@ ctry_groups=SetUpProject::ctry_groups()%>% rename(iso3c=ISO3_Code)
 #typology of categories: exogeneous/endogeneous and Economic/non economic shocks
 
 stargazer::stargazer(title="Typology of indexes"
-          , typology_categories()
+          , lexicon_typology()
           , type="latex"
           , digits=2
           , no.space=T
