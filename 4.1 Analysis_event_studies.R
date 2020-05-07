@@ -38,28 +38,27 @@ get_timeserie=function(mydata,ctry,shocks,lowerbound=0,path=NULL){
       mutate(proba=ifelse(get_prob(get(x))==1,year,NA),
              max=ifelse(max(get(x),na.rm=T)==get(x),get(x),NA)) %>%
       ggplot(aes(year, get(x) , group =1)) +
-      geom_vline(aes(xintercept=proba),color="lightgrey",size=4) +
-      geom_line(col = "darkblue",alpha=0.6) +
-      geom_point(col = "darkblue",size=1) +
-      geom_point(aes(y=max),col = "red",size=2) +
-      geom_text(aes(x=proba,y=max(get(x),na.rm=T)*2/3,label=proba),angle = 90,size=3)+
+      geom_vline(aes(xintercept=proba),color="lightgrey",size=7) +
+      geom_line(col = "darkblue",alpha=0.6, size = 1.2) +
+      geom_point(col = "darkblue",size=1.8) +
+      geom_text(aes(x=proba,y=max(get(x),na.rm=T)*2/3,label=proba),angle = 90,size=3.5)+
       theme_bw()+
-       labs(y="Share of countries (%)",
+       labs(y="Term frequency (%)",
             x=NULL,
             title=NULL)+
        #lims(y=c(ymin,ymax))+
        scale_x_continuous(breaks=seq(1945,2020,5))+ #set y ticks
        theme(panel.grid.minor = element_blank(),
-             axis.text.x = element_text(size =11,angle=90),
+             axis.text.x = element_text(size =15,angle=90),
              axis.title.x = element_text(size = 11),
-             axis.title.y = element_text(size=11),
-             axis.text.y = element_text(size=11),
+             axis.title.y = element_text(size=15),
+             axis.text.y = element_text(size=15),
              plot.title=element_text(face="bold",colour ="black",size=15, hjust =0.5),
              plot.subtitle =element_text(size =7, hjust = 0.5),
              legend.position="none")
     
     if(!is.null(path)){
-      myfig + ggsave(filename=paste0(ctry,"_",x,".png"),device = 'png',path=path)
+      myfig + ggsave(filename=paste0(ctry,"_",x,".png"),device = 'png',path=path, width = 7, height = 4, dpi = 300)
     }else{
       myfig
     }
@@ -73,54 +72,33 @@ ctry="CHN"
 var="Epidemics"
 get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
 
-#Hong Kong protests
-ctry="CHN"
+# France and China social protests
+
+ctry=c("CHN","FRA")
 var="Social_crisis"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
+ctry %>% 
+map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
 
 
-#Natural disasters in Haiti
-ctry="HTI"
+#Natural disasters in Haiti and Mexico
+ctry=c("HTI","MEX")
 var="Natural_disaster"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
 
-#Natural disasters in Mexico
-ctry="MEX"
-var="Natural_disaster"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
 
-#Migration from Venezuela
-ctry="COL"
+#Migration in COlombia, Germany, Italy and Lebanon
+ctry=c("COL","DEU","ITA","LBN")
 var="Migration"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
-
-#Migration from Syria
-ctry="LBN"
-var="Migration"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
 
 
-#Migration from Africa
-ctry="ITA"
-var="Migration"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
-
-#Migration from Africa
-ctry="DEU"
-var="Migration"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
-
-
-#Trade crisis with China 
-ctry="USA"
+#Trade crisis US-China 
+ctry=c("CHN","USA")
 var="Trade_crisis"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
-
-
-#Trade crisis with China 
-ctry="CHN"
-var="Trade_crisis"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
 
 
 #Financial crisis 
@@ -129,34 +107,28 @@ var="Financial_crisis"
 get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
 
 
-# recession in Greece
-ctry="GRC"
+# recession in Greece and USA
+ctry=c("GRC","USA")
 var="Severe_recession"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
 
 
-# Banking crisis in USA
-ctry="USA"
-var="Banking_crisis"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
 
-
-# Housing crisis in USA
-ctry="ESP"
+# Housing crisis in USA and Spain
+ctry=c("ESP","USA")
 var="Housing_crisis"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
 
 
-# Sovereign default in argentina
-ctry="ARG"
+# Sovereign default in argentina and Greece:
+ctry=c("ARG","GRC")
+
 var="Sovereign_default"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",.x)))
 
-
-#Sovereign default in Greece
-ctry="GRC"
-var="Sovereign_default"
-get_timeserie(mydata,ctry,var,path=paste0("../Betin_Collodel/2. Text mining IMF_data/output/figures/Time series by country/",var))
 
 
 #Sovereign default in Greece

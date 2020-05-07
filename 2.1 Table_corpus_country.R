@@ -1,25 +1,11 @@
-######### Description: the script generates a table with the number of documents by country
-######### and the year of first document, the distribution graph and corresponding map.
+######### Description: the script generates
+######### 1) table with first year and total the number of documents by country
+######### 2) corresponding map of geographical distribution.
 ######### All the output saved in Dropbox folder.
-
-# Distribution: -----
 
 documents_ctry <- rio::import("../Betin_Collodel/2. Text mining IMF_data/datasets/tagged docs/tf_idf.RData") %>% 
   group_by(ISO3_Code) %>% 
   count() 
-
-  documents_ctry %>% 
-  ggplot(aes(n)) +
-  geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
-                 binwidth=12,
-                 colour="black", fill="white") +
-  geom_density(alpha=.2, fill="#FF6666") +
-  theme_bw() +
-  ylab("") +
-  xlab("")
-
-
-ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/ctry_detail.png")
 
 
 
@@ -54,7 +40,10 @@ world <- ne_countries(scale = "medium", returnclass = "sf") %>%
 ggplot(data = world) +
   geom_sf(aes(fill = n),col = "black") +
   scale_fill_gradient(low='white', high='green4',name = "Number of documents") +
-  theme_bw() 
+  theme_minimal() +
+  theme(legend.title = element_text(size = 15),
+        legend.text = element_text(size = 15))
+  
 
 
 ggsave("../Betin_Collodel/2. Text mining IMF_data/output/figures/Corpus/ctry_detail.png")
