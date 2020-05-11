@@ -125,5 +125,95 @@ severity_ctries=lapply(ctries,function(x){
 
 
 
+# what is the dataframe I am looking for?
+# 
+
+severity_summary_table=function(mydata,ctry="FRA",shocks){
+  #' @title summary table of severity measures
+  #' @describeIn Table summarizing probability, intensity
+  #' duration and complexity
+  #' @param mydata the tf.idf database 
+  #' @param ctry the country to which display the figure
+  #' @param shocks a vector with the name of the shock of interest (from lexicon() 
+  #' categories)
+  #' @return ggplot object
+  #' @author Manuel Betin
+  #' @export
+  get_prob <- function(x){
+    ifelse(x > lowerbound,1,0)
+  }
+  
+  probability=mydata %>% 
+    dplyr::select(year,ISO3_Code,shocks) %>%
+    group_by(ISO3_Code) %>% 
+    filter(ISO3_Code%in%ctry& year>=1945) %>%
+    ungroup()%>%
+    mutate_at(vars(shocks), get_prob) %>% 
+    summarise_at(vars(shocks),mean,na.rm=T) %>%
+    rename_all(paste0,"_prob") %>% 
+    mutate(iso3c = ctry) %>% 
+    select(iso3c, everything())
+
+  return(probability)
+}
+  cond_mean=function(x){
+    mean(ifelse(x<lowerbound,NA,x),na.rm=T)
+  }
+  
+  intensity=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
+    filter(ISO3_Code%in%ctry& year>=1945) %>% ungroup() %>%
+    summarise_at(vars(shocks),cond_mean) %>%
+    rename_all(paste0,"_intensity") %>% 
+    mutate(iso3c = ctry) %>% 
+    select(iso3c, everything())
+
+  
+  duration=get_duration(mydata %>% filter(ISO3_Code%in%ctry),shocks)
+  duration=duration %>%
+    group_by(shocks,statistic) %>%
+    summarize(mean=mean(stat,na.rm=T)) %>%
+    spread(key=statistic,value=mean) %>%
+    ungroup()
+  
+  colnames(duration)=c("shocks","p25","p75","max","mean","median","min")
+  
+  duration=duration%>% 
+    ungroup() %>%
+    dplyr::select(shocks,duration=mean) %>%
+    mutate(shocks=str_remove_all(shocks," ")) %>% 
+    spread(shocks, duration) %>%
+    rename_all(paste0, "_duration") %>% 
+    mutate(iso3c = ctry) %>% 
+    select(iso3c, everything())
+    
+  
+summary <- list(probability, intensity, duration) %>% 
+  reduce(merge, by = "iso3c")
+
+  
+}
 
 
+# K-means : -----
+
+# Run function for all countries and rbind:
+
+data_cluster <-unique(mydata$ISO3_Code) %>% 
+  future_map(~ severity_summary_table(mydata, .x, shocks)) %>% 
+  reduce(rbind)
+
+# First column as index:
+
+data_cluster <- data_cluster %>% 
+  remove_rownames() %>% 
+  column_to_rownames(var = 'iso3c')
+
+# Calculate and display k-means:
+
+k <- data_cluster %>% 
+  na.omit() %>% 
+  stats::kmeans(3, nstart = 25)
+
+
+fviz_cluster(k, data = data_cluster) +
+  theme_minimal() 
