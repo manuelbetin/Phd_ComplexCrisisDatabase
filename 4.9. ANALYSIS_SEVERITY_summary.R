@@ -20,7 +20,7 @@ shocks=c("Soft_recession","Sovereign_default","Natural_disaster",'Commodity_cris
 
 # summary table with all dimensions
 
-severity_summary_table=function(mydata,ctry="FRA",shocks){
+severity_summary_table=function(mydata,ctry="FRA",shocks,lowerbound=0){
   #' @title summary table of severity measures
   #' @describeIn Table summarizing probability, intensity
   #' duration and complexity
@@ -37,7 +37,7 @@ severity_summary_table=function(mydata,ctry="FRA",shocks){
   
   probability=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
     filter(ISO3_Code%in%ctry& year>=1945) %>%
-    filter(year >= period_range[1] & year<=period_range[2]) %>% ungroup()%>%
+    ungroup()%>%
     mutate_at(vars(shocks), get_prob) %>% 
     summarise_at(vars(shocks),mean,na.rm=T) %>%
     gather(key="shocks") %>% dplyr::rename(probability=value)
@@ -51,38 +51,52 @@ severity_summary_table=function(mydata,ctry="FRA",shocks){
     summarise_at(vars(shocks),cond_mean) %>%
     gather(key="shocks")%>% dplyr::rename(intensity=value) %>%
     mutate(intensity=as.numeric(intensity),
-           priority=intensity/sum(intensity,na.rm=T))
+           priority=intensity/sum(intensity,na.rm=T)) %>% dplyr::select(-intensity)
   
-  duration=get_duration(mydata %>% filter(ISO3_Code%in%ctry),shocks)
-  duration=duration %>%
-    group_by(shocks,statistic) %>%
-    summarize(mean=mean(stat,na.rm=T)) %>%
-    spread(key=statistic,value=mean) %>%
-    ungroup()
-  colnames(duration)=c("shocks","p25","p75","max","mean","median","min")
-  duration=duration%>% ungroup() %>%
-    dplyr::select(shocks,duration=mean) %>%
-    mutate(shocks=str_remove_all(shocks," "))
+
+  myduration=get_duration(mydata %>% filter(ISO3_Code%in%ctry),shocks)
+  myduration=myduration %>%
+    group_by(shocks) %>%
+    summarize(persistence=mean(duration,na.rm=T) %>% round(.,2)) %>%
+    arrange(-persistence) %>% filter(!is.na(shocks))
+ 
+  mycomplexity=mydata  %>%
+    filter(ISO3_Code%in%ctry& year>=1945) %>%
+    ungroup() %>%
+    dplyr::select(shocks) %>% na.omit() %>%
+     cor() %>% data.frame()
+  
+  mycomplexity[is.na(mycomplexity)]=0
+  
+  mycomplexity=mycomplexity %>% summarise_at(vars(shocks),mean,na.rm=T) %>%
+    gather(key="shocks",value="complexity")
+  
   
   summary_crisis=probability %>% left_join(intensity,by="shocks")
-  summary_crisis=summary_crisis %>% left_join(duration,by="shocks")
+  summary_crisis=summary_crisis %>% left_join(myduration,by="shocks")
+  summary_crisis=summary_crisis %>% left_join(mycomplexity,by="shocks")
+  
+  summary_crisis[is.na(summary_crisis)]=0
   
   summary_crisis=summary_crisis %>% mutate(probability_rank=rank(probability),
-                                           intensity_rank=rank(intensity),
-                                           duration_rank=rank(duration),
-                                           area=probability_rank*intensity_rank*duration_rank) %>%
+                                           priority_rank=rank(priority),
+                                           persistence_rank=rank(persistence),
+                                           complexity_rank=rank(complexity),
+                                           area=probability_rank*priority_rank*persistence_rank*complexity_rank) %>%
     arrange(-area)
   
   return(summary_crisis)
 }
 
 ctries=mydata$ISO3_Code %>% unique()
-severity=severity_summary_table(mydata,ctries)
+severity=severity_summary_table(mydata,ctries,shocks)
 
 severity=severity %>% mutate(probability=round(probability,2),
                              priority=round(priority,2),
-                             duration=round(duration,2)) %>% 
-  dplyr::select(-intensity) %>% rename(persistence=duration)
+                             persistence=round(persistence,2),
+                             complexity=round(complexity,2)) %>%
+  dplyr::select(shocks,probability,rank=probability_rank,priority,rank=priority_rank,persistence,
+                rank=persistence_rank,complexity,rank=complexity_rank,area)
 
 stargazer::stargazer(title="Severity: summary table"
                      , severity
@@ -91,20 +105,109 @@ stargazer::stargazer(title="Severity: summary table"
                      , no.space=T
                      , align=T
                      , summary=F
-                     , rownames=T
+                     , rownames=F
                      , table.placement = "H"
                      , column.sep.width="3pt"
                      , font.size = "footnotesize"
                      , out=paste0(path_data_directory,"/output/figures/severity/Severity_summary.tex")
 )
 
-ctries=c("ARG","FRA","USA","MEX","SWE")
+
+#high income
+
+ctries=ctry_groups %>% filter(Income_group==" High income")
+ctries=ctries$iso3c
+severity=severity_summary_table(mydata,ctries,shocks)
+
+severity=severity %>% mutate(probability=round(probability,2),
+                             priority=round(priority,2),
+                             persistence=round(persistence,2),
+                             complexity=round(complexity,2)) %>%
+  dplyr::select(shocks,probability,rank=probability_rank,priority,rank=priority_rank,persistence,
+                rank=persistence_rank,complexity,rank=complexity_rank,area)
+
+stargazer::stargazer(title="Severity: summary table, High Income"
+                     , severity
+                     , type="latex"
+                     , digits=2
+                     , no.space=T
+                     , align=T
+                     , summary=F
+                     , rownames=F
+                     , table.placement = "H"
+                     , column.sep.width="3pt"
+                     , font.size = "footnotesize"
+                     , out=paste0(path_data_directory,"/output/figures/severity/Severity_summary_HighIncome.tex")
+)
+
+#middle income
+
+ctries=ctry_groups %>% filter(Income_group==" Upper middle income")
+ctries=ctries$iso3c
+severity=severity_summary_table(mydata,ctries,shocks)
+
+severity=severity %>% mutate(probability=round(probability,2),
+                             priority=round(priority,2),
+                             persistence=round(persistence,2),
+                             complexity=round(complexity,2)) %>%
+  dplyr::select(shocks,probability,rank=probability_rank,priority,rank=priority_rank,persistence,
+                rank=persistence_rank,complexity,rank=complexity_rank,area)
+
+stargazer::stargazer(title="Severity: summary table, Middle Income"
+                     , severity
+                     , type="latex"
+                     , digits=2
+                     , no.space=T
+                     , align=T
+                     , summary=F
+                     , rownames=F
+                     , table.placement = "H"
+                     , column.sep.width="3pt"
+                     , font.size = "footnotesize"
+                     , out=paste0(path_data_directory,"/output/figures/severity/Severity_summary_MiddleIncome.tex")
+)
+
+
+#Low income
+
+ctries=ctry_groups %>% filter(Income_group %in% c(" Low income"," Lower middle income"))
+ctries=ctries$iso3c
+severity=severity_summary_table(mydata,ctries,shocks)
+
+severity=severity %>% mutate(probability=round(probability,2),
+                             priority=round(priority,2),
+                             persistence=round(persistence,2),
+                             complexity=round(complexity,2)) %>%
+  dplyr::select(shocks,probability,rank=probability_rank,priority,rank=priority_rank,persistence,
+                rank=persistence_rank,complexity,rank=complexity_rank,area)
+
+stargazer::stargazer(title="Severity: summary table, Low Income"
+                     , severity
+                     , type="latex"
+                     , digits=2
+                     , no.space=T
+                     , align=T
+                     , summary=F
+                     , rownames=F
+                     , table.placement = "H"
+                     , column.sep.width="3pt"
+                     , font.size = "footnotesize"
+                     , out=paste0(path_data_directory,"/output/figures/severity/Severity_summary_LowIncome.tex")
+)
+
+
+
+
+# country examples
+ctries=c("ARG","FRA","USA","MEX","SWE","LKA","ESP","GRC","JPN")
 severity_ctries=lapply(ctries,function(x){
-  dt=severity_summary_table(mydata,x)
-  dt=dt %>% mutate(probability=round(probability,2),
-                   priority=round(priority,2),
-                   duration=round(duration,2)) %>% 
-    dplyr::select(-intensity) %>% rename(persistence=duration)
+  dt=severity_summary_table(mydata,x,shocks)
+  dt=dt  %>% mutate(probability=round(probability,2),
+                    priority=round(priority,2),
+                    persistence=round(persistence,2),
+                    complexity=round(complexity,2)) %>%
+    dplyr::select(shocks,probability,rank=probability_rank,priority,rank=priority_rank,persistence,
+                  rank=persistence_rank,complexity,rank=complexity_rank,area)
   stargazer::stargazer(title=paste0("Severity: summary table ",x)
                        , dt
                        , type="latex"

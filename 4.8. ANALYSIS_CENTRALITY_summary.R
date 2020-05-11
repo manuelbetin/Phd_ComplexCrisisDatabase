@@ -11,8 +11,7 @@ path_data_directory="../Betin_Collodel/2. Text mining IMF_data"
 library(igraph)
 library(gganimate)
 library(networkD3)
-
-
+library(tidyselect)
 # Pre-process: ------
 # Creation of a nested list with income group first level and time bucket second level
 

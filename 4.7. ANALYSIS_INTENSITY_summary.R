@@ -110,9 +110,13 @@ get_intensity(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
 footnote=c("The figures display the relative priority of each crisis for each bucket of periods. It is computed as 
            the average tf.idf divided by the sum of the tf.idf of the crisis category. This measure provide a measure
            of the relative importance of a given crisis conditional of its occurence and give a proxy for the average
-           share of the reports allocated to the given crisis.")
+           share of the reports allocated to the given crisis. For instance pressure on public debt, when happening, are 
+           allocated by far the largest part of the analysis in all periods. It representes close to 50 percent of the total 
+           shocks in 1976-1992 while only around 20 percent in 1950-1976. Amoung high priorities in the past that have seen
+           their importance declining overtime we find commodity crisis, migrations, wars or epidemics that were devoted much
+           more importance in the early periods.")
 
-cat(footnote,file=paste0(path_data_directory,"/output/figures/Duration/Duration_shock_footnote.tex"))
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Intensity/Intensity_shock_footnote.tex"))
 
 
 # Time series of priority ####
@@ -221,6 +225,13 @@ get_first_priority(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
 ctries=ctry_groups %>% filter(Income_group %in% c(" Low income"," Lower middle income"))
 get_first_priority(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
                    path=paste0(path_data_directory,"/output/figures/Priority/LowIncome"))
+
+
+footnote=c("The figures display the top priority for each year for all countries (panel a) and high income countries (panel b).
+           It is computed as the top yearly priority excluding sovereign crisis category that otherwise ranks first every year.")
+
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Intensity/priority_ts_footnote.tex"))
+
 
 
 get_priority_table=function(mydata,shocks,lowerbound=0,path=NULL){

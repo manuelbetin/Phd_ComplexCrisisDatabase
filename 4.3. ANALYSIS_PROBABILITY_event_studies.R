@@ -211,4 +211,19 @@ cat(footnote,file=paste0(path_data_directory,"/output/figures/Time series by cou
 
 
 
+#Wars
+
+ctry=c("FRA","USA","COL","SYR","ESP")
+var="Wars"
+#get_timeserie(mydata,"LKA","Natural_disaster")
+
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var)))
+
+footnote=c(". ")
+
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Time series by country/",var,"/",var,"_footnote.tex"))
+
+
+
 
