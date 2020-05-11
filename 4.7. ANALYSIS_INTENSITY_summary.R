@@ -58,7 +58,10 @@ get_intensity=function(mydata,shocks,lowerbound=0,path=NULL){
     data1=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
       filter(year >= x[1] & year<=x[2]) %>% ungroup()%>%
       summarise_at(vars(shocks),cond_mean) %>%
-      gather(key="shock") %>% mutate(shock = fct_reorder(shock,value))%>%
+      gather(key="shock") %>% mutate(shock=gsub("_"," ",shock),
+                                     shock=ifelse(shock=="Balance payment crisis","BOP crisis",
+                                                  ifelse(shock=="Currency crisis severe","Currency crisis",shock)),
+                                     shock = fct_reorder(shock,value))%>%
       mutate(value=value/sum(value,na.rm=T),
              bucket=paste0(x[1],"-",x[2])) #%>%
   })
@@ -73,10 +76,10 @@ get_intensity=function(mydata,shocks,lowerbound=0,path=NULL){
     #lims(y=c(0,1))+
     scale_fill_grey()+ 
     theme(panel.grid.minor = element_blank(),
-          axis.text.x = element_text(size =11,angle=90),
+          axis.text.x = element_text(size =15,angle=90),
           axis.title.x = element_text(size = 11),
-          axis.title.y = element_text(size=11),
-          axis.text.y = element_text(size=11),
+          axis.title.y = element_text(size=15),
+          axis.text.y = element_text(size=15),
           plot.title=element_text(face="bold",colour ="black",size=15, hjust =0.5),
           plot.subtitle =element_text(size =7, hjust = 0.5),
           legend.position="right",
@@ -102,6 +105,14 @@ get_intensity(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
 ctries=ctry_groups %>% filter(Income_group %in% c(" Low income"," Lower middle income"))
 get_intensity(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
               shocks,path=paste0(path_data_directory,"/output/figures/Intensity/LowIncome"))
+
+
+footnote=c("The figures display the relative priority of each crisis for each bucket of periods. It is computed as 
+           the average tf.idf divided by the sum of the tf.idf of the crisis category. This measure provide a measure
+           of the relative importance of a given crisis conditional of its occurence and give a proxy for the average
+           share of the reports allocated to the given crisis.")
+
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Duration/Duration_shock_footnote.tex"))
 
 
 # Time series of priority ####

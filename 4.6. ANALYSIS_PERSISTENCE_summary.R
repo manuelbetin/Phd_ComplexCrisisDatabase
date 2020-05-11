@@ -25,7 +25,7 @@ shocks=c("Soft_recession","Sovereign_default","Natural_disaster",'Commodity_cris
          'Expectations','Balance_payment_crisis',"Epidemics","Migration","Housing_crisis",
          'Severe_recession',"Currency_crisis_severe","Wars","Social_crisis")
 
-get_duration=function(mydata,shocks){
+get_duration=function(mydata,shocks,lowerbound=0){
   #' @title get the number of years of each episode of crisis
   #' @description compute the number of years of each episode
   #' of crisis
@@ -36,10 +36,22 @@ get_duration=function(mydata,shocks){
   #' duration of episodes
   #' 
   #' 
+  #' 
+  
+  cond_mean=function(x){
+    mean(ifelse(x<=lowerbound,NA,x),na.rm=T)
+  }
+  
+  get_prob <- function(x){
+    ifelse(x > lowerbound,1,0)
+  }
+  ctry="ATG"
+  var="Financial_crisis"
   ctries=mydata$ISO3_Code %>% unique()
   all=lapply(ctries,function(ctry){
-    # var="Sovereign_default"
+    print(ctry)
     dt=lapply(shocks,function(var){
+      #print(var)
       dt=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>% 
         filter(ISO3_Code==ctry & year>=1945) %>% ungroup() %>%
         group_by(year)%>%
@@ -47,20 +59,19 @@ get_duration=function(mydata,shocks){
         mutate_at(vars(shocks),get_prob)%>% dplyr::select(year,var) %>%
         mutate(var:=ifelse(is.na(get(var)),0,get(var))) %>%
         arrange(year) 
-      dt=dt %>% na.omit()
       epi=0
       dt$episode=0
       count=0
-      for(i in 1:(dim(dt)[1]-1)){
-        if(i+count<dim(dt)[1]-1){
+      for(i in 2:(dim(dt)[1])){
+        if(i+count<=dim(dt)[1]){
           i=i+count
-          if(dt[[i,var]]>0){
+          if(dt[[i,"var"]]>0 & dt[[i-1,"var"]]==0){
             count=1
-            epi=epi+1
+            epi=ifelse(count==1,epi+1,epi)
             dt[i,"episode"]=epi
             dt[i,var]=count
-            if(i+count<dim(dt)[1]-1){
-              while(dt[[ifelse(i+count>=dim(dt)[1],dim(dt)[1],i+count),var]]==1 & count<20){
+            if(i+count<=dim(dt)[1]){
+              while(dt[[ifelse(i+count>=dim(dt)[1],dim(dt)[1],i+count),"var"]]==1 & i+count<=dim(dt)[1]){
                 count=count+1
                 dt[i,var]=count
                 dt[i,"episode"]=epi
@@ -71,15 +82,23 @@ get_duration=function(mydata,shocks){
       }
       dt=dt %>% filter(episode>0)
       dt=dt[,1:2]
-      summary(dt[,var],na.rm=T) %>% data.frame()
+      colnames(dt)[2]="duration"
+      if(dim(dt)[1]!=0){
+        dt$ISO3_Code=ctry
+        dt$shocks=var
+        dt  
+      }else{
+        dt=NA
+      }
+      #summary(dt[,var],na.rm=T) %>% data.frame()
     })
     names(dt)=shocks
-    dt=do.call(rbind,dt) %>% dplyr::select(shocks=Var2,stat=Freq) %>%
-      mutate(statistic=substr(stat,1,7),
-             stat=as.numeric(substr(stat,9,13)))
-    dt$ISO3_Code=ctry
-    print(ctry)
-    dt
+    dt=do.call(rbind,dt) 
+    if(dim(dt)[2]==1){
+     NA
+    }else{
+      dt
+    }
   })
   all=do.call(rbind,all)
   all=data.frame(all)
@@ -104,30 +123,35 @@ get_duration_fig=function(mydata,shocks,lowerbound=0,path=NULL){
   avg_duration=get_duration(mydata,shocks)
   
   avg_dur=avg_duration %>%
-    group_by(shocks,statistic) %>%
-    summarize(mean=mean(stat,na.rm=T)) %>%
-    spread(key=statistic,value=mean) %>%
-    ungroup()
-  colnames(avg_dur)=c("shocks","p25","p75","max","mean","median","min")
-  avg_dur=avg_dur%>% ungroup() %>% mutate(shocks = fct_reorder(shocks,mean)) 
+    group_by(shocks) %>%
+    summarize(mean=mean(duration,na.rm=T),
+              min=min(duration,na.rm=T),
+              p25=quantile(duration,0.25,na.rm=T),
+              median=quantile(duration,0.5,na.rm=T),
+              p75=quantile(duration,0.75,na.rm=T),
+              p95=quantile(duration,0.95,na.rm=T),
+              max=max(duration,na.rm=T)) %>%
+    arrange(-mean) %>% filter(!is.na(shocks)) %>%
+    mutate(shocks=gsub("_"," ",shocks),
+           shocks = fct_reorder(shocks,mean))
   
   myfig=ggplot(avg_dur)+
-    geom_errorbar(aes(x=shocks,ymin = min, ymax = max),color="grey")+
+    geom_errorbar(aes(x=shocks,ymin = p25, ymax = p95),color="grey")+
     #geom_bar(stat="identity",aes(x=shocks,y=mean),fill="darkgrey",col = "black",alpha=0.6)+
     geom_point(aes(x=shocks,y=mean),fill = "red",alpha=0.6,shape=21)+
-    geom_text(aes(x=shocks,y=max,label=round(max,1)),color = "grey",alpha=1,vjust=-1)+
-    geom_text(aes(x=shocks,y=min,label=round(min,1)),color = "grey",alpha=1,vjust=1)+
+    geom_text(aes(x=shocks,y=p95,label=round(p95,1)),color = "grey",alpha=1,vjust=-1)+
+    geom_text(aes(x=shocks,y=p25,label=round(p25,1)),color = "grey",alpha=1,vjust=1)+
     geom_text(aes(x=shocks,y=mean,label=round(mean,1)),color = "black",alpha=1,vjust=-1)+
     theme_bw()+
     labs(y="N. years",
          x=NULL,
          title=NULL)+
-    lims(y=c(-1,max(avg_dur$max)+5))+
+    lims(y=c(-3,max(avg_dur$p95)+5))+
     theme(panel.grid.minor = element_blank(),
-          axis.text.x = element_text(size =11,angle=90),
+          axis.text.x = element_text(size =15,angle=90),
           axis.title.x = element_text(size = 11),
-          axis.title.y = element_text(size=11),
-          axis.text.y = element_text(size=11),
+          axis.title.y = element_text(size=15),
+          axis.text.y = element_text(size=15),
           plot.title=element_text(face="bold",colour ="black",size=15, hjust =0.5),
           plot.subtitle =element_text(size =7, hjust = 0.5),
           legend.position="bottom")
@@ -139,24 +163,21 @@ get_duration_fig=function(mydata,shocks,lowerbound=0,path=NULL){
   }
 }  
 
-
 duration_table=get_duration(mydata,shocks)
 
 avg_dur=duration_table %>%
-  group_by(shocks,statistic) %>%
-  summarize(mean=mean(stat,na.rm=T)) %>%
-  spread(key=statistic,value=mean) %>%
-  ungroup()
-colnames(avg_dur)=c("shocks","p25","p75","max","mean","median","min")
-avg_dur=avg_dur%>% ungroup() %>% mutate(shocks = fct_reorder(shocks,mean)) 
-avg_dur=avg_dur %>% dplyr::select(shocks,mean,min,p25,median,p75,max) %>% mutate(shocks=str_remove_all(shocks," "))
-avg_dur=avg_dur %>% mutate(mean=round(mean,2),
-                           min=round(min,2),
-                           p25=round(p25,2),
-                           median=round(median,2),
-                           p75=round(p75,2),
-                           max=round(max,2)) %>% arrange(-mean)
-
+  group_by(shocks) %>%
+  summarize(mean=mean(duration,na.rm=T) %>% round(.,2),
+            min=min(duration,na.rm=T) %>% round(.,2),
+            p25=quantile(duration,0.25,na.rm=T) %>% round(.,2),
+            median=quantile(duration,0.5,na.rm=T) %>% round(.,2),
+            p75=quantile(duration,0.75,na.rm=T) %>% round(.,2),
+            p95=quantile(duration,0.95,na.rm=T) %>% round(.,2),
+            max=max(duration,na.rm=T) %>% round(.,2)) %>%
+    arrange(-mean) %>% filter(!is.na(shocks)) %>%
+  mutate(shocks=gsub("_"," ",shocks),
+         shocks = fct_reorder(shocks,mean))
+  
 stargazer::stargazer(title="Persistence: summary table"
                      , avg_dur
                      , type="latex"
@@ -185,4 +206,11 @@ get_duration_fig(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
 ctries=ctry_groups %>% filter(Income_group %in% c(" Low income"," Lower middle income"))
 get_duration_fig(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
                  path=paste0(path_data_directory,"/output/figures/Duration/LowIncome"))
+
+footnote=c("Red dot denote the duration in years of each crisis measure as the number of consecutive years with 
+stricly positive tf.idf. horizontal lines denote the 25 percentile and 95 percentile of the duration of each crisis.")
+
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Duration/Duration_shock_footnote.tex"))
+
+
 
