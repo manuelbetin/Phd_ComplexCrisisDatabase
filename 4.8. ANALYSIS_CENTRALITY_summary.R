@@ -210,7 +210,7 @@ centrality %>%
         ylab("") +
         xlab("") +
         labs(fill = "Eigencentrality") +
-        theme(axis.text.x = element_text(size =14,angle=90, vjust=0.5, hjust=1), axis.text.y = element_text(size = 14), 
+        theme(axis.text.x = element_text(size =13,angle=90, vjust=0.5, hjust=1), axis.text.y = element_text(size = 14), 
               axis.title.y = element_text(size = 14),
               legend.position = "none") +
         scale_fill_gradient(low = "white",high = "red") +
@@ -267,6 +267,14 @@ heatmap_eigencentrality %>%
                height = 4,
                width = 5,
                dpi = "retina"))
+
+# Footnote export:
+
+footnote=c("Scales of red indicate the eigenvector centrality of a specific category during a precise time period, where a brighter red indicates higher
+           eigencentrality. The adjacency matrix is built from the correlation matrix of all categories within the period under consideration.")
+
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Complexity/Eigencentrality/Eigencentrality_footnote.tex"))
+
 
 
 
