@@ -271,7 +271,8 @@ heatmap_eigencentrality %>%
 # Footnote export:
 
 footnote=c("Scales of red indicate the eigenvector centrality of a specific category during a precise time period, where a brighter red indicates higher
-           eigencentrality. The adjacency matrix is built from the correlation matrix of all categories within the period under consideration.")
+           eigencentrality. The adjacency matrix is built from the correlation matrix of all categories within the period under consideration. The algorithm does not converge
+           for the period 1950-1976 in low income countries because of the low pairwise correlations, hence eigentrality is not displayed.")
 
 cat(footnote,file=paste0(path_data_directory,"/output/figures/Complexity/Eigencentrality/Eigencentrality_footnote.tex"))
 
