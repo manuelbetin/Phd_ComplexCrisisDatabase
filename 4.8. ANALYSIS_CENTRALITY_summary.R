@@ -29,7 +29,7 @@ mydata <- rio::import(paste0(path_data_directory,"/datasets/tagged docs/tf_idf.R
 
 income_groups <- c("High income","Upper middle income","Low income")
 
-classification <- import(paste0(path_data_directory,"/datasets/comparison/other_data.RData")) %>% 
+classification <- rio::import(paste0(path_data_directory,"/datasets/comparison/other_data.RData")) %>% 
   select(ISO3_Code,Income_group,group) %>% 
   filter(!duplicated(ISO3_Code)) %>% 
   mutate(Income_group = ifelse(Income_group == "Lower middle income","Low income",Income_group))
@@ -239,6 +239,8 @@ centrality <- network %>%
   modify_depth(2,~ .x %>% mutate(category = str_remove(category,"_norm"))) %>% 
   modify_depth(2, ~ .x %>% mutate(category = str_replace_all(category,"_"," ")))
 
+centrality[["Low income"]][["1950:1976"]]$eigencentrality <- 0 
+
 
 # Heatmap plot:
 
@@ -252,7 +254,7 @@ heatmap_eigencentrality <- centrality %>%
         ylab("") +
         xlab("") +
         labs(fill = "Eigencentrality") +
-        theme(axis.text.x = element_text(size =14,angle=90,vjust=0.5, hjust=1), axis.text.y = element_text(size = 14), 
+        theme(axis.text.x = element_text(size =13,angle=90,vjust=0.5, hjust=1), axis.text.y = element_text(size = 14), 
               axis.title.y = element_text(size = 14),
               legend.position = "none") +
         scale_fill_gradient(low = "white",high = "red") +
