@@ -134,6 +134,14 @@ corr_final %>%
   stargazer(summary = F, out = paste0(path_data_directory,"/output/tables/Complexity/Evolution/complexity_evolution.tex"))
 
 
+# Footnote export:
+
+footnote=c("Minimum correlation indicates that pairwise correlations lower than the respective value are set equal to 0 when building the adjacency matrix.")
+
+cat(footnote,file=paste0(path_data_directory,"/output/tables/Complexity/Evolution/complexity_evolution_footnote.tex"))
+
+
+
 #### Average path length
 
 avg_path_length <- vector_min_cor %>% 
@@ -155,6 +163,13 @@ avg_path_length %>%
   select(`Income group`,`Min. Corr`,everything()) %>% 
   arrange(`Income group`) %>% 
   stargazer(summary = F, out = paste0(path_data_directory,"/output/tables/Complexity/Evolution/average_path_length.tex"))
+
+# Export footnote:
+
+footnote=c("Minimum correlation indicates that pairwise correlations lower than the respective value are set equal to 0 when building the adjacency matrix.
+           If two nodes are not connected, their shortest distance is set equal to the number of nodes in the network.")
+
+cat(footnote,file=paste0(path_data_directory,"/output/tables/Complexity/Evolution/average_path_length_footnote.tex"))
 
 #### Degree distribution
 
@@ -181,7 +196,10 @@ degree_distribution %>%
   arrange(`Income group`) %>% 
   stargazer(summary = F, out = paste0(path_data_directory,"/output/tables/Complexity/Evolution/degree_distribution.tex"))
 
+footnote=c("Minimum correlation indicates that pairwise correlations lower than the respective value are set equal to 0 when building the adjacency matrix.
+          Value is left blank when no edges in the network.")
 
+cat(footnote,file=paste0(path_data_directory,"/output/tables/Complexity/Evolution/degree_distribution_footnote.tex"))
 
 
 # Calculation eigencentrslity by time bucket (all countries): ------
