@@ -8,10 +8,10 @@ shocks=c("Soft_recession","Sovereign_default","Natural_disaster",'Commodity_cris
          'Severe_recession',"Currency_crisis_severe","Wars","Social_crisis")
 
 summary_lexicon <- lexicon()[-length(lexicon())] %>% 
-    map(~ data.frame(`Total Number` = length(.x), Keywords = .x)) %>% 
+    map(~ data.frame(`Total Number` = length(.x), Examples = .x)) %>% 
     map(~ .x %>% slice(1:4)) %>%
-    map(~ .x %>% mutate(Keywords = paste(Keywords, collapse = ", "))) %>% 
-    map(~ .x %>% mutate(Keywords = paste0(Keywords," ..."))) %>%
+    map(~ .x %>% mutate(Examples = paste(Examples, collapse = ", "))) %>% 
+    map(~ .x %>% mutate(Examples = paste0(Examples," ..."))) %>%
     map(~ .x %>% slice(1)) %>%  
     bind_rows(.id = "Category") %>% 
     arrange(-`Total.Number`) %>%
@@ -21,6 +21,10 @@ summary_lexicon <- lexicon()[-length(lexicon())] %>%
     mutate(Category = case_when(Category == "Balance_payment" ~ "BoP", Category == "Sovereign_default" ~ "Sovereign",
                                 Category == "World_outcomes" ~ "World", Category == "Currency_severe" ~ "Currency",
                                 Category == "Natural_disaster" ~ "Nat. disaster", Category == "Severe_recession" ~ " Sev. Recession",
-                                Category == "Soft_recession" ~ "Soft recession", TRUE ~ Category))
+                                Category == "Soft_recession" ~ "Soft recession", TRUE ~ Category)) 
+  
 
-stargazer::stargazer(summary_lexicon, summary = F, out = "../Betin_Collodel/2. Text mining IMF_data/output/tables/Lexicon/summary_lexicon.tex")                                
+stargazer::stargazer(summary_lexicon, 
+                     summary = F, 
+                     out = "../Betin_Collodel/2. Text mining IMF_data/output/tables/Lexicon/summary_lexicon.tex",
+                     rownames = F)                                
