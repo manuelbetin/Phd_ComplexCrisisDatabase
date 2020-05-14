@@ -164,10 +164,10 @@ var="Housing_crisis"
 ctry %>% 
   map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var)))
 
-footnote=c("Blue lines corresponds to the tf.idf index and measure the intensity of housing crisis in The United States and Spain. 
-           Grey shaded highligh positive tf.idf corresponding to the occurence of a housing crisis. The highest social 
-           crisis of both countries occured in the recent period. The gilet jaune crisis in France generated a large 
-           spike in Dicember 2019. In China the Honk Kong protests appear as the major social event for China.")
+footnote=c("Blue lines corresponds to the tf.idf index and measure the intensity of housing crisis in the United States and Spain. 
+           Grey shaded highligh positive tf.idf corresponding to the occurence of a housing crisis. While the US housing crash example is an illustrous one, also the Spanish 
+housing market collapsed in the same period: in the years 1997???2006, the price of housing in Spain had risen about 150% in nominal terms, equivalent to 100% growth in real terms to
+           then plunge dramatically starting 2008.")
 
 cat(footnote,file=paste0(path_data_directory,"/output/figures/Time series by country/",var,"/",var,"_footnote.tex"))
 
@@ -209,6 +209,23 @@ footnote=c("Blue lines corresponds to the tf.idf index and measure the intensity
 cat(footnote,file=paste0(path_data_directory,"/output/figures/Time series by country/",var,"/",var,"_footnote.tex"))
 
 
+#Wars in Colombia and India
+ctry=c("COL","LKA")
+var="Wars"
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var,path=paste0(path_data_directory,"/output/figures/Time series by country/",var)))
+
+footnote=c("Blue lines corresponds to the tf.idf index and measure the intensity of conflicts in Colombia and Sri Lanka. Although the conflict
+           between the Colombian government and the Revolutionary Armed Forces of Colombia (FARC) as well as other guerilla forces started in 1960, it intensified in the mid-1990s 
+           as a consequence of the higher wealth accumulated by terrorist group through drug-related activities. The index peaks again in 2017 when the peace referendum between the governemnt 
+           and FARC rebels failed as 'No' gained the majority. In Sri Lanka, the conflict between the government
+           and the Liberation Tigers of Tamil Eelam (LTTE) wrought havoc the country: Sri Lanka was, after the indipendence from India, the country with
+           the highest level of alphabetization in South-East Asia and one of the richest. The war decimated the population and hit sevely the economy. The official end-year of the conflict is 2009:
+this complies with the gap of the index after 2010. The index starts rising again with the increase in the number of attacks against the Christian part of the population and
+peaks in 2019 the with Sri Lanka Easter bombings in the capital Colombo."
+)
+
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Time series by country/",var,"/",var,"_footnote.tex"))
 
 
 
