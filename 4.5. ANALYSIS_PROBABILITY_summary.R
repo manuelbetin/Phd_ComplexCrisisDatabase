@@ -46,24 +46,34 @@ get_probability=function(mydata,shocks,period_range=c(1960,2019),lowerbound=0,pa
     ifelse(x > lowerbound,1,0)
   }
   
- myfig=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
-   filter(year >= period_range[1] & year<=period_range[2]) %>% ungroup()%>%
+ myfig=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>% ungroup() %>%
+    filter(year >= period_range[1] & year<=period_range[2]) %>% ungroup()%>%
     mutate_at(vars(shocks), get_prob) %>% 
     summarise_at(vars(shocks),mean,na.rm=T) %>%
-    gather(key="shock") %>% mutate(shock = fct_reorder(shock,value))%>%
+    gather(key="shock") %>% mutate(shock=as.character(shock),
+                                   shock=ifelse(shock=="Balance_payment_crisis","B.o.P.",shock),
+                                   shock=ifelse(shock=="World_outcomes","World",shock),
+                                   shock=ifelse(shock=="Sovereign_default","Sovereign",shock),
+                                   shock=ifelse(shock=="Natural_disaster","Nat. disaster",shock),
+                                   shock=ifelse(shock=="Currency_crisis_severe","Currency",shock),
+                                   shock=ifelse(shock=="Soft_recession","Eco. slowdown",shock),
+                                   shock=ifelse(shock=="Severe_recession","Eco. recession",shock),
+                                   shock=gsub("_","",shock),
+                                   shock=gsub("crisis","",shock),
+                                   shock = fct_reorder(shock,value))%>%
     ggplot() +
     geom_bar(stat="identity",aes(x=shock,y=value),fill="darkgrey",col = "black",alpha=0.6) +
-    geom_text(aes(x=shocks,y=value,label=round(value,2)),color = "grey",alpha=1,vjust=-1)+
+    geom_text(aes(x=shock,y=value,label=round(value,2)),color = "grey",alpha=1,vjust=-1)+
     theme_bw()+
     labs(y="Share of countries",
          x=NULL,
          title=NULL)+
    lims(y=c(0,1))+
     theme(panel.grid.minor = element_blank(),
-          axis.text.x = element_text(size =11,angle=90),
-          axis.title.x = element_text(size = 11),
-          axis.title.y = element_text(size=11),
-          axis.text.y = element_text(size=11),
+          axis.text.x = element_text(size =15,angle=90, hjust =1,vjust =0.5),
+          axis.title.x = element_text(size = 15),
+          axis.title.y = element_text(size=15),
+          axis.text.y = element_text(size=15),
           plot.title=element_text(face="bold",colour ="black",size=15, hjust =0.5),
           plot.subtitle =element_text(size =7, hjust = 0.5),
           legend.position="none")
@@ -90,7 +100,10 @@ footnote=c("Grey bars denote the unconditional frequencies of the occurence of s
 cat(footnote,file=paste0(path_data_directory,"/output/figures/Probability/All/Probability_shock_footnote.tex"))
 
 
-ctries=ctry_groups %>% filter(Income_group==" High income")
+#ctries=ctry_groups %>% filter(Income_group==" High income")
+ctries=ctry_groups %>% filter(Income_group==" High income" & !iso3c %in% c("ATG","BHS","BHR","BRB","BRN","KWT","MAC",
+                                                                           "MLT","OMN","PLW","PAN","PRI","QAT","SMR",
+                                                                           "SAU","SYC","SGP","KNA","TTO","ARE"))
 get_probability(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
               shocks,period_range=c(1960,2020),path=paste0(path_data_directory,"/output/figures/Probability/HighIncome"))
 

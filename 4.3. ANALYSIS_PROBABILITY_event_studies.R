@@ -225,5 +225,52 @@ footnote=c(". ")
 cat(footnote,file=paste0(path_data_directory,"/output/figures/Time series by country/",var,"/",var,"_footnote.tex"))
 
 
+#Very high proba or priority of sovereign default
+ctry=c("URY")
+var="Sovereign_default"
+
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var))
+
+
+#Very high proba Banking
+ctry=c("LTU","LVA")
+var="Banking_crisis"
+
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var))
+
+
+#Very high proba Expectation
+ctry=c("SVK","CZE")
+var="Expectations"
+
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var))
+
+
+#Very high proba Expectation
+ctry=c("EST")
+var="Contagion"
+
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var))
+
+
+#Very high priority 
+ctry=c("GBR")
+var="Soft_recession"
+
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var))
+
+
+#Very high priority 
+ctry=c("USA")
+var="Wars"
+
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var))
+
 
 

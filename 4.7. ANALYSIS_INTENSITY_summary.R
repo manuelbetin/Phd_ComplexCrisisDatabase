@@ -58,9 +58,15 @@ get_intensity=function(mydata,shocks,lowerbound=0,path=NULL){
     data1=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
       filter(year >= x[1] & year<=x[2]) %>% ungroup()%>%
       summarise_at(vars(shocks),cond_mean) %>%
-      gather(key="shock") %>% mutate(shock=gsub("_"," ",shock),
-                                     shock=ifelse(shock=="Balance payment crisis","BOP crisis",
-                                                  ifelse(shock=="Currency crisis severe","Currency crisis",shock)),
+      gather(key="shock") %>% mutate(shock=ifelse(shock=="Balance_payment_crisis","B.o.P.",shock),
+                                     shock=ifelse(shock=="World_outcomes","World",shock),
+                                     shock=ifelse(shock=="Sovereign_default","Sovereign",shock),
+                                     shock=ifelse(shock=="Natural_disaster","Nat. disaster",shock),
+                                     shock=ifelse(shock=="Currency_crisis_severe","Currency",shock),
+                                     shock=ifelse(shock=="Soft_recession","Eco. slowdown",shock),
+                                     shock=ifelse(shock=="Severe_recession","Eco. recession",shock),
+                                     shock=gsub("_","",shock),
+                                     shock=gsub("crisis","",shock),
                                      shock = fct_reorder(shock,value))%>%
       mutate(value=value/sum(value,na.rm=T),
              bucket=paste0(x[1],"-",x[2])) #%>%
@@ -76,7 +82,7 @@ get_intensity=function(mydata,shocks,lowerbound=0,path=NULL){
     #lims(y=c(0,1))+
     scale_fill_grey()+ 
     theme(panel.grid.minor = element_blank(),
-          axis.text.x = element_text(size =15,angle=90),
+          axis.text.x = element_text(size =15,angle=90, hjust =1,vjust =0.5),
           axis.title.x = element_text(size = 11),
           axis.title.y = element_text(size=15),
           axis.text.y = element_text(size=15),
@@ -145,6 +151,16 @@ get_first_priority=function(mydata,shocks,lowerbound=0,path=NULL){
     group_by(year)%>%
     summarise_at(vars(shocks),cond_mean) %>%
     gather(key="shock",value="value",-c("year")) %>% ungroup() %>%
+    mutate(shock=as.character(shock),
+           shock=ifelse(shock=="Balance_payment_crisis","B.o.P.",shock),
+           shock=ifelse(shock=="World_outcomes","World",shock),
+           shock=ifelse(shock=="Sovereign_default","Sovereign",shock),
+           shock=ifelse(shock=="Natural_disaster","Nat. disaster",shock),
+           shock=ifelse(shock=="Currency_crisis_severe","Currency",shock),
+           shock=ifelse(shock=="Soft_recession","Eco. slowdown",shock),
+           shock=ifelse(shock=="Severe_recession","Eco. recession",shock),
+           shock=gsub("_","",shock),
+           shock=gsub("crisis","",shock))%>%
     group_by(year) %>%
     mutate(max_value=max(value,na.rm=T)) %>%
     mutate(tot_value=round(max_value/sum(value,na.rm=T)*100,2)) %>%
@@ -163,10 +179,10 @@ get_first_priority=function(mydata,shocks,lowerbound=0,path=NULL){
   
   myfig=ggplot(dt)+
     geom_text(aes(x=year,y=year1,label=mylabel1,
-                  vjust="-0.2",hjust="left",color=mylabel1),
+                  vjust="-0.2",hjust="left"),#color=mylabel1),
               angle=60,size=3.5)+
     geom_text(aes(x=year,y=year2,label=mylabel2,
-                  vjust="left",hjust="right",color=mylabel2),
+                  vjust="left",hjust="right"),#color=mylabel2),
               angle=60,size=3.5)+
     geom_text(aes(x=year,y=0,label=myyearlabel1,
                   vjust=-0.4,hjust=-0.7),color="black",
@@ -215,6 +231,10 @@ get_first_priority(mydata,shocks=shocks,
                    path=paste0(path_data_directory,"/output/figures/Priority"))
 
 ctries=ctry_groups %>% filter(Income_group==" High income")
+#ctries=ctry_groups %>% filter(Income_group==" High income")
+ctries=ctry_groups %>% filter(Income_group==" High income" & !iso3c %in% c("ATG","BHS","BHR","BRB","BRN","KWT","MAC",
+                                                                           "MLT","OMN","PLW","PAN","PRI","QAT","SMR",
+                                                                           "SAU","SYC","SGP","KNA","TTO","ARE"))
 get_first_priority(mydata %>% filter(ISO3_Code %in% ctries$iso3c),shocks=shocks,
                    path=paste0(path_data_directory,"/output/figures/Priority/HighIncome"))
 
@@ -266,7 +286,17 @@ get_priority_table=function(mydata,shocks,lowerbound=0,path=NULL){
               p.10=quantile(weight,p=0.10,na.rm=T)%>% round(1),
               p.50=quantile(weight,p=0.50,na.rm=T)%>% round(1),
               p.80=quantile(weight,p=0.8,na.rm=T)%>% round(1),
-              p.95=quantile(weight,p=0.95,na.rm=T)%>% round(1)) %>% arrange(-mean) 
+              p.95=quantile(weight,p=0.95,na.rm=T)%>% round(1)) %>% arrange(-mean) %>%
+  mutate(shock=ifelse(shock=="Balance_payment_crisis","B.o.P.",shock),
+         shock=ifelse(shock=="World_outcomes","World",shock),
+         shock=ifelse(shock=="Sovereign_default","Sovereign",shock),
+         shock=ifelse(shock=="Natural_disaster","Nat. disaster",shock),
+         shock=ifelse(shock=="Currency_crisis_severe","Currency",shock),
+         shock=ifelse(shock=="Soft_recession","Eco. slowdown",shock),
+         shock=ifelse(shock=="Severe_recession","Eco. recession",shock),
+         shock=gsub("_","",shock),
+         shock=gsub("crisis","",shock),
+         shock=as.character(shock))
   
   return(dt)
 }

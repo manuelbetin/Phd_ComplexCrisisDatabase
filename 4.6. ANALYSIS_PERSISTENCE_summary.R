@@ -132,23 +132,31 @@ get_duration_fig=function(mydata,shocks,lowerbound=0,path=NULL){
               p95=quantile(duration,0.95,na.rm=T),
               max=max(duration,na.rm=T)) %>%
     arrange(-mean) %>% filter(!is.na(shocks)) %>%
-    mutate(shocks=gsub("_"," ",shocks),
+    mutate(shocks=ifelse(shocks=="Balance_payment_crisis","B.o.P.",shocks),
+           shocks=ifelse(shocks=="World_outcomes","World",shocks),
+           shocks=ifelse(shocks=="Sovereign_default","Sovereign",shocks),
+           shocks=ifelse(shocks=="Natural_disaster","Nat. disaster",shocks),
+           shocks=ifelse(shocks=="Currency_crisis_severe","Currency",shocks),
+           shocks=ifelse(shocks=="Soft_recession","Eco. slowdown",shocks),
+           shocks=ifelse(shocks=="Severe_recession","Eco. recession",shocks),
+           shocks=gsub("_","",shocks),
+           shocks=gsub("crisis","",shocks),
            shocks = fct_reorder(shocks,mean))
   
   myfig=ggplot(avg_dur)+
     geom_errorbar(aes(x=shocks,ymin = p25, ymax = p95),color="grey")+
     #geom_bar(stat="identity",aes(x=shocks,y=mean),fill="darkgrey",col = "black",alpha=0.6)+
     geom_point(aes(x=shocks,y=mean),fill = "red",alpha=0.6,shape=21)+
-    geom_text(aes(x=shocks,y=p95,label=round(p95,1)),color = "grey",alpha=1,vjust=-1)+
-    geom_text(aes(x=shocks,y=p25,label=round(p25,1)),color = "grey",alpha=1,vjust=1)+
-    geom_text(aes(x=shocks,y=mean,label=round(mean,1)),color = "black",alpha=1,vjust=-1)+
+    geom_text(aes(x=shocks,y=p95,label=round(p95,1)),color = "grey",alpha=1,vjust=-2,size=4)+
+    geom_text(aes(x=shocks,y=p25,label=round(p25,1)),color = "grey",alpha=1,vjust=2,size=4)+
+    geom_text(aes(x=shocks,y=mean,label=round(mean,1)),color = "black",alpha=1,vjust=-1,size=4)+
     theme_bw()+
-    labs(y="N. years",
+    labs(y="years",
          x=NULL,
          title=NULL)+
     lims(y=c(-3,max(avg_dur$p95)+5))+
     theme(panel.grid.minor = element_blank(),
-          axis.text.x = element_text(size =15,angle=90),
+          axis.text.x = element_text(size =15,angle=90, hjust =1,vjust =0.5),
           axis.title.x = element_text(size = 11),
           axis.title.y = element_text(size=15),
           axis.text.y = element_text(size=15),
@@ -175,8 +183,16 @@ avg_dur=duration_table %>%
             p95=quantile(duration,0.95,na.rm=T) %>% round(.,2),
             max=max(duration,na.rm=T) %>% round(.,2)) %>%
     arrange(-mean) %>% filter(!is.na(shocks)) %>%
-  mutate(shocks=gsub("_"," ",shocks),
-         shocks = fct_reorder(shocks,mean))
+  mutate(shocks=ifelse(shocks=="Balance_payment_crisis","B.o.P.",shocks),
+         shocks=ifelse(shocks=="World_outcomes","World",shocks),
+         shocks=ifelse(shocks=="Sovereign_default","Sovereign",shocks),
+         shocks=ifelse(shocks=="Natural_disaster","Nat. disaster",shocks),
+         shocks=ifelse(shocks=="Currency_crisis_severe","Currency",shocks),
+         shocks=ifelse(shocks=="Soft_recession","Eco. slowdown",shocks),
+         shocks=ifelse(shocks=="Severe_recession","Eco. recession",shocks),
+         shocks=gsub("_","",shocks),
+         shocks=gsub("crisis","",shocks)
+         ) %>% dplyr::select(-min)
   
 stargazer::stargazer(title="Persistence: summary table"
                      , avg_dur
@@ -191,6 +207,11 @@ stargazer::stargazer(title="Persistence: summary table"
                      , font.size = "footnotesize"
                      , out=paste0(path_data_directory,"/output/figures/duration/duration_summary.tex")
 )
+
+# ctries=c("USA")
+# get_duration_fig(mydata %>% filter(ISO3_Code %in% ctries),shocks=shocks)
+
+
 
 get_duration_fig(mydata,shocks=shocks,
                  path=paste0(path_data_directory,"/output/figures/Duration"))

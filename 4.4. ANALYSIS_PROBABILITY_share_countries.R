@@ -161,30 +161,30 @@ The period 1945-1980 appears a remarquably calm period with almost no financial 
 
 cat(footnote,file=paste0(path_data_directory,"/output/figures/Probability/All/Probability_share_ctry_Financial_fragility_footnote.tex"))
 
-
-#selected shocks for low income groups
-ctries=ctry_groups %>% filter(Income_group %in% c(" Low income"," Lower middle income"))
-Share_lowIncome=plot_share_country(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
-                  shocks=shocks,
-                  rollmean = 3,
-                  path=paste0(path_data_directory,"/output/figures/Probability/LowIncome"))  
-
-
-
-#selected shocks for high income groups
-ctries=ctry_groups %>% filter(Income_group==" High income")
-Share_HighIncome=plot_share_country(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
-                                  shocks=shocks,
-                                  rollmean = 3,
-                                  path=paste0(path_data_directory,"/output/figures/Probability/HighIncome")) 
-
-#selected shocks for middle income groups
-ctries=ctry_groups %>% filter(Income_group==" Upper middle income")
-Share_UpperMiddleIncome=plot_share_country(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
-                                   shocks=shocks,
-                                   rollmean = 3,
-                                   path=paste0(path_data_directory,"/output/figures/Probability/MiddleIncome"))  
-
+  
+  #selected shocks for low income groups
+  ctries=ctry_groups %>% filter(Income_group %in% c(" Low income"," Lower middle income"))
+  Share_lowIncome=plot_share_country(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
+                    shocks=shocks,
+                    rollmean = 3,
+                    path=paste0(path_data_directory,"/output/figures/Probability/LowIncome"))  
+  
+  
+  
+  #selected shocks for high income groups
+  ctries=ctry_groups %>% filter(Income_group==" High income")
+  Share_HighIncome=plot_share_country(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
+                                    shocks=shocks,
+                                    rollmean = 3,
+                                    path=paste0(path_data_directory,"/output/figures/Probability/HighIncome")) 
+  
+  #selected shocks for middle income groups
+  ctries=ctry_groups %>% filter(Income_group==" Upper middle income")
+  Share_UpperMiddleIncome=plot_share_country(mydata %>% filter(ISO3_Code %in% ctries$iso3c),
+                                     shocks=shocks,
+                                     rollmean = 3,
+                                     path=paste0(path_data_directory,"/output/figures/Probability/MiddleIncome"))  
+  
 
 #Epidemic outbreaks
 
