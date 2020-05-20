@@ -202,6 +202,42 @@ footnote=c("Minimum correlation indicates that pairwise correlations lower than 
 cat(footnote,file=paste0(path_data_directory,"/output/tables/Complexity/Evolution/degree_distribution_footnote.tex"))
 
 
+# Network graph evolution -----
+
+
+
+
+
+
+size_nodes <- mydata %>% 
+  map(~ .x %>% select(vars_norm)) %>% 
+  map(~ .x %>% cor(use = "complete.obs")) %>% 
+  map(~ .x %>% graph_from_adjacency_matrix(mode = "undirected", diag = F, weighted = T)) %>% 
+  map(~ eigen_centrality(.x)$vector) %>% 
+  map(~ .x %>% stack()) %>% 
+  map(~ .x %>% rename(value = values,  id = ind)) %>% 
+  map(~ .x %>% mutate(value = rank(value)))
+
+
+vis_net <- mydata %>%  
+      map( ~ .x %>% select(vars_norm)) %>% 
+      map( ~ .x %>% cor(use = "complete.obs")) %>% 
+      map( ~ ifelse(.x < 0.2, 0, .x)) %>% 
+      map( ~ graph_from_adjacency_matrix(.x, mode = "undirected", diag = F, weighted = T)) %>% 
+      map( ~ toVisNetworkData(.x)) %>% 
+      map2(size_nodes, ~ list(nodes = merge(.x$nodes, .y), edges = .x$edges)) %>%
+      map( ~ list(nodes = .x$nodes %>% mutate(group= case_when(id == "Financial_crisis_norm"| id == "Expectations_norm"|
+                                                    id == "Contagion_norm" | id == "Balance_payment_crisis_norm"|
+                                                    id == "World_crisis" | id == "Currency_crisis" ~ "Financial", TRUE ~ "Real"),
+                                              color= case_when(id == "Financial_crisis_norm"| id == "Expectations_norm"|
+                                                   id == "Contagion_norm" | id == "Balance_payment_crisis_norm"|
+                                                    id == "World_crisis" | id == "Currency_crisis" ~ "red", TRUE ~ "yellow")),
+           edges = .x$edges)) %>% 
+      map(~ visNetwork(.x$nodes,.x$edges))
+      
+
+
+
 # Calculation eigencentrslity by time bucket (all countries): ------
 
 network <- mydata %>% 
