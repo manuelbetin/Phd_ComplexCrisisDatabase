@@ -234,8 +234,13 @@ vis_net <- mydata %>%
                                                     id == "World_crisis" | id == "Currency_crisis" ~ "red", TRUE ~ "yellow")),
            edges = .x$edges)) %>% 
       map(~ visNetwork(.x$nodes,.x$edges))
-      
 
+
+# Problems with automation saving!
+# buckets  <- c("1950:1976", "1976:1992", "1992:2003","2003:2013","2013:2019")
+# 
+# vis_net %>% 
+#   map2(buckets, ~ visSave(.x, paste0(path_data_directory,"/output/figures/Complexity/Evolution/Network_",.y,".html")))
 
 
 # Calculation eigencentrslity by time bucket (all countries): ------
