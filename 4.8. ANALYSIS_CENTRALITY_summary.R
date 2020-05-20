@@ -204,36 +204,34 @@ cat(footnote,file=paste0(path_data_directory,"/output/tables/Complexity/Evolutio
 
 # Network graph evolution -----
 
-
-
-
+names_col <- c("Epidemics","Nat. disaster","Wars","BoP","Banking","Commidity","Contagion","Currency",
+               "Expectations","Financial","Housing","Inflation","Migration","Political","Eco. recession",
+               "Social","Sovereign","Trade","World")
 
 
 size_nodes <- mydata %>% 
   map(~ .x %>% select(vars_norm)) %>% 
+  map(~ .x %>% rename_all(~ names_col)) %>% 
   map(~ .x %>% cor(use = "complete.obs")) %>% 
   map(~ .x %>% graph_from_adjacency_matrix(mode = "undirected", diag = F, weighted = T)) %>% 
   map(~ eigen_centrality(.x)$vector) %>% 
   map(~ .x %>% stack()) %>% 
   map(~ .x %>% rename(value = values,  id = ind)) %>% 
-  map(~ .x %>% mutate(value = rank(value)))
+  map(~ .x %>% mutate(font.size = 22))
 
 
 vis_net <- mydata %>%  
       map( ~ .x %>% select(vars_norm)) %>% 
+      map(~ .x %>% rename_all(~ names_col)) %>% 
       map( ~ .x %>% cor(use = "complete.obs")) %>% 
       map( ~ ifelse(.x < 0.2, 0, .x)) %>% 
       map( ~ graph_from_adjacency_matrix(.x, mode = "undirected", diag = F, weighted = T)) %>% 
       map( ~ toVisNetworkData(.x)) %>% 
       map2(size_nodes, ~ list(nodes = merge(.x$nodes, .y), edges = .x$edges)) %>%
-      map( ~ list(nodes = .x$nodes %>% mutate(group= case_when(id == "Financial_crisis_norm"| id == "Expectations_norm"|
-                                                    id == "Contagion_norm" | id == "Balance_payment_crisis_norm"|
-                                                    id == "World_crisis" | id == "Currency_crisis" ~ "Financial", TRUE ~ "Real"),
-                                              color= case_when(id == "Financial_crisis_norm"| id == "Expectations_norm"|
-                                                   id == "Contagion_norm" | id == "Balance_payment_crisis_norm"|
-                                                    id == "World_crisis" | id == "Currency_crisis" ~ "red", TRUE ~ "yellow")),
-           edges = .x$edges)) %>% 
-      map(~ visNetwork(.x$nodes,.x$edges))
+      map( ~ list(nodes = .x$nodes %>% mutate(group= case_when(id == "Financial"| id == "Expectations"|
+                                                    id == "Contagion" | id == "BoP"|
+                                                    id == "World" | id == "Currency"| id == "Banking" ~ "Financial", TRUE ~ "Real")),           edges = .x$edges)) %>% 
+      map(~ visNetwork(.x$nodes,.x$edges) %>% visLegend(main = "Nature", position = "right"))
 
 
 # Problems with automation saving!
@@ -243,7 +241,7 @@ vis_net <- mydata %>%
 #   map2(buckets, ~ visSave(.x, paste0(path_data_directory,"/output/figures/Complexity/Evolution/Network_",.y,".html")))
 
 
-# Calculation eigencentrslity by time bucket (all countries): ------
+# Calculation eigencentrality by time bucket (all countries): ------
 
 network <- mydata %>% 
   map(~ .x %>% select(vars_norm)) %>% 
