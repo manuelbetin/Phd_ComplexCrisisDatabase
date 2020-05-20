@@ -73,7 +73,7 @@ group_data %>%
   mutate(type_doc = fct_reorder(type_doc, n)) %>%
   ggplot(aes(type_doc, n, fill = family)) +
   geom_col(width = .3) +
-  geom_text(aes(label=paste0(n," (",first," - ", last,")")), vjust= 0.5,  hjust = -0.04, size=3.5)+
+  geom_text(aes(label =n), vjust= 0.5,  hjust = -0.04, size=3.5)+
   facet_wrap(~ family, ncol = 1, scales = "free_y") +
   theme_bw() +
   lims(y=c(0,20000))+
