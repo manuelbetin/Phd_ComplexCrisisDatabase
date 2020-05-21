@@ -230,7 +230,8 @@ vis_net <- mydata %>%
       map2(size_nodes, ~ list(nodes = merge(.x$nodes, .y), edges = .x$edges)) %>%
       map( ~ list(nodes = .x$nodes %>% mutate(group= case_when(id == "Financial"| id == "Expectations"|
                                                     id == "Contagion" | id == "BoP"|
-                                                    id == "World" | id == "Currency"| id == "Banking" ~ "Financial", TRUE ~ "Real")),           edges = .x$edges)) %>% 
+                                                    id == "World" | id == "Currency"| id == "Banking" ~ "Financial", TRUE ~ "Real")),          
+                  edges = .x$edges)) %>% 
       map(~ visNetwork(.x$nodes,.x$edges) %>% visLegend(main = "Nature", position = "right"))
 
 
