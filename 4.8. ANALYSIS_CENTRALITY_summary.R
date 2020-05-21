@@ -204,7 +204,7 @@ cat(footnote,file=paste0(path_data_directory,"/output/tables/Complexity/Evolutio
 
 # Network graph evolution -----
 
-names_col <- c("Epidemics","Nat. disaster","Wars","BoP","Banking","Commidity","Contagion","Currency",
+names_col <- c("Epidemics","Nat. disaster","Wars","BoP","Banking","Commodity","Contagion","Currency",
                "Expectations","Financial","Housing","Inflation","Migration","Political","Eco. recession",
                "Social","Sovereign","Trade","World")
 
@@ -246,6 +246,7 @@ vis_net <- mydata %>%
 
 network <- mydata %>% 
   map(~ .x %>% select(vars_norm)) %>% 
+  map(~ .x %>% rename_all(~ names_col)) %>% 
   map(~ .x %>% cor(use = "complete.obs")) %>% 
   map(~ .x %>% graph_from_adjacency_matrix(mode = "undirected", diag = F, weighted = T))
 
@@ -255,13 +256,14 @@ centrality <- network %>%
   map(~ .x %>% stack()) %>% 
   map(~ .x %>% rename(eigencentrality = values, category = ind)) %>% 
   map(~ .x %>% select(category, everything())) %>% 
-  map(~ .x %>% arrange(-eigencentrality)) %>% 
-  map(~ .x %>% mutate(category = str_remove(category,"_norm"))) %>% 
-  map(~ .x %>% mutate(category = str_replace_all(category,"_"," ")))
+  map(~ .x %>% arrange(-eigencentrality))
 
 
 centrality %>% 
-  bind_rows(.id = "period") %>% 
+  bind_rows(.id = "period") %>%
+  mutate(category = factor(category, c("Contagion","World","Banking","BoP","Currency","Expectations","Financial","Sovereign",
+                                       "Commodity","Eco. recession","Eco. slowdown","Housing","Inflation","Trade",
+                                      "Epidemics","Migration","Nat. disaster","Political","Social","Wars"))) %>% 
         ggplot(aes(period, category, fill= eigencentrality, alpha = eigencentrality)) +
         geom_tile(col = "black") +
         theme_minimal() +
@@ -283,6 +285,7 @@ ggsave(paste0(path_data_directory,"/output/figures/Complexity/Eigencentrality/Ei
 
 corr_final <- final %>% 
       modify_depth(2, ~ .x %>% select(vars_norm)) %>% 
+      modify_depth(2, ~ .x %>% rename_all(~names_col)) %>% 
       modify_depth(2, ~ .x %>% cor(use = "complete.obs"))
 
 network <- corr_final %>% 
@@ -304,7 +307,10 @@ centrality[["Low income"]][["1950:1976"]]$eigencentrality <- 0
 
 heatmap_eigencentrality <- centrality %>% 
   map(~ .x) %>% 
-  map(~ bind_rows(.x, .id = "period")) %>% 
+  map(~ bind_rows(.x, .id = "period")) %>%
+  map(~ .x %>% mutate(category = factor(category, c("Contagion","World","Banking","BoP","Currency","Expectations","Financial","Sovereign",
+                                                      "Commodity","Eco. recession","Eco. slowdown","Housing","Inflation","Trade",
+                                                      "Epidemics","Migration","Nat. disaster","Political","Social","Wars")))) %>% 
   map(~ .x %>% 
         ggplot(aes(period, category, fill= eigencentrality, alpha = eigencentrality)) +
         geom_tile(col = "black") +
