@@ -208,6 +208,7 @@ names_col <- c("Epidemics","Nat. disaster","Wars","BoP","Banking","Commodity","C
                "Expectations","Financial","Housing","Inflation","Migration","Political","Eco. recession",
                "Social","Sovereign","Trade","World")
 
+titles <- c("1950:1976","1976:1992","1992:2003","2003:2013","2013:2019")
 
 size_nodes <- mydata %>% 
   map(~ .x %>% select(vars_norm)) %>% 
@@ -232,7 +233,7 @@ vis_net <- mydata %>%
                                                     id == "Contagion" | id == "BoP"|
                                                     id == "World" | id == "Currency"| id == "Banking" ~ "Financial", TRUE ~ "Real")),          
                   edges = .x$edges)) %>% 
-      map(~ visNetwork(.x$nodes,.x$edges) %>% visLegend(main = "Nature", position = "right"))
+      map2(titles, ~ visNetwork(.x$nodes,.x$edges, main = .y) %>% visLegend(main = "Nature", position = "right"))
 
 
 # Problems with automation saving!
