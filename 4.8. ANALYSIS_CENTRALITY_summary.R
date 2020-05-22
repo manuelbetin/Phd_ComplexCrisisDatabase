@@ -236,12 +236,16 @@ vis_net <- mydata %>%
       map2(titles, ~ visNetwork(.x$nodes,.x$edges, main = .y) %>% visLegend(main = "Nature", position = "right"))
 
 
-# Problems with automation saving!
-# buckets  <- c("1950:1976", "1976:1992", "1992:2003","2003:2013","2013:2019")
-# 
-# vis_net %>% 
-#   map2(buckets, ~ visSave(.x, paste0(path_data_directory,"/output/figures/Complexity/Evolution/Network_",.y,".html")))
+# Footnote
 
+footnote=c("Adjacency matrix built from pairwise correlations between term-frequencies: minimum correlation to display 
+           edge equal to 0.2. Size of nodes proportional to their eigencentrality.")
+
+cat(footnote,file=paste0(path_data_directory,"/output/tables/Complexity/Evolution/degree_distribution_footnote.tex"))
+
+
+
+# Problems with automation saving! To do
 
 # Calculation eigencentrality by time bucket (all countries): ------
 
