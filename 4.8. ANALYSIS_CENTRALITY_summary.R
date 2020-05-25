@@ -225,15 +225,21 @@ vis_net <- mydata %>%
       map( ~ .x %>% select(vars_norm)) %>% 
       map(~ .x %>% rename_all(~ names_col)) %>% 
       map( ~ .x %>% cor(use = "complete.obs")) %>% 
-      map( ~ ifelse(.x < 0.2, 0, .x)) %>% 
+      map( ~ ifelse(.x < 0.1, 0, .x)) %>% 
       map( ~ graph_from_adjacency_matrix(.x, mode = "undirected", diag = F, weighted = T)) %>% 
       map( ~ toVisNetworkData(.x)) %>% 
-      map2(size_nodes, ~ list(nodes = merge(.x$nodes, .y), edges = .x$edges)) %>%
-      map( ~ list(nodes = .x$nodes %>% mutate(group= case_when(id == "Financial"| id == "Expectations"|
-                                                    id == "Contagion" | id == "BoP"|
-                                                    id == "World" | id == "Currency"| id == "Banking" ~ "Financial", TRUE ~ "Real")),          
-                  edges = .x$edges)) %>% 
-      map2(titles, ~ visNetwork(.x$nodes,.x$edges, main = .y) %>% visLegend(main = "Nature", position = "right"))
+      map2(size_nodes, ~ list(nodes = merge(.x$nodes, .y), edges = .x$edges)) %>% 
+      map(~ list(nodes = .x$nodes, edges = .x$edges %>% mutate(color = case_when(weight >= 0.4 ~ "darkred",
+                                                                                 weight <= 0.4 & weight >= 0.2 ~ "darkorange",
+                                                                                 TRUE ~ "gold")) %>%
+                                                        mutate(width = case_when(weight >= 0.4 ~ 6,
+                                                                                 weight <= 0.4 & weight >= 0.2 ~ 3,
+                                                                                 TRUE ~ 1)))) %>% 
+  
+      map2(titles, ~ visNetwork(.x$nodes,.x$edges, main = .y) %>% 
+             visNodes(color = list(background = "gray", border = "black")) %>% 
+             visPhysics(solver = "forceAtlas2Based",forceAtlas2Based = list(gravitationalConstant = -50)) %>%
+             visLayout(randomSeed = 346))
 
 
 # Footnote
