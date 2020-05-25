@@ -247,9 +247,9 @@ vis_net <- mydata %>%
 # Footnote
 
 footnote=c("Adjacency matrix built from pairwise correlations between term-frequencies: minimum correlation to display 
-           edge equal to 0.2. Size of nodes proportional to their eigencentrality.")
+           edge equal to 0.1. Size of nodes proportional to their eigencentrality. Legend indicates correlations between categories.")
 
-cat(footnote,file=paste0(path_data_directory,"/output/tables/Complexity/Evolution/degree_distribution_footnote.tex"))
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Complexity/Evolution/network_footnote.tex"))
 
 
 
