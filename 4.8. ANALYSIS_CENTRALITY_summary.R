@@ -234,11 +234,13 @@ vis_net <- mydata %>%
                                                                                  TRUE ~ "gold")) %>%
                                                         mutate(width = case_when(weight >= 0.4 ~ 6,
                                                                                  weight <= 0.4 & weight >= 0.2 ~ 3,
-                                                                                 TRUE ~ 1)))) %>% 
-  
+                                                                                 TRUE ~ 1)),
+                 ledges = data.frame(color = c("darkred","darkorange","gold"), label = c("> 0.4","0.4 - 0.2","< 0.2"), arrows = c("undirected"),
+                                     width = c(6,3,1), font.align = "top"))) %>% 
       map2(titles, ~ visNetwork(.x$nodes,.x$edges, main = .y) %>% 
              visNodes(color = list(background = "gray", border = "black")) %>% 
              visPhysics(solver = "forceAtlas2Based",forceAtlas2Based = list(gravitationalConstant = -50)) %>%
+             visLegend(addEdges = .x$ledges, position = "right") %>% 
              visLayout(randomSeed = 346))
 
 
