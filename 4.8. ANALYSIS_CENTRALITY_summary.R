@@ -5,13 +5,11 @@
 #' @author Manuel Betin, Umberto Collodel
 #' @return figures in the folder Probability
 
+#INSTRUCTIONS: To run this file separatly please first run 4.ANALYSIS_source.R from line 1 to ligne 51 to load the 
+#packages and functions
+
+
 path_data_directory="../Betin_Collodel/2. Text mining IMF_data"
-
-
-library(igraph)
-library(gganimate)
-library(networkD3)
-
 
 # Pre-process: ------
 # Creation of a nested list with income group first level and time bucket second level

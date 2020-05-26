@@ -7,36 +7,8 @@
 #' @author Manuel Betin, Umberto Collodel
 #' @return figures in Comparison folder
 
-##clean environment
-rm(list = ls())
-
-## set the working directory were the script is located
-current_path = here::here()
-setwd(current_path)
-root_path=current_path
-
-##install common packages
-devtools::install_github("manuelbetin/SetUpProject",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
-devtools::install_github("manuelbetin/TextMiningCrisis",auth_token="7502b84abd98de5cb4ce921b9d7ef788bc245181")
-
-packages <- c("dplyr"
-              ,"ggplot2"
-              ,"plotly"
-              ,"pdftools"
-              ,"lubridate"
-              ,'tictoc'
-              ,"rio"
-              ,"tidytext"
-              ,"stringr"
-              ,"stringi"
-              ,"tidyr"
-              ,"TextMiningCrisis"
-              ,"SetUpProject",
-              "plotly",
-              "shinythemes",
-              "purrr",
-              "wbstats"
-)
+#INSTRUCTIONS: To run this file separatly please first run 4.ANALYSIS_source.R from line 1 to ligne 51 to load the 
+#packages and functions
 
 path_data_directory="../Betin_Collodel/2. Text mining IMF_data"
 
@@ -48,57 +20,6 @@ output[["Session_info"]]=sessionInfo()
 
 # Build working dataframe: ----
 
-TS_compare_benchmark=function(mydata,ctries,var1,var2,benchmark_name="Benchmark",ylabel=NULL,path=NULL){
-  #'@title plot own index with respect to historic benchmarks
-  #'@description plot own index with respect to historic benchmarks
-  #'@param mydata dataset containing the tf-idf of crisis and the 
-  #'benchmark qualitative variables 
-  #'@param ctries a vector of country codes for which to display the figure
-  #'@param var1 the quantative variables of comparison
-  #'@param var2 the variable of interest to evaluate
-  #'@param ylabel the ylabel for the plot
-  #'@return ggplot figure
-  #'@author Manuel Betin
-  #'@export
-  #'
-
-fig=lapply(ctries,function(ctry){
-  myfig=mydata %>% 
-      filter(ISO3_Code==ctry) %>%
-      ggplot()+
-      geom_line(aes(x=year,y=(get(var1)-mean(get(var1),na.rm=T))/sd(get(var1),na.rm=T),color=gsub("_"," ",var1)))+
-      geom_line(aes(x=year,y=(get(var2)-mean(get(var2),na.rm=T))/sd(get(var2),na.rm=T),color=benchmark_name))+
-      theme_bw()+
-      labs(y=ylabel,
-           x=NULL,
-           title=NULL)+
-      scale_x_continuous(breaks=seq(1945,2020,5))+ #set y ticks
-      scale_color_grey()+
-      theme(panel.grid.minor = element_blank(),
-            axis.text.x = element_text(size =15,angle=90),
-            axis.title.x = element_text(size = 11),
-            legend.title = element_blank(),
-            axis.title.y = element_text(size=15),
-            axis.text.y = element_text(size=15),
-            plot.title=element_text(face="bold",colour ="black",size=15, hjust =0.5),
-            plot.subtitle =element_text(size =7, hjust = 0.5),
-            legend.position="bottom")
-    if(!is.null(path)){
-      myfig + ggsave(filename=paste0("Comparison_benchmark_",ctry,".png"),device = 'png',path=path)
-    }else{
-      myfig
-    }
-  })
-  names(fig)=ctries
-  fig
-}
-
-Corr_compare_benchmark=function(mydata,vars){
-  dt=mydata%>%ungroup()%>%
-    dplyr::select(vars) %>% na.omit() %>%cor() %>% data.frame()
-  dt=dt %>% dplyr::select(vars)
-  dt
-}
 
 # Average value of tf-idf per year:
 mydata <- rio::import(paste0(path_data_directory,"/datasets/tagged docs/tf_idf.RData")) %>% 
@@ -112,7 +33,7 @@ myvars=c("bond.spread","XR_rate_BIS","oil_price","GDPV_XDC_cycle","TTRADE","Trou
          "Phase_B","Phase_B2")
 
 Other_data=import(paste0(path_data_directory,"/datasets/comparison/other_data.RData"))
-names(Other_data)
+#names(Other_data)
 Other <- Other_data %>%
   dplyr::select(ISO3_Code,year,myvars)%>%
   arrange(ISO3_Code,year) %>% 
