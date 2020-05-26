@@ -1,4 +1,11 @@
+#' @title summary figures of severity
+#' @description script to analyze the four dimension of severity
+#' it sums up probability, intensity, persistence and complexity
+#' @author Manuel Betin, Umberto Collodel
+#' @return figures in the folder Probability
 
+#INSTRUCTIONS: To run this file separatly please first run 4.ANALYSIS_source.R from line 1 to ligne 51 to load the 
+#packages and functions
 
 
 path_data_directory="../Betin_Collodel/2. Text mining IMF_data"
@@ -9,9 +16,6 @@ mydata <- rio::import(paste0(path_data_directory,"/datasets/tagged docs/tf_idf.R
   summarise_if(is.double, mean, na.rm = TRUE) %>%
   filter(year<2020)
 
-library(forcats)
-
-
 shocks=c("Soft_recession","Sovereign_default","Natural_disaster",'Commodity_crisis','Political_crisis','Banking_crisis',
          'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
          'Expectations','Balance_payment_crisis',"Epidemics","Migration","Housing_crisis",
@@ -21,124 +25,194 @@ shocks=c("Soft_recession","Sovereign_default","Natural_disaster",'Commodity_cris
 # summary table with all dimensions
 
 
-severity_summary_table=function(mydata,ctry="FRA",shocks,lowerbound=0){
-  #' @title summary table of severity measures
-  #' @describeIn Table summarizing probability, intensity
-  #' duration and complexity
-  #' @param mydata the tf.idf database 
-  #' @param ctry the country to which display the figure
-  #' @param shocks a vector with the name of the shock of interest (from lexicon() 
-  #' categories)
-  #' @return ggplot object
-  #' @author Manuel Betin
-  #' @export
-  get_prob <- function(x){
-    ifelse(x > lowerbound,1,0)
-  }
-  probability=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
-    filter(ISO3_Code%in%ctry& year>=1945) %>%
-    ungroup()%>%
-    mutate_at(vars(shocks), get_prob) %>% 
-    group_by(ISO3_Code) %>%
-    summarize_at(vars(shocks),mean,na.rm=T) %>%
-    gather(key="shocks",value = "value",-"ISO3_Code") %>% dplyr::rename(probability=value)
+get_severity_typology=function(mydata,ctries,shocks,path=NULL){
+  myctries=mydata$ISO3_Code %>% unique()
+  severity=severity_summary_table(mydata,myctries,shocks)
   
-  cond_mean=function(x){
-    mean(ifelse(x<lowerbound,NA,x),na.rm=T)
-  }
+  severity_all=severity %>% filter(ISO3_Code %in% ctries)
   
-  intensity=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
-    filter(ISO3_Code%in%ctry& year>=1945) %>% ungroup() %>%
-    group_by(ISO3_Code) %>%
-    summarise_at(vars(shocks),cond_mean) %>%
-    gather(key="shocks",value=value,-"ISO3_Code")%>% dplyr::rename(intensity=value) %>%
-    group_by(ISO3_Code) %>%
-    mutate(intensity=as.numeric(intensity),
-           priority=intensity/sum(intensity,na.rm=T)) %>% dplyr::select(-intensity)
+  severity_all=severity_all %>% ungroup() %>% group_by(shocks) %>% 
+    summarise_at(vars(probability:area),mean) %>% ungroup()%>%
+    mutate(probability=round(probability,2),
+           priority=round(priority,2),
+           persistence=round(persistence,2),
+           complexity=round(complexity,2),
+           probability_rank=round(probability_rank,2),
+           priority_rank=round(priority_rank,2),
+           persistence_rank=round(persistence_rank,2),
+           complexity_rank=round(complexity_rank,2),
+           area=round(area,2)) %>% arrange(shocks) %>% rename(crisis=shocks) %>%
+    dplyr::select(-c(probability_rank,priority_rank,persistence_rank,complexity_rank,area))
   
-
-  myduration=get_duration(mydata %>% filter(ISO3_Code%in%ctry),shocks)
-  myduration=myduration %>%
-    group_by(ISO3_Code,shocks) %>%
-    summarize(persistence=mean(duration,na.rm=T) %>% round(.,2)) %>%
-    arrange(-persistence) %>% filter(!is.na(shocks)) %>% arrange(shocks)
- 
-  mycomplexity=lapply(ctry,function(x){
-    mycomplexity=mydata  %>%
-      filter(ISO3_Code%in%x& year>=1945) %>%
-      ungroup() %>%
-      dplyr::select(shocks) %>% na.omit() %>%
-      cor() %>% data.frame()
-    mycomplexity[is.na(mycomplexity)]=0
-    mycomplexity%>% summarise_at(vars(shocks),mean,na.rm=T) %>%
-      gather(key="shocks",value="complexity") %>%
-      mutate(ISO3_Code=x)
-  })
-  mycomplexity=do.call(rbind,mycomplexity)
+  stargazer::stargazer(title="Severity:"
+                       , severity_all
+                       , type="latex"
+                       , digits=2
+                       , no.space=T
+                       , align=T
+                       , summary=F
+                       , rownames=F
+                       , table.placement = "H"
+                       , column.sep.width="3pt"
+                       , font.size = "footnotesize"
+                       , out=paste0(path_data_directory,"/output/figures/severity/Severity_summary.tex")
+  )
   
-  summary_crisis=probability %>% left_join(intensity,by=c("ISO3_Code","shocks"))
-  summary_crisis=summary_crisis %>% left_join(myduration,by=c("ISO3_Code","shocks"))
-  summary_crisis=summary_crisis %>% left_join(mycomplexity,by=c("ISO3_Code","shocks"))
+  footnote=c("The table display the average cross countries for all severity dimensions for high income 
+             countries. Probability denote the likelihood of occurence, priority the average proportion of the report 
+             allocated to each crisis, persistence the average duration and complexity the average correlation.")
   
-  summary_crisis[is.na(summary_crisis)]=0
+  cat(footnote,file=paste0(path_data_directory,"/output/figures/Severity/severity_summary_footnote.tex"))
   
-  summary_crisis=summary_crisis %>%
-    group_by(shocks) %>%
-    mutate(probability_rank=rank(probability)/max(rank(probability)),
-        priority_rank=rank(priority)/max(rank(priority)),
-        persistence_rank=rank(persistence)/max(rank(persistence)),
-        complexity_rank=rank(complexity)/max(rank(complexity)),
-        area=probability_rank*priority_rank*persistence_rank*complexity_rank) %>% ungroup() %>%
-    mutate(shocks=ifelse(shocks=="Balance_payment_crisis","B.o.P.",shocks),
-           shocks=ifelse(shocks=="World_outcomes","World",shocks),
-           shocks=ifelse(shocks=="Sovereign_default","Sovereign",shocks),
-           shocks=ifelse(shocks=="Natural_disaster","Nat. disaster",shocks),
-           shocks=ifelse(shocks=="Currency_crisis_severe","Currency",shocks),
-           shocks=ifelse(shocks=="Soft_recession","Eco. slowdown",shocks),
-           shocks=ifelse(shocks=="Severe_recession","Eco. recession",shocks),
-           shocks=gsub("_","",shocks),
-           shocks=gsub("crisis","",shocks)) %>% 
-    arrange(-area) %>% arrange(ISO3_Code)
   
-  return(summary_crisis)
+  priority_table=get_priority_table(mydata,shocks)
+  priority_table=priority_table %>% dplyr::select(crisis=shock,p.95)
+  
+  severity_all=severity_all %>% left_join(priority_table,by="crisis")
+  #severity_all=severity_all%>% filter(crisis!="Sovereign")
+  
+  severity_all$typology=c("ETPC","RWTC","ETPC","RWTC","ETPC","ETPC","ETC","TTID","ETC","TTID","TTID",
+                          "ETC","TTID","RWTC","ETC","ETPC","RWTC","TTID","TTID","TTID")
+  
+  panel_A=ggplot(data=severity_all)+
+    geom_smooth(method="lm",aes(x=log(priority*100+1),y=probability),se=F,color="darkgrey",size=0.3)+
+    geom_text_repel(aes(x=log(priority*100+1),y=probability,label=crisis,color=typology))+
+    theme_bw()+
+    scale_color_manual(values=c("darkblue","darkgreen","darkred","orange"))+
+    #scale_x_log10()+
+    labs(y="probability",
+         x="priority",
+         title=NULL)+
+    #lims(y=c(1,5))+
+    lims(x=c(0,4))+
+    theme(panel.grid.minor = element_blank(),
+          axis.text.x = element_text(size =15),
+          axis.title.x = element_text(size = 15),
+          axis.title.y = element_text(size=15),
+          axis.text.y = element_text(size=15),
+          plot.title=element_text(face="bold",colour ="black",size=15, hjust =0.5),
+          plot.subtitle =element_text(size =7, hjust = 0.5),
+          legend.position="bottom",
+          legend.text = element_text(size =13),
+          legend.title = element_blank())
+  
+  #  ggsave(paste0(path_data_directory,"/output/figures/Severity Typology/priority_probability.png"))
+  
+  panel_B= ggplot(data=severity_all)+
+    #geom_point(aes(x=probability,y=p.95))+
+    geom_smooth(method="lm",aes(x=log(p.95),y=probability),se=F,color="darkgrey",size=0.3)+
+    geom_text_repel(aes(x=log(p.95),y=probability,label=crisis,color=typology))+
+    theme_bw()+
+    scale_color_manual(values=c("darkblue","darkgreen","darkred","orange"))+
+    labs(y="Probability",
+         x="P.95 priority",
+         title=NULL)+
+    #lims(y=c(1,5))+
+    #lims(x=c(0,0.65))+
+    #scale_color_grey()+ 
+    theme(panel.grid.minor = element_blank(),
+          axis.text.x = element_text(size =15),
+          axis.title.x = element_text(size = 15),
+          axis.title.y = element_text(size=15),
+          axis.text.y = element_text(size=15),
+          plot.title=element_text(face="bold",colour ="black",size=15, hjust =0.5),
+          plot.subtitle =element_text(size =7, hjust = 0.5),
+          legend.position="bottom",
+          legend.text = element_text(size =13),
+          legend.title = element_blank())
+   # ggsave(paste0(path_data_directory,"/output/figures/Severity Typology/p.95_probability.png"))
+  
+  
+  panel_C= ggplot(data=severity_all)+
+    #geom_point(aes(x=probability,y=p.95))+
+    geom_smooth(method="lm",aes(x=log(p.95),y=complexity),se=F,color="darkgrey",size=0.3)+
+    geom_text_repel(aes(x=log(p.95),y=complexity,label=crisis,color=typology))+
+    #geom_hline(yintercept=0.17,color="darkgrey",size=0.3)+
+    theme_bw()+
+    scale_color_manual(values=c("darkblue","darkgreen","darkred","orange"))+
+    scale_x_log10()+
+    labs(y="Complexity",
+         x="P.95 priority",
+         title=NULL)+
+    #lims(y=c(0.05,0.25))+
+    #lims(x=c(-0.1,0.2))+
+    #scale_color_grey()+ 
+    theme(panel.grid.minor = element_blank(),
+          axis.text.x = element_text(size =15),
+          axis.title.x = element_text(size = 15),
+          axis.title.y = element_text(size=15),
+          axis.text.y = element_text(size=15),
+          plot.title=element_text(face="bold",colour ="black",size=15, hjust =0.5),
+          plot.subtitle =element_text(size =7, hjust = 0.5),
+          legend.position="bottom",
+          legend.text = element_text(size =13),
+          legend.title = element_blank())
+   # ggsave(paste0(path_data_directory,"/output/figures/Severity Typology/p.95_complexity.png"))
+  
+  panel_D=ggplot(data=severity_all)+
+    geom_smooth(method="lm",aes(x=log(p.95),y=persistence),se=F,color="darkgrey",size=0.3)+
+    geom_text_repel(aes(x=log(p.95),y=persistence,label=crisis,color=typology))+
+    theme_bw()+
+    scale_color_manual(values=c("darkblue","darkgreen","darkred","orange"))+
+    labs(y="Persistence", 
+         x="P.95 priority",
+         title=NULL)+
+    lims(x=c(1,4.5))+
+    theme(panel.grid.minor = element_blank(),
+          axis.text.x = element_text(size =15),
+          axis.title.x = element_text(size = 15),
+          axis.title.y = element_text(size=15),
+          axis.text.y = element_text(size=15),
+          plot.title=element_text(face="bold",colour ="black",size=15, hjust =0.5),
+          plot.subtitle =element_text(size =7, hjust = 0.5),
+          legend.position="bottom",
+          legend.text = element_text(size =13),
+          legend.title = element_blank())
+   # ggsave(paste0(path_data_directory,"/output/figures/Severity Typology/p95_persistence.png"))
+  return(list(Panel_A=panel_A,Panel_B=panel_B,Panel_C=panel_C,Panel_D=panel_D))
 }
 
+
+#Total
 ctries=mydata$ISO3_Code %>% unique()
-severity=severity_summary_table(mydata,ctries,shocks)
+severity_all=get_severity_typology(mydata, ctries,shocks)
 
 
-severity_all=severity %>% ungroup() %>% group_by(shocks) %>% 
-  summarise_at(vars(probability:area),mean) %>% ungroup()%>%
-  mutate(probability=round(probability,2),
-         priority=round(priority,2),
-         persistence=round(persistence,2),
-         complexity=round(complexity,2),
-         probability_rank=round(probability_rank,2),
-         priority_rank=round(priority_rank,2),
-         persistence_rank=round(persistence_rank,2),
-         complexity_rank=round(complexity_rank,2),
-         area=round(area,2)) %>% arrange(shocks) %>% rename(crisis=shocks) %>%
-  dplyr::select(-c(probability_rank,priority_rank,persistence_rank,complexity_rank,area))
+footnote=c("RWTC (Remedy Worst Than Curse) crisis refer to particular severe events with high policy trade offs and
+           risky policy response, ETC (Easy To Control) refer to events with high probability and low priority denoting crisis with
+           no policy trade offs, ETPC (Easy To Prevent and Control) refer to events with low probability and low priority denoting crisis with
+           no policy trade offs and strong prevention capacity, TTID (This time Is Different) crisis refer to crisis for which the preparation
+           capacity is inversely related to its probability.")
 
-stargazer::stargazer(title="Severity:"
-                     , severity_all
-                     , type="latex"
-                     , digits=2
-                     , no.space=T
-                     , align=T
-                     , summary=F
-                     , rownames=F
-                     , table.placement = "H"
-                     , column.sep.width="3pt"
-                     , font.size = "footnotesize"
-                     , out=paste0(path_data_directory,"/output/figures/severity/Severity_summary.tex")
-)
+cat(footnote,file=paste0(path_data_directory,"/output/figures/Severity Typology/severity_typology_footnote.tex"))
 
-footnote=c("The table display the average cross countries for all severity dimensions for high income 
-countries. Probability denote the likelihood of occurence, priority the average proportion of the report 
-           allocated to each crisis, persistence the average duration and complexity the average correlation.")
+# High income
+ctries=ctry_groups %>% filter(Income_group==" High income" & !iso3c %in% c("ATG","BHS","BHR","BRB","BRN","KWT","MAC",
+                                                                           "MLT","OMN","PLW","PAN","PRI","QAT","SMR",
+                                                                           "SAU","SYC","SGP","KNA","TTO","ARE"))
+ctries=ctries$iso3c
 
-cat(footnote,file=paste0(path_data_directory,"/output/figures/Severity/severity_summary_footnote.tex"))
+severity_HighIncome=get_severity_typology(mydata, ctries,shocks)
+severity_HighIncome$Panel_B
+
+
+# Middle Income
+
+ctries=ctry_groups %>% filter(Income_group==" Upper middle income")
+ctries=ctries$iso3c
+severity_MiddleIncome=get_severity_typology(mydata, ctries,shocks)
+
+severity_MiddleIncome$Panel_B
+
+# Low Income
+
+
+ctries=ctry_groups %>% filter(Income_group %in% c(" Low income"," Lower middle income"))
+ctries=ctries$iso3c
+severity_LowIncome=get_severity_typology(mydata, ctries,shocks)
+
+severity_LowIncome$Panel_B
+
 
 
 #high income
@@ -414,45 +488,6 @@ excl= c("ATG","BHS","BHR","BRB","BRN","KWT","MAC","MLT","OMN","PLW","PAN","PRI",
 ctries=mydata %>% filter(year<1990 & !ISO3_Code %in% excl)
 ctries=mydata %>% filter(!ISO3_Code %in% excl)
 ctries=ctries$ISO3_Code %>% unique()
-
-
-
-
-top_events=function(severity,var,percentile=0.95,direction="higher",path=NULL){
-  
-  top_events=severity %>% ungroup() %>%
-    dplyr::select(ISO3_Code,crisis=shocks,var) %>% group_by(crisis) %>%
-    mutate(myvar=round(get(var),2),
-           perc_threshold=quantile(myvar,percentile)) %>%
-    arrange(-myvar)
-  
-  if(direction=="lower"){
-    top_events=top_events %>% filter(myvar<perc_threshold)
-  }else {
-    top_events=top_events %>% filter(myvar>perc_threshold)
-  }
-    
-  
-  top_events=top_events %>% group_by(crisis) %>% summarize(!!paste0("p",percentile,".threshold"):=unique(perc_threshold),
-                                                                     !!paste0("Countries with highest ",var):=paste(paste0(ISO3_Code,"(",myvar,")"),collapse=", "))
-   
-  
-  if(!is.null(path)){
-    stargazer::stargazer(title=paste0(var,": Tail countries")
-                         , top_events
-                         , type="latex"
-                         , digits=2
-                         , no.space=T
-                         , align=F
-                         , summary=F
-                         , rownames=F
-                         , table.placement = "H"
-                         , column.sep.width="0pt"
-                         , font.size = "footnotesize"
-                         , out=path)
-  }
-  return(top_events) 
-}
 
 top_events(severity %>% filter(ISO3_Code %in% ctries),"probability",path=paste0(path_data_directory,"/output/figures/severity/","probability","_worst_episodes.tex")) 
 top_events(severity %>% filter(ISO3_Code %in% ctries),"persistence",path=paste0(path_data_directory,"/output/figures/severity/","persistence","_worst_episodes.tex"))

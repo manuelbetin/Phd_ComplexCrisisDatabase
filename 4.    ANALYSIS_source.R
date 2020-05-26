@@ -22,6 +22,7 @@ devtools::install_github("manuelbetin/PICindex",auth_token="7502b84abd98de5cb4ce
 packages <- c("dplyr","ggplot2","plotly","pdftools","lubridate",'tictoc'
               ,"rio","tidytext","stringr","stringi","tidyr","network","GGally"
               ,"forcats", "TextMiningCrisis", "SetUpProject", "PICindex","gridExtra"
+              ,"ggrepel","igraph","gganimate","networkD3","tidyselect"
 )
 
 ## load common packages
@@ -44,6 +45,9 @@ shocks=c("Soft_recession","Sovereign_default","Natural_disaster",'Commodity_cris
          'Financial_crisis','Inflation_crisis','Trade_crisis','World_outcomes','Contagion',
          'Expectations','Balance_payment_crisis',"Epidemics","Migration","Housing_crisis",
          'Severe_recession',"Currency_crisis_severe","Wars","Social_crisis")
+
+
+source("4.0 ANALYSIS_functions.R")
 
 source("4.1. ANALYSIS_COMPARISON_timesserie_benchmark.R")
 
