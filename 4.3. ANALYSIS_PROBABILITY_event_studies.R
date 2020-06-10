@@ -148,7 +148,7 @@ ctry %>%
 footnote=c("Blue lines corresponds to the tf.idf index and measure the intensity of natural disasters in Japan and Sri Lanka. 
            Grey shaded highligh positive tf.idf corresponding to the occurence of a natural disasters. Japan has a long history
            of natural disaster due to its geographical situation among major recent event we observe the spike related to the 
-           Kobe earthquake and the Fukushima Tsunami and Nuclear consequences in 2011-2012. Sri Lanka shows a constant 
+           Kobe earthquake the 17th of january of 1995 and the Fukushima Tsunami and Nuclear consequences in 2011-2012. Sri Lanka shows a constant 
            vulnerability to natural disaster with an event happening almost every year since 1970. Among the largest events
            we fine the 2004 tsunami and the 2017 flood that severily hit the country. ")
 
@@ -235,5 +235,22 @@ var="Wars"
 ctry %>% 
   map(~ get_timeserie(mydata,.x,var))
 
+
+#housing 
+
+#kindleberger on housing bubble in 1988 and 1990.
+ctry=c("MEX")
+var=c("Commodity_crisis","Soft_recession","Balance_payment_crisis","Currency_crisis_severe",
+      "Severe_recession","Trade_crisis","Inflation_crisis","Financial_crisis","Expectations",
+      "Contagion","World_outcomes","Sovereign_default")
+
+figures=ctry %>% 
+  map(~ get_timeserie(mydata,.x,var))
+
+ctry=c("USA")
+var="Commodity_crisis"
+
+ctry %>% 
+  map(~ get_timeserie(mydata,.x,var))
 
 

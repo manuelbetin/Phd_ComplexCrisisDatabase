@@ -22,7 +22,7 @@ devtools::install_github("manuelbetin/PICindex",auth_token="7502b84abd98de5cb4ce
 packages <- c("dplyr","ggplot2","plotly","pdftools","lubridate",'tictoc'
               ,"rio","tidytext","stringr","stringi","tidyr","network","GGally"
               ,"forcats", "TextMiningCrisis", "SetUpProject", "PICindex","gridExtra"
-              ,"ggrepel","igraph","gganimate","networkD3","tidyselect"
+              ,"ggrepel","igraph","gganimate","networkD3","tidyselect","purrr"
 )
 
 ## load common packages

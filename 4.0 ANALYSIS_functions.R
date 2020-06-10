@@ -741,3 +741,45 @@ top_events=function(severity,var,percentile=0.95,direction="higher",path=NULL){
 }
 
 
+## 4.11 ANALYSIS_ARCHITECTURE
+
+get_architecture=function(mydata,shocks,ctries="MEX",start_year=1980,end_year=1983){
+  
+  crisis=colnames(mydata)[!colnames(mydata) %in% c("ISO3_Code","year","Period")]
+  typology=c("Sparks","Hotspots","Sparks","Paralyzers","Hotspots","Hotspots","Paralyzers","Spreaders","Paralyzers",
+             "Spreaders","Spreaders","Sparks","Spreaders","Sparks","Spreaders","Paralyzers","Paralyzers","Spreaders","Hotspots",
+             "Sparks","Sparks")
+  
+  Typology_crisis=cbind(crisis,typology)
+  Typology_crisis=data.frame(Typology_crisis)
+  
+  lowerbound=0
+  cond_mean=function(x){
+    mean(ifelse(x<lowerbound,NA,x),na.rm=T)
+  }
+  thresholds=mydata %>% dplyr::select(year,ISO3_Code,shocks) %>%
+    filter(year>=1945) %>% ungroup() %>%
+    group_by(ISO3_Code) %>%
+    summarise_at(vars(shocks),cond_mean) %>%
+    gather(key="shocks",value=value,-"ISO3_Code")%>% dplyr::rename(intensity=value) %>%
+    group_by(ISO3_Code) %>%
+    mutate(intensity=as.numeric(intensity),
+           priority=intensity/sum(intensity,na.rm=T)) %>% dplyr::select(-intensity)%>%
+    group_by(shocks) %>%
+    mutate(priority_rank=rank(priority)/max(rank(priority))) %>% ungroup() %>%
+    filter(priority_rank>0.2) %>% filter(priority_rank==min(priority_rank)) %>% dplyr::select(-c(ISO3_Code,priority_rank)) %>%
+    rename(threshold=priority,crisis=shocks)
+  
+  mydata %>% dplyr::select(year,Period,ISO3_Code,shocks) %>% filter(ISO3_Code %in% c(ctries,"USA") & year>=start_year & year <=end_year) %>%
+    gather(key="crisis","value",-c("ISO3_Code","year","Period")) %>%
+    group_by(ISO3_Code,year) %>%
+    mutate(value=value/sum(value,na.rm=T)) %>% ungroup() %>% left_join(x=thresholds,by=c("crisis")) %>%
+    filter(value>threshold) %>% arrange(Period) %>% 
+    group_by(ISO3_Code,crisis) %>%
+    summarize(Events=paste0(paste0(year,"(",round(value,2),")"),collapse=",")) %>% 
+    left_join(Typology_crisis,by=c("crisis")) %>%
+    group_by(ISO3_Code,typology) %>%
+    summarize(Events=paste0(paste0(crisis," (",Events,")"),collapse = ",")) %>% ungroup() %>%
+    mutate(typology=as.character(typology)) #%>% dplyr::select(-ISO3_Code)
+}
+

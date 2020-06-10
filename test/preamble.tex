@@ -1,0 +1,51 @@
+
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+\usepackage{lipsum}
+%\usepackage{fancyhdr}
+%\pagestyle{fancy}
+%\fancypagestyle{plain}
+
+\usepackage[usenames,dvipsnames]{xcolor}
+\definecolor{azure(colorwheel)}{rgb}{0.0, 0.5, 1.0}
+\definecolor{ultramarineblue}{rgb}{0.25, 0.4, 0.96}
+
+\usepackage{multicol}
+
+
+\usepackage{pdflscape}
+
+
+
+\usepackage[paper=portrait,pagesize]{typearea}
+\KOMAoptions{pagesize,  paper=landscape, paper=a4,pagesize,DIV=18,headinclude, footinclude}
+\recalctypearea
+%\usepackage[margin=1in, landscape]{geometry}
+\usepackage[export]{adjustbox}
+
+
+
+%\fancyhead{}
+%\renewcommand{\headrulewidth}{0pt}
+
+%\fancyhead[R]{
+ % \rule[-1.75\baselineskip]{0pt}{0pt}% Strut to ensure a 1/4 \baselineskip between image and header rule
+ % \includegraphics[height=3\baselineskip,valign=c]{OECDlogo.jpg}
+  %\quad% Space
+  % Housing Performance: `r params$ctry_name`
+%}
+
+%\fancyfoot[C]{\color{ultramarineblue}OECD Housing Horizontal Project 2021}
+%\fancyfoot[RE,RO]{ \thepage}
+
+\usepackage[headsepline]{scrlayer-scrpage}
+\pagestyle{scrheadings}
+
+
+
+\ifoot{}
+\cfoot{ \rule[-1.75\baselineskip]{0pt}{0pt}
+  \includegraphics[height=3\baselineskip,valign=c]{OECDlogo.jpg}
+  \quad% Space
+\scriptsize
+\color{ultramarineblue} Housing Horizontal Project 2021}
+\ofoot{}
