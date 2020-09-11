@@ -221,8 +221,10 @@ ctries=ctry_groups %>% filter(Income_group==" Upper middle income")
 ctries=ctries$iso3c
 severity_MiddleIncome=get_severity_typology(mydata, ctries,shocks)
 
+severity_MiddleIncome$Panel_A
 severity_MiddleIncome$Panel_B
-
+severity_MiddleIncome$Panel_C
+severity_MiddleIncome$Panel_D
 # Low Income
 
 
@@ -232,10 +234,7 @@ severity_LowIncome=get_severity_typology(mydata, ctries,shocks)
 
 severity_LowIncome$Panel_B
 
-
-
 #high income
-
 ctries=ctry_groups %>% filter(Income_group==" High income")
 ctries=ctries$iso3c
 severity_HighIncome=severity_all %>% filter(ISO3_Code %in% ctries) %>%

@@ -230,27 +230,21 @@ ctry %>%
 
 #Very high priority 
 ctry=c("USA")
-var="Wars"
+var="Contagion"
 
 ctry %>% 
   map(~ get_timeserie(mydata,.x,var))
 
-
-#housing 
-
-#kindleberger on housing bubble in 1988 and 1990.
-ctry=c("MEX")
-var=c("Commodity_crisis","Soft_recession","Balance_payment_crisis","Currency_crisis_severe",
+#selection for USA
+ctry=c("USA")
+var=c("Commodity_crisis","Soft_recession","Balance_payment_crisis",
       "Severe_recession","Trade_crisis","Inflation_crisis","Financial_crisis","Expectations",
-      "Contagion","World_outcomes","Sovereign_default")
+      "Banking_crisis","Contagion","World_outcomes")
 
 figures=ctry %>% 
-  map(~ get_timeserie(mydata,.x,var))
+  map(~ get_timeserie(mydata,.x,var,,path=paste0(path_data_directory,"/output/figures/Time series by country/",var)))
 
-ctry=c("USA")
-var="Commodity_crisis"
 
-ctry %>% 
-  map(~ get_timeserie(mydata,.x,var))
+
 
 
